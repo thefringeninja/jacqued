@@ -1,0 +1,11 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <Compile Include="Values.fs" />
+    <Compile Include="Messages.fs" />
+    <Compile Include="Services.fs" />
+    <Compile Include="Gym.fs" />
+    <Compile Include="Mesocycle.fs" />
+  </ItemGroup>
+
+</Project>

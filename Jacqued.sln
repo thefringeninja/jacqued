@@ -1,0 +1,65 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{2C2F29BD-C987-4E71-91D5-2EBD59F70DAE}"
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Jacqued", "src\Jacqued\Jacqued.fsproj", "{D6DDF835-DC36-46C7-B6E4-D41739DF0F13}"
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Jacqued.Android", "src\Jacqued.Android\Jacqued.Android.fsproj", "{75A8956C-0415-4B19-AC81-AB4F3E1C2247}"
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Jacqued.Desktop", "src\Jacqued.Desktop\Jacqued.Desktop.fsproj", "{ED284E9B-E0CA-4042-AEE1-439D080561DD}"
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Jacqued.Domain", "src\Jacqued.Domain\Jacqued.Domain.fsproj", "{68FC24FC-E1FA-44E0-9FFE-090528D41CC3}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SqlStreamStore.Extensions", "src\SqlStreamStore.Extensions\SqlStreamStore.Extensions.csproj", "{E8D9F3F1-82E4-47AF-A1A0-26B023789EEF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SqlStreamStore.Sqlite", "src\SqlStreamStore\src\SqlStreamStore.Sqlite\SqlStreamStore.Sqlite.csproj", "{542F3DA4-40E3-431C-ABDC-75B81FD2661D}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SqlStreamStore", "SqlStreamStore", "{E9D2E406-9E7E-4099-8EA1-1B6D0F2E42A2}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{D6DDF835-DC36-46C7-B6E4-D41739DF0F13}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D6DDF835-DC36-46C7-B6E4-D41739DF0F13}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D6DDF835-DC36-46C7-B6E4-D41739DF0F13}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D6DDF835-DC36-46C7-B6E4-D41739DF0F13}.Release|Any CPU.Build.0 = Release|Any CPU
+		{75A8956C-0415-4B19-AC81-AB4F3E1C2247}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{75A8956C-0415-4B19-AC81-AB4F3E1C2247}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{75A8956C-0415-4B19-AC81-AB4F3E1C2247}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{75A8956C-0415-4B19-AC81-AB4F3E1C2247}.Release|Any CPU.Build.0 = Release|Any CPU
+		{ED284E9B-E0CA-4042-AEE1-439D080561DD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{ED284E9B-E0CA-4042-AEE1-439D080561DD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{ED284E9B-E0CA-4042-AEE1-439D080561DD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{ED284E9B-E0CA-4042-AEE1-439D080561DD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{68FC24FC-E1FA-44E0-9FFE-090528D41CC3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{68FC24FC-E1FA-44E0-9FFE-090528D41CC3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{68FC24FC-E1FA-44E0-9FFE-090528D41CC3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{68FC24FC-E1FA-44E0-9FFE-090528D41CC3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E8D9F3F1-82E4-47AF-A1A0-26B023789EEF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E8D9F3F1-82E4-47AF-A1A0-26B023789EEF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E8D9F3F1-82E4-47AF-A1A0-26B023789EEF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E8D9F3F1-82E4-47AF-A1A0-26B023789EEF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{542F3DA4-40E3-431C-ABDC-75B81FD2661D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{542F3DA4-40E3-431C-ABDC-75B81FD2661D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{542F3DA4-40E3-431C-ABDC-75B81FD2661D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{542F3DA4-40E3-431C-ABDC-75B81FD2661D}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{D6DDF835-DC36-46C7-B6E4-D41739DF0F13} = {2C2F29BD-C987-4E71-91D5-2EBD59F70DAE}
+		{75A8956C-0415-4B19-AC81-AB4F3E1C2247} = {2C2F29BD-C987-4E71-91D5-2EBD59F70DAE}
+		{ED284E9B-E0CA-4042-AEE1-439D080561DD} = {2C2F29BD-C987-4E71-91D5-2EBD59F70DAE}
+		{68FC24FC-E1FA-44E0-9FFE-090528D41CC3} = {2C2F29BD-C987-4E71-91D5-2EBD59F70DAE}
+		{E9D2E406-9E7E-4099-8EA1-1B6D0F2E42A2} = {2C2F29BD-C987-4E71-91D5-2EBD59F70DAE}
+		{E8D9F3F1-82E4-47AF-A1A0-26B023789EEF} = {E9D2E406-9E7E-4099-8EA1-1B6D0F2E42A2}
+		{542F3DA4-40E3-431C-ABDC-75B81FD2661D} = {E9D2E406-9E7E-4099-8EA1-1B6D0F2E42A2}
+	EndGlobalSection
+EndGlobal

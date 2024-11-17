@@ -1,0 +1,40 @@
+﻿on:
+  push:
+    tags:
+      - v*
+
+jobs:
+  publish-android:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: setup dotnet
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+      - name: setup jdk
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+      - name: setup android
+        uses: android-actions/setup-android@v3
+      - name: checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          submodules: true
+      - name: restore workloads
+        run: dotnet workload restore src/Jacqued.Android
+      - name: restore packages 
+        run: dotnet restore src/Jacqued.Android
+      - name: build
+        run: dotnet publish src/Jacqued.Android 
+      - name: release
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          draft: true
+          fail_on_unmatched_files: false
+          files: |
+            **/*.apk
