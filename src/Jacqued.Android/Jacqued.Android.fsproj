@@ -1,0 +1,42 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<OutputType>Exe</OutputType>
+		<TargetFramework>net8.0-android</TargetFramework>
+		<ApplicationId>com.jacquedfivethreeone</ApplicationId>
+		<ApplicationVersion>1</ApplicationVersion>
+		<ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
+		<AndroidPackageFormat>apk</AndroidPackageFormat>
+		<AndroidEnableProfiledAot>false</AndroidEnableProfiledAot>
+		<SupportedOSPlatformVersion>21</SupportedOSPlatformVersion>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)'=='Release'">
+		<PublishTrimmed>True</PublishTrimmed>
+		<RunAOTCompilation>True</RunAOTCompilation>
+		<AndroidEnableProfiledAot>true</AndroidEnableProfiledAot>
+		<!-- https://github.com/dotnet/runtime/issues/79910 -->
+		<EnableLLVM>False</EnableLLVM>
+		<AndroidLinkTool>r8</AndroidLinkTool>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<None Include="Properties/**" />
+		<AndroidResource Include="Resources/**/*" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<Compile Include="MainActivity.fs" />
+	</ItemGroup>
+	
+	<ItemGroup>
+		<PackageReference Include="Avalonia.Android" Version="$(AvaloniaVersion)"/>
+		<PackageReference Include="Xamarin.AndroidX.Core.SplashScreen" Version="1.0.1.1"/>
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="../Jacqued/Jacqued.fsproj"/>
+		<ProjectReference Include="../SqlStreamStore/src/SqlStreamStore.Sqlite/SqlStreamStore.Sqlite.csproj" />
+	</ItemGroup>
+
+</Project>

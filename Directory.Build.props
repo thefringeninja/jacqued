@@ -1,0 +1,16 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+	<PropertyGroup>
+		<TargetFramework>net8.0</TargetFramework>
+		<Nullable>enable</Nullable>
+		<NullableContextOptions>enable</NullableContextOptions>
+		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<LangVersion>latest</LangVersion>
+		<RootNamespace>Jacqued</RootNamespace>
+		<AvaloniaVersion>11.2.1</AvaloniaVersion>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<Watch Include="**/*.fs"/>
+	</ItemGroup>
+</Project>

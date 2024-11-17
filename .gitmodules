@@ -1,0 +1,3 @@
+[submodule "src/SqlStreamStore"]
+	path = src/SqlStreamStore
+	url = git@github.com:SQLStreamStore/SQLStreamStore.git
