@@ -1,5 +1,6 @@
 ﻿namespace Jacqued
 
+open Avalonia.Controls
 open Avalonia.FuncUI.DSL
 open Avalonia.FuncUI.Helpers
 open AvaloniaDialogs.Views
@@ -79,12 +80,12 @@ module Shell =
         state', cmd
 
     let view state dispatch =
-        ReactiveDialogHost.create
-            [ ReactiveDialogHost.content (
-                  match state.Workout.Gym with
-                  | Some _ -> Workout.view state.Workout dispatch |> generalize
-                  | None -> Setup.view state.Setup dispatch
-              ) ]
+        let view =
+            (match state.Workout.Gym with
+             | Some _ -> Workout.view state.Workout dispatch |> generalize
+             | None -> Setup.view state.Setup dispatch)
+
+        ReactiveDialogHost.create [ ReactiveDialogHost.content (Panel.create [ Panel.margin 16; Panel.children [ view ] ]) ]
 
     let init store () =
         let events =
