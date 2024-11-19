@@ -20,7 +20,7 @@ open SqlStreamStore
 type MainActivity() as this =
     inherit AvaloniaMainActivity()
 
-    [<DefaultValue>]
+    [<DefaultValue(false)>]
     val mutable streamStore: IStreamStore
 
     do this.streamStore <- MainActivity.createStreamStore Android.App.Application.Context
