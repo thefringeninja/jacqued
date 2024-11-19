@@ -130,6 +130,7 @@ let update (msg: Msg) (state: State) (handler: Command -> Result<Event list, exn
                 State.Lifts.StartingAt = None
                 State.Waves = state.Waves |> Map.add e.WorkoutPlan.Exercise Wave.One
                 State.WorkoutPlans = state.WorkoutPlans |> Map.add e.MesocycleId e.WorkoutPlan
+                State.SuggestedOneRepMaxes = state.SuggestedOneRepMaxes |> Map.add e.WorkoutPlan.Exercise e.OneRepMax
                 State.Progress.Current =
                     state.Progress.Current
                     |> Map.add e.WorkoutPlan.Exercise (e.OneRepMax, e.StartedAt) },
@@ -425,14 +426,18 @@ let warmup state _ =
 let view state dispatch =
     TabControl.create
         [ TabControl.viewItems
-              [ (TabItem.create [ TabItem.header "Warmup"; TabItem.content (warmup state dispatch) ])
-                (TabItem.create
-                    [ TabItem.header "Workout"
-                      TabItem.content (
-                          match state.Screen with
-                          | StartMesocycle -> startMesocycle state dispatch
-                          | WorkingOut -> currentWorkout state dispatch
-                      ) ])
-                (TabItem.create
-                    [ TabItem.header "Progress"
-                      TabItem.content (progress state.Progress dispatch) ]) ] ]
+              [
+                if state.Screen = WorkingOut then
+                    yield (TabItem.create [ TabItem.header "Warmup"; TabItem.content (warmup state dispatch) ])
+                yield
+                    (TabItem.create
+                        [ TabItem.header "Workout"
+                          TabItem.content (
+                              match state.Screen with
+                              | StartMesocycle -> startMesocycle state dispatch
+                              | WorkingOut -> currentWorkout state dispatch
+                          ) ])
+                yield
+                    (TabItem.create
+                        [ TabItem.header "Progress"
+                          TabItem.content (progress state.Progress dispatch) ]) ] ]
