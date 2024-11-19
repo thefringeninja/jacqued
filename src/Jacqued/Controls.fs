@@ -29,6 +29,9 @@ let floatingLayout buttons content =
                       DockPanel.lastChildFill false
                       DockPanel.children [ StackPanel.create [ DockPanel.dock Dock.Right; StackPanel.children buttons ] ] ] ] ]
 
+type NavigationButton() =
+    inherit ContentControl()
+
 [<AutoOpen>]
 module ComboBox =
     type ComboBox with
@@ -55,6 +58,42 @@ module MaterialIcon =
         static member kind<'t when 't :> MaterialIcon>(value: MaterialIconKind) : IAttr<'t> =
             AttrBuilder<'t>
                 .CreateProperty<MaterialIconKind>(MaterialIcon.KindProperty, value, ValueNone)
+
+[<AutoOpen>]
+module NavigationButton =
+    open Material.Icons
+    open Material.Icons.Avalonia
+
+    let create (attrs: IAttr<NavigationButton> list) : IView<NavigationButton> =
+        ViewBuilder.Create<NavigationButton>(attrs)
+
+    type NavigationButton with
+        static member content<'t when 't :> NavigationButton>(iconKind: MaterialIconKind, ?text: string) : IAttr<'t> =
+            NavigationButton.content (
+                StackPanel.create
+                    [ StackPanel.orientation Orientation.Vertical
+                      StackPanel.margin (0, 12, 0, 16)
+                      StackPanel.children
+                          [ yield
+                                Viewbox.create
+                                    [ Viewbox.stretch Stretch.Fill
+                                      Viewbox.width 24
+                                      Viewbox.horizontalAlignment HorizontalAlignment.Stretch
+                                      Viewbox.verticalAlignment VerticalAlignment.Stretch
+                                      Viewbox.child (
+                                          MaterialIcon.create [ MaterialIcon.kind iconKind; MaterialIcon.width 24; MaterialIcon.height 24 ]
+                                      ) ]
+                                |> generalize
+
+                            match text with
+                            | Some text ->
+                                yield
+                                    TextBlock.create
+                                        [ TextBlock.text text
+                                          TextBlock.verticalAlignment VerticalAlignment.Center
+                                          TextBlock.classes [ "Subtitle2" ] ]
+                            | _ -> () ] ]
+            )
 
 [<AutoOpen>]
 module FloatingButton =

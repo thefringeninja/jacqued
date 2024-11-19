@@ -9,11 +9,6 @@ open Avalonia.Controls
 open Avalonia.FuncUI.DSL
 open Avalonia.FuncUI.Helpers
 open Avalonia.Layout
-open LiveChartsCore
-open LiveChartsCore.Defaults
-open LiveChartsCore.Measure
-open LiveChartsCore.SkiaSharpView
-open LiveChartsCore.SkiaSharpView.Avalonia
 open Material.Colors.Recommended
 open Material.Icons
 open Material.Styles.Controls
@@ -61,7 +56,6 @@ type State =
       Waves: Map<Exercise, Wave>
       SuggestedOneRepMaxes: Map<Exercise, Weight>
       WorkoutPlans: WorkoutPlans
-      Progress: Progress
       Screen: Screen }
 
     static member zero =
@@ -70,7 +64,6 @@ type State =
           Screen = Screen.StartMesocycle
           Waves = Exercise.all |> List.map (fun exercise -> (exercise, Wave.One)) |> Map.ofList
           SuggestedOneRepMaxes = Map.empty
-          Progress = Progress.zero
           WorkoutPlans = Map.empty }
 
 let plateColors =
@@ -130,10 +123,7 @@ let update (msg: Msg) (state: State) (handler: Command -> Result<Event list, exn
                 State.Lifts.StartingAt = None
                 State.Waves = state.Waves |> Map.add e.WorkoutPlan.Exercise Wave.One
                 State.WorkoutPlans = state.WorkoutPlans |> Map.add e.MesocycleId e.WorkoutPlan
-                State.SuggestedOneRepMaxes = state.SuggestedOneRepMaxes |> Map.add e.WorkoutPlan.Exercise e.OneRepMax
-                State.Progress.Current =
-                    state.Progress.Current
-                    |> Map.add e.WorkoutPlan.Exercise (e.OneRepMax, e.StartedAt) },
+                State.SuggestedOneRepMaxes = state.SuggestedOneRepMaxes |> Map.add e.WorkoutPlan.Exercise e.OneRepMax },
             List.empty |> Ok
         | RepSetCompleted e ->
 
@@ -154,7 +144,6 @@ let update (msg: Msg) (state: State) (handler: Command -> Result<Event list, exn
                 List.empty |> Ok
         | MesocycleFailed e ->
             let nextExercise, screen = next
-            let dataPoint = exerciseDataPoint e.Exercise state.Progress false
 
             { state with
                 State.Screen = screen
@@ -163,24 +152,12 @@ let update (msg: Msg) (state: State) (handler: Command -> Result<Event list, exn
                 State.Lifts.RepSet = RepSet.One
                 State.SuggestedOneRepMaxes = state.SuggestedOneRepMaxes |> Map.add e.Exercise e.SuggestedOneRepMax
                 State.Waves = state.Waves |> Map.add e.Exercise Wave.One
-                State.WorkoutPlans = state.WorkoutPlans |> Map.remove e.MesocycleId
-                State.Progress.History =
-                    state.Progress.History
-                    |> Map.change e.Exercise (function
-                        | Some history -> history |> Array.append [| dataPoint |] |> Some
-                        | None -> [| dataPoint |] |> Some) },
+                State.WorkoutPlans = state.WorkoutPlans |> Map.remove e.MesocycleId },
             List.empty |> Ok
         | MesocycleCompleted e ->
-            let dataPoint = exerciseDataPoint e.Exercise state.Progress true
-
             { state with
                 State.SuggestedOneRepMaxes = state.SuggestedOneRepMaxes |> Map.add e.Exercise e.SuggestedOneRepMax
-                State.WorkoutPlans = state.WorkoutPlans |> Map.remove e.MesocycleId
-                State.Progress.History =
-                    state.Progress.History
-                    |> Map.change e.Exercise (function
-                        | Some history -> history |> Array.append [| dataPoint |] |> Some
-                        | None -> [| dataPoint |] |> Some) },
+                State.WorkoutPlans = state.WorkoutPlans |> Map.remove e.MesocycleId },
             List.empty |> Ok
     | OneRepMaxChanged oneRepMax ->
         { state with
@@ -362,7 +339,7 @@ let currentWorkout (state: State) dispatch =
                   [ TextBlock.create [ TextBlock.classes [ "Headline6" ]; TextBlock.text $"{state.Lifts.Exercise}" ]
                     TextBlock.create
                         [ TextBlock.classes [ "Subtitle1" ]
-                          TextBlock.text $"Wave {state.Lifts.Wave}, Rep {state.Lifts.RepSet}" ]
+                          TextBlock.text $"Wave {state.Lifts.Wave}, Set {state.Lifts.RepSet}" ]
                     TextBlock.create [ TextBlock.classes [ "Subtitle2" ]; TextBlock.text $"Weight: {weight}" ]
                     TextBlock.create [ TextBlock.classes [ "Subtitle2" ]; TextBlock.text $"Reps: {reps}" ]
                     platePairVisualization platePairs units ] ]
@@ -378,23 +355,6 @@ let currentWorkout (state: State) dispatch =
               FloatingButton.onClick (onFailRepSetClick, SubPatchOptions.OnChangeOf(state.Lifts)) ]
 
     floatingLayout [ failRepSet; completeRepSet ] content
-
-let progress state _ =
-    let series (exercise, history) : ISeries =
-        let columnSeries = LineSeries<DateTimePoint>()
-        columnSeries.Name <- exercise.ToString()
-        columnSeries.Fill <- null
-
-        columnSeries.Values <-
-            history
-            |> Array.map (fun (weight: Weight, passed, date) -> DateTimePoint(date, weight.Value |> float))
-
-        columnSeries
-
-    CartesianChart.create
-        [ CartesianChart.series (state.History |> Map.toArray |> Array.map series)
-          CartesianChart.legendPosition LegendPosition.Top
-          CartesianChart.xaxes [ DateTimeAxis(TimeSpan.FromDays(1), (fun d -> d.ToString("M"))) ] ]
 
 let warmup state _ =
     StackPanel.create
@@ -436,8 +396,4 @@ let view state dispatch =
                               match state.Screen with
                               | StartMesocycle -> startMesocycle state dispatch
                               | WorkingOut -> currentWorkout state dispatch
-                          ) ])
-                yield
-                    (TabItem.create
-                        [ TabItem.header "Progress"
-                          TabItem.content (progress state.Progress dispatch) ]) ] ]
+                          ) ]) ] ]

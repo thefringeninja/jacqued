@@ -34,6 +34,7 @@
 		<Compile Include="Dialogs.fs" />
 		<Compile Include="Messages.fs" />
 		<Compile Include="Setup.fs" />
+		<Compile Include="Progress.fs" />
 		<Compile Include="Workout.fs" />
 		<Compile Include="Shell.fs" />
 		<Compile Include="App.fs" />

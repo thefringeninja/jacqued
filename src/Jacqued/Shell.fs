@@ -2,11 +2,11 @@
 
 open Avalonia.Controls
 open Avalonia.FuncUI.DSL
-open Avalonia.FuncUI.Helpers
 open AvaloniaDialogs.Views
 open Elmish
 open Jacqued.CommandHandlers
 open Jacqued.Controls
+open Material.Icons
 open SqlStreamStore
 
 module Shell =
@@ -18,12 +18,14 @@ module Shell =
     type State =
         { Setup: Setup.State
           Workout: Workout.State
+          Progress: Progress.State
           Screen: Screen
           Dialog: string option }
 
         static member zero =
             { Setup = Setup.State.zero
               Workout = Workout.State.zero
+              Progress = Progress.State.zero
               Screen = Setup
               Dialog = None }
 
@@ -80,12 +82,31 @@ module Shell =
         state', cmd
 
     let view state dispatch =
-        let view =
-            (match state.Workout.Gym with
-             | Some _ -> Workout.view state.Workout dispatch |> generalize
-             | None -> Setup.view state.Setup dispatch)
+        let tabs =
+            TabControl.create
+                [ TabControl.tabStripPlacement Dock.Bottom
+                  TabControl.viewItems
+                      [ if state.Workout.Gym.IsSome then
+                            yield
+                                TabItem.create
+                                    [ TabItem.header (
+                                          NavigationButton.create [ NavigationButton.content (MaterialIconKind.Barbell, "Workout") ]
+                                      )
+                                      TabItem.content (Workout.view state.Workout dispatch) ]
 
-        ReactiveDialogHost.create [ ReactiveDialogHost.content (Panel.create [ Panel.margin 16; Panel.children [ view ] ]) ]
+                            yield
+                                TabItem.create
+                                    [ TabItem.header (
+                                          NavigationButton.create [ NavigationButton.content (MaterialIconKind.Graph, "Progress") ]
+                                      )
+                                      TabItem.content (Progress.view state.Progress dispatch) ]
+
+                        yield
+                            TabItem.create
+                                [ TabItem.header (NavigationButton.create [ NavigationButton.content (MaterialIconKind.Cog, "Setup") ])
+                                  TabItem.content (Setup.view state.Setup dispatch) ] ] ]
+
+        ReactiveDialogHost.create [ ReactiveDialogHost.content (Panel.create [ Panel.margin 16; Panel.children [ tabs ] ]) ]
 
     let init store () =
         let events =
