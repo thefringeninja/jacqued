@@ -47,7 +47,6 @@ let update (msg: Msg) (state: State) : State =
                     |> Map.change e.Exercise (function
                         | Some history -> history |> Array.append [| dataPoint |] |> Some
                         | None -> [| dataPoint |] |> Some) }
-            
 
         | _ -> state
     | _ -> state
@@ -64,7 +63,8 @@ let view state _ =
 
         columnSeries
 
-    CartesianChart.create
-        [ CartesianChart.series (state.History |> Map.toArray |> Array.map series)
-          CartesianChart.legendPosition LegendPosition.Top
-          CartesianChart.xaxes [ DateTimeAxis(TimeSpan.FromDays(1), (fun d -> d.ToString("M"))) ] ]
+    CartesianChart.create [
+        CartesianChart.series (state.History |> Map.toArray |> Array.map series)
+        CartesianChart.legendPosition LegendPosition.Top
+        CartesianChart.xaxes [ DateTimeAxis(TimeSpan.FromDays(1), (fun d -> d.ToString("M"))) ]
+    ]

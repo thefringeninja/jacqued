@@ -10,7 +10,6 @@ open Avalonia.Controls
 open Avalonia.FuncUI.DSL
 open Avalonia.FuncUI.Helpers
 open Avalonia.Layout
-open Material.Colors.Recommended
 open Material.Icons
 open Material.Styles.Controls
 
@@ -213,28 +212,33 @@ let startMesocycle state dispatch =
     let oneRepMax = currentOneRepMax state
 
     let content =
-        StackPanel.create
-            [ StackPanel.orientation Orientation.Vertical
-              StackPanel.children
-                  [ TextBlock.create [ TextBlock.classes [ "Headline6" ]; TextBlock.text $"{state.Lifts.Exercise}" ]
-                    DatePicker.create
-                        [ DatePicker.selectedDate (
-                              match state.Lifts.StartingAt with
-                              | Some startingAt -> startingAt
-                              | _ -> DateTime.Today
-                          )
-                          DatePicker.horizontalAlignment HorizontalAlignment.Stretch
-                          DatePicker.onSelectedDateChanged onStartDateChange ]
-                    TextBox.create
-                        [ TextBox.label "One rep max"
-                          TextBox.contentType TextInputContentType.Number
-                          TextBox.text $"{oneRepMax}"
-                          TextBox.onTextChanged onOneRepMaxChange ] ] ]
+        StackPanel.create [
+            StackPanel.orientation Orientation.Vertical
+            StackPanel.children [
+                TextBlock.create [ TextBlock.classes [ "Headline6" ]; TextBlock.text $"{state.Lifts.Exercise}" ]
+                DatePicker.create [
+                    DatePicker.selectedDate (
+                        match state.Lifts.StartingAt with
+                        | Some startingAt -> startingAt
+                        | _ -> DateTime.Today
+                    )
+                    DatePicker.horizontalAlignment HorizontalAlignment.Stretch
+                    DatePicker.onSelectedDateChanged onStartDateChange
+                ]
+                TextBox.create [
+                    TextBox.label "One rep max"
+                    TextBox.contentType TextInputContentType.Number
+                    TextBox.text $"{oneRepMax}"
+                    TextBox.onTextChanged onOneRepMaxChange
+                ]
+            ]
+        ]
 
     let startMesocycle =
-        FloatingButton.create
-            [ FloatingButton.content MaterialIconKind.Check
-              FloatingButton.onClick (onStartMesocycle oneRepMax, SubPatchOptions.OnChangeOf state.Lifts) ]
+        FloatingButton.create [
+            FloatingButton.content MaterialIconKind.Check
+            FloatingButton.onClick (onStartMesocycle oneRepMax, SubPatchOptions.OnChangeOf state.Lifts)
+        ]
 
     floatingLayout [ startMesocycle ] content
 
@@ -276,69 +280,80 @@ let currentWorkout (state: State) dispatch =
     let weight = (platePairs |> List.sumBy (_.Weight)) + bar.Weight
 
     let content =
-        StackPanel.create
-            [ StackPanel.orientation Orientation.Vertical
-              StackPanel.children
-                  [ TextBlock.create [ TextBlock.classes [ "Headline6" ]; TextBlock.text $"{state.Lifts.Exercise}" ]
-                    TextBlock.create
-                        [ TextBlock.classes [ "Subtitle1" ]
-                          TextBlock.text $"Wave {state.Lifts.Wave}, Set {state.Lifts.RepSet}" ]
-                    TextBlock.create [ TextBlock.classes [ "Subtitle2" ]; TextBlock.text $"Weight: {weight}" ]
-                    TextBlock.create [ TextBlock.classes [ "Subtitle2" ]; TextBlock.text $"Reps: {reps}" ]
-                    PlatePairs.control(colorMap, platePairs, units) ] ]
+        StackPanel.create [
+            StackPanel.orientation Orientation.Vertical
+            StackPanel.children [
+                TextBlock.create [ TextBlock.classes [ "Headline6" ]; TextBlock.text $"{state.Lifts.Exercise}" ]
+                TextBlock.create [
+                    TextBlock.classes [ "Subtitle1" ]
+                    TextBlock.text $"Wave {state.Lifts.Wave}, Set {state.Lifts.RepSet}"
+                ]
+                TextBlock.create [ TextBlock.classes [ "Subtitle2" ]; TextBlock.text $"Weight: {weight}" ]
+                TextBlock.create [ TextBlock.classes [ "Subtitle2" ]; TextBlock.text $"Reps: {reps}" ]
+                PlatePairs.control (colorMap, platePairs, units)
+            ]
+        ]
 
     let completeRepSet =
-        FloatingButton.create
-            [ FloatingButton.content MaterialIconKind.Barbell
-              FloatingButton.onClick (onCompleteRepSetClick, SubPatchOptions.OnChangeOf(state.Lifts)) ]
+        FloatingButton.create [
+            FloatingButton.content MaterialIconKind.Barbell
+            FloatingButton.onClick (onCompleteRepSetClick, SubPatchOptions.OnChangeOf(state.Lifts))
+        ]
 
     let failRepSet =
-        FloatingButton.create
-            [ FloatingButton.content MaterialIconKind.CancelCircle
-              FloatingButton.onClick (onFailRepSetClick, SubPatchOptions.OnChangeOf(state.Lifts)) ]
+        FloatingButton.create [
+            FloatingButton.content MaterialIconKind.CancelCircle
+            FloatingButton.onClick (onFailRepSetClick, SubPatchOptions.OnChangeOf(state.Lifts))
+        ]
 
     floatingLayout [ failRepSet; completeRepSet ] content
 
 let warmup state _ =
-    StackPanel.create
-        [ StackPanel.orientation Orientation.Vertical
-          StackPanel.children
-              [ yield TextBlock.create [ TextBlock.classes [ "Headline6" ]; TextBlock.text $"{state.Lifts.Exercise}" ]
-                yield!
-                    RepSet.all
-                    |> List.map (fun repSet ->
-                        let platePairs, bar, reps, units, colorMap =
-                            match state.Gym with
-                            | Some gym ->
-                                let oneRepMax = currentOneRepMax state
+    StackPanel.create [
+        StackPanel.orientation Orientation.Vertical
+        StackPanel.children [
+            yield TextBlock.create [ TextBlock.classes [ "Headline6" ]; TextBlock.text $"{state.Lifts.Exercise}" ]
+            yield!
+                RepSet.all
+                |> List.map (fun repSet ->
+                    let platePairs, bar, reps, units, colorMap =
+                        match state.Gym with
+                        | Some gym ->
+                            let oneRepMax = currentOneRepMax state
 
-                                let weight, reps = Calculate.warmupSet repSet oneRepMax
+                            let weight, reps = Calculate.warmupSet repSet oneRepMax
 
-                                (Calculate.plates gym.Bar gym.PlatePairs weight), gym.Bar, reps, gym.MeasurementSystem, gym.PlatePairColors
-                            | _ -> ([], Bar.Of(Weight.zero), 0u, Metric, Map.empty)
+                            (Calculate.plates gym.Bar gym.PlatePairs weight), gym.Bar, reps, gym.MeasurementSystem, gym.PlatePairColors
+                        | _ -> ([], Bar.Of(Weight.zero), 0u, Metric, Map.empty)
 
-                        let weight = (platePairs |> List.sumBy (_.Weight)) + bar.Weight
+                    let weight = (platePairs |> List.sumBy (_.Weight)) + bar.Weight
 
-                        StackPanel.create
-                            [ StackPanel.orientation Orientation.Vertical
-                              StackPanel.children
-                                  [ TextBlock.create [ TextBlock.classes [ "Subtitle2" ]; TextBlock.text $"Weight: {weight}" ]
-                                    TextBlock.create [ TextBlock.classes [ "Subtitle2" ]; TextBlock.text $"Reps: {reps}" ]
-                                    PlatePairs.control (colorMap, platePairs, units) ] ])
-                    |> List.map generalize
+                    StackPanel.create [
+                        StackPanel.orientation Orientation.Vertical
+                        StackPanel.children [
+                            TextBlock.create [ TextBlock.classes [ "Subtitle2" ]; TextBlock.text $"Weight: {weight}" ]
+                            TextBlock.create [ TextBlock.classes [ "Subtitle2" ]; TextBlock.text $"Reps: {reps}" ]
+                            PlatePairs.control (colorMap, platePairs, units)
+                        ]
+                    ])
+                |> List.map generalize
 
-                ] ]
+        ]
+    ]
 
 let view state dispatch =
-    TabControl.create
-        [ TabControl.viewItems
-              [ if state.Screen = WorkingOut then
-                    yield (TabItem.create [ TabItem.header "Warmup"; TabItem.content (warmup state dispatch) ])
-                yield
-                    (TabItem.create
-                        [ TabItem.header "Workout"
-                          TabItem.content (
-                              match state.Screen with
-                              | StartMesocycle -> startMesocycle state dispatch
-                              | WorkingOut -> currentWorkout state dispatch
-                          ) ]) ] ]
+    TabControl.create [
+        TabControl.viewItems [
+            if state.Screen = WorkingOut then
+                yield (TabItem.create [ TabItem.header "Warmup"; TabItem.content (warmup state dispatch) ])
+            yield
+                (TabItem.create [
+                    TabItem.header "Workout"
+                    TabItem.content (
+                        match state.Screen with
+                        | StartMesocycle -> startMesocycle state dispatch
+                        | WorkingOut -> currentWorkout state dispatch
+                    )
+                ])
+        ]
+    ]

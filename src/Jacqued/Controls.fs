@@ -1,6 +1,5 @@
 ﻿module Jacqued.Controls
 
-open Avalonia
 open Avalonia.Controls
 open Avalonia.FuncUI.Builder
 open Avalonia.FuncUI.DSL
@@ -21,18 +20,20 @@ let floatingLayout buttons content =
 
     let buttons = buttons |> List.map margin5
 
-    Grid.create
-        [ Grid.rowDefinitions (RowDefinitions "*,Auto")
-          Grid.children
-              [ Panel.create [ Grid.row 0; Grid.rowSpan 2; Panel.children [ content ] ]
-                DockPanel.create
-                    [ Grid.row 1
-                      DockPanel.lastChildFill false
-                      DockPanel.children [ StackPanel.create [ DockPanel.dock Dock.Right; StackPanel.children buttons ] ] ] ] ]
+    Grid.create [
+        Grid.rowDefinitions (RowDefinitions "*,Auto")
+        Grid.children [
+            Panel.create [ Grid.row 0; Grid.rowSpan 2; Panel.children [ content ] ]
+            DockPanel.create [
+                Grid.row 1
+                DockPanel.lastChildFill false
+                DockPanel.children [ StackPanel.create [ DockPanel.dock Dock.Right; StackPanel.children buttons ] ]
+            ]
+        ]
+    ]
 
 type NavigationButton() =
     inherit ContentControl()
-
 
 [<AutoOpen>]
 module ComboBox =
@@ -60,7 +61,7 @@ module MaterialIcon =
         static member kind<'t when 't :> MaterialIcon>(value: MaterialIconKind) : IAttr<'t> =
             AttrBuilder<'t>
                 .CreateProperty<MaterialIconKind>(MaterialIcon.KindProperty, value, ValueNone)
-    
+
 [<AutoOpen>]
 module NavigationButton =
     open Material.Icons
@@ -72,29 +73,33 @@ module NavigationButton =
     type NavigationButton with
         static member content<'t when 't :> NavigationButton>(iconKind: MaterialIconKind, ?text: string) : IAttr<'t> =
             NavigationButton.content (
-                StackPanel.create
-                    [ StackPanel.orientation Orientation.Vertical
-                      StackPanel.margin (0, 12, 0, 16)
-                      StackPanel.children
-                          [ yield
-                                Viewbox.create
-                                    [ Viewbox.stretch Stretch.Fill
-                                      Viewbox.width 24
-                                      Viewbox.horizontalAlignment HorizontalAlignment.Stretch
-                                      Viewbox.verticalAlignment VerticalAlignment.Stretch
-                                      Viewbox.child (
-                                          MaterialIcon.create [ MaterialIcon.kind iconKind; MaterialIcon.width 24; MaterialIcon.height 24 ]
-                                      ) ]
-                                |> generalize
+                StackPanel.create [
+                    StackPanel.orientation Orientation.Vertical
+                    StackPanel.margin (0, 12, 0, 16)
+                    StackPanel.children [
+                        yield
+                            Viewbox.create [
+                                Viewbox.stretch Stretch.Fill
+                                Viewbox.width 24
+                                Viewbox.horizontalAlignment HorizontalAlignment.Stretch
+                                Viewbox.verticalAlignment VerticalAlignment.Stretch
+                                Viewbox.child (
+                                    MaterialIcon.create [ MaterialIcon.kind iconKind; MaterialIcon.width 24; MaterialIcon.height 24 ]
+                                )
+                            ]
+                            |> generalize
 
-                            match text with
-                            | Some text ->
-                                yield
-                                    TextBlock.create
-                                        [ TextBlock.text text
-                                          TextBlock.verticalAlignment VerticalAlignment.Center
-                                          TextBlock.classes [ "Subtitle2" ] ]
-                            | _ -> () ] ]
+                        match text with
+                        | Some text ->
+                            yield
+                                TextBlock.create [
+                                    TextBlock.text text
+                                    TextBlock.verticalAlignment VerticalAlignment.Center
+                                    TextBlock.classes [ "Subtitle2" ]
+                                ]
+                        | _ -> ()
+                    ]
+                ]
             )
 
 [<AutoOpen>]
@@ -113,28 +118,32 @@ module FloatingButton =
 
         static member content<'t when 't :> FloatingButton>(iconKind: MaterialIconKind, ?text: string) : IAttr<'t> =
             FloatingButton.content (
-                StackPanel.create
-                    [ StackPanel.orientation Orientation.Horizontal
-                      StackPanel.height 24
-                      StackPanel.children
-                          [ yield
-                                Viewbox.create
-                                    [ Viewbox.stretch Stretch.Fill
-                                      Viewbox.horizontalAlignment HorizontalAlignment.Stretch
-                                      Viewbox.verticalAlignment VerticalAlignment.Stretch
-                                      Viewbox.child (
-                                          MaterialIcon.create [ MaterialIcon.kind iconKind; MaterialIcon.width 24; MaterialIcon.height 24 ]
-                                      ) ]
-                                |> generalize
+                StackPanel.create [
+                    StackPanel.orientation Orientation.Horizontal
+                    StackPanel.height 24
+                    StackPanel.children [
+                        yield
+                            Viewbox.create [
+                                Viewbox.stretch Stretch.Fill
+                                Viewbox.horizontalAlignment HorizontalAlignment.Stretch
+                                Viewbox.verticalAlignment VerticalAlignment.Stretch
+                                Viewbox.child (
+                                    MaterialIcon.create [ MaterialIcon.kind iconKind; MaterialIcon.width 24; MaterialIcon.height 24 ]
+                                )
+                            ]
+                            |> generalize
 
-                            match text with
-                            | Some text ->
-                                yield
-                                    TextBlock.create
-                                        [ TextBlock.text text
-                                          TextBlock.verticalAlignment VerticalAlignment.Center
-                                          TextBlock.classes [ "Subtitle2" ] ]
-                            | _ -> () ] ]
+                        match text with
+                        | Some text ->
+                            yield
+                                TextBlock.create [
+                                    TextBlock.text text
+                                    TextBlock.verticalAlignment VerticalAlignment.Center
+                                    TextBlock.classes [ "Subtitle2" ]
+                                ]
+                        | _ -> ()
+                    ]
+                ]
             )
 
 [<AutoOpen>]
@@ -163,7 +172,6 @@ module CartesianChart =
 [<AutoOpen>]
 module ReactiveDialogHost =
     open AvaloniaDialogs.Views
-    open Avalonia.Input
 
     let create (attrs: IAttr<ReactiveDialogHost> list) : IView<ReactiveDialogHost> =
         ViewBuilder.Create<ReactiveDialogHost>(attrs)

@@ -20,15 +20,22 @@
 		<AndroidLinkTool>r8</AndroidLinkTool>
 	</PropertyGroup>
 
+	<Target Name="AndroidVersion" AfterTargets="MinVer" BeforeTargets="BeforeCompile;GetAssemblyVersion;CoreCompile">
+		<PropertyGroup>
+			<ApplicationVersion>$(FileVersion)</ApplicationVersion>
+			<ApplicationDisplayVersion>$(MinVerVersion)</ApplicationDisplayVersion>
+		</PropertyGroup>
+	</Target>
+
 	<ItemGroup>
-		<None Include="Properties/**" />
-		<AndroidResource Include="Resources/**/*" />
+		<None Include="Properties/**"/>
+		<AndroidResource Include="Resources/**/*"/>
 	</ItemGroup>
 
 	<ItemGroup>
-		<Compile Include="MainActivity.fs" />
+		<Compile Include="MainActivity.fs"/>
 	</ItemGroup>
-	
+
 	<ItemGroup>
 		<PackageReference Include="Avalonia.Android" Version="$(AvaloniaVersion)"/>
 		<PackageReference Include="Xamarin.AndroidX.Core.SplashScreen" Version="1.0.1.1"/>
@@ -36,7 +43,7 @@
 
 	<ItemGroup>
 		<ProjectReference Include="../Jacqued/Jacqued.fsproj"/>
-		<ProjectReference Include="../SqlStreamStore/src/SqlStreamStore.Sqlite/SqlStreamStore.Sqlite.csproj" />
+		<ProjectReference Include="../SqlStreamStore/src/SqlStreamStore.Sqlite/SqlStreamStore.Sqlite.csproj"/>
 	</ItemGroup>
 
 </Project>

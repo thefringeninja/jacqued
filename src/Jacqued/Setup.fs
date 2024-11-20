@@ -1,6 +1,5 @@
 ﻿module Jacqued.Setup
 
-open Avalonia
 open Avalonia.Input.TextInput
 open Jacqued.Controls
 open Avalonia.Controls
@@ -127,66 +126,72 @@ let view (state: State) (dispatch: Msg -> unit) =
             |> List.map (fun item ->
                 let isChecked = selected = item
 
-                RadioButton.create
-                    [ RadioButton.content $"{item}"
-                      RadioButton.groupName groupName
-                      RadioButton.isChecked isChecked
-                      RadioButton.onChecked (fun _ -> item |> action) ])
+                RadioButton.create [
+                    RadioButton.content $"{item}"
+                    RadioButton.groupName groupName
+                    RadioButton.isChecked isChecked
+                    RadioButton.onChecked (fun _ -> item |> action)
+                ])
             |> List.map generalize
 
-        StackPanel.create
-            [ StackPanel.orientation Orientation.Vertical
-              StackPanel.children ([ [ label ]; radioButtons ] |> List.concat) ]
+        StackPanel.create [
+            StackPanel.orientation Orientation.Vertical
+            StackPanel.children ([ [ label ]; radioButtons ] |> List.concat)
+        ]
         |> generalize
 
     let content =
-        StackPanel.create
-            [ StackPanel.orientation Orientation.Vertical
-              StackPanel.children
-                  [ radioButtonGroup
-                        ExerciseDaysPerWeek.all
-                        state.ExerciseDaysPerWeek
-                        "Exercise days"
-                        (nameof ExerciseDaysPerWeek)
-                        (fun days -> days |> ExerciseDaysPerWeekChanged |> dispatch)
+        StackPanel.create [
+            StackPanel.orientation Orientation.Vertical
+            StackPanel.children [
+                radioButtonGroup ExerciseDaysPerWeek.all state.ExerciseDaysPerWeek "Exercise days" (nameof ExerciseDaysPerWeek) (fun days ->
+                    days |> ExerciseDaysPerWeekChanged |> dispatch)
 
-                    radioButtonGroup MeasurementSystem.all state.MeasurementSystem "Units" (nameof MeasurementSystem) (fun units ->
-                        units |> MeasurementSystemChanged |> dispatch)
+                radioButtonGroup MeasurementSystem.all state.MeasurementSystem "Units" (nameof MeasurementSystem) (fun units ->
+                    units |> MeasurementSystemChanged |> dispatch)
 
-                    TextBox.create
-                        [ TextBox.label "Barbell"
-                          TextBox.contentType TextInputContentType.Number
-                          TextBox.text $"{state.Bar.Weight}"
-                          TextBox.onTextChanged onBarbellWeightChange ]
+                TextBox.create [
+                    TextBox.label "Barbell"
+                    TextBox.contentType TextInputContentType.Number
+                    TextBox.text $"{state.Bar.Weight}"
+                    TextBox.onTextChanged onBarbellWeightChange
+                ]
 
-                    DockPanel.create
-                        [ DockPanel.children
-                              [ Button.create
-                                    [ Button.dock Dock.Right
-                                      Button.cornerRadius 20
-                                      Button.height 40
-                                      Button.width 40
-                                      Button.content (MaterialIcon.create [ MaterialIcon.kind MaterialIconKind.Plus ])
-                                      Button.onClick ((onPlateAdd state.PlateToAdd), SubPatchOptions.OnChangeOf state.PlateToAdd) ]
-                                TextBox.create
-                                    [ TextBox.label "Add plate"
-                                      TextBox.contentType TextInputContentType.Number
-                                      TextBox.text $"{state.PlateToAdd}"
-                                      TextBox.onTextChanged onPlateWeightChange ] ] ]
+                DockPanel.create [
+                    DockPanel.children [
+                        Button.create [
+                            Button.dock Dock.Right
+                            Button.cornerRadius 20
+                            Button.height 40
+                            Button.width 40
+                            Button.content (MaterialIcon.create [ MaterialIcon.kind MaterialIconKind.Plus ])
+                            Button.onClick ((onPlateAdd state.PlateToAdd), SubPatchOptions.OnChangeOf state.PlateToAdd)
+                        ]
+                        TextBox.create [
+                            TextBox.label "Add plate"
+                            TextBox.contentType TextInputContentType.Number
+                            TextBox.text $"{state.PlateToAdd}"
+                            TextBox.onTextChanged onPlateWeightChange
+                        ]
+                    ]
+                ]
 
-                    PlatePairs.control (
-                        state.PlatePairColors,
-                        state.Plates,
-                        state.MeasurementSystem,
-                        onPlateRemove,
-                        SubPatchOptions.OnChangeOf state.Plates
-                    ) ] ]
+                PlatePairs.control (
+                    state.PlatePairColors,
+                    state.Plates,
+                    state.MeasurementSystem,
+                    onPlateRemove,
+                    SubPatchOptions.OnChangeOf state.Plates
+                )
+            ]
+        ]
 
     let setupGym =
-        FloatingButton.create
-            [ FloatingButton.content (MaterialIconKind.Check, "Setup gym")
-              FloatingButton.isExtended true
-              FloatingButton.isEnabled setupGymEnabled
-              FloatingButton.onClick (onSetupGym, SubPatchOptions.OnChangeOf state) ]
+        FloatingButton.create [
+            FloatingButton.content (MaterialIconKind.Check, "Setup gym")
+            FloatingButton.isExtended true
+            FloatingButton.isEnabled setupGymEnabled
+            FloatingButton.onClick (onSetupGym, SubPatchOptions.OnChangeOf state)
+        ]
 
     floatingLayout [ setupGym ] content

@@ -83,30 +83,33 @@ module Shell =
 
     let view state dispatch =
         let tabs =
-            TabControl.create
-                [ TabControl.tabStripPlacement Dock.Bottom
-                  TabControl.viewItems
-                      [ if state.Workout.Gym.IsSome then
-                            yield
-                                TabItem.create
-                                    [ TabItem.header (
-                                          NavigationButton.create [ NavigationButton.content (MaterialIconKind.Barbell, "Workout") ]
-                                      )
-                                      TabItem.content (Workout.view state.Workout dispatch) ]
-
-                            yield
-                                TabItem.create
-                                    [ TabItem.header (
-                                          NavigationButton.create [ NavigationButton.content (MaterialIconKind.Graph, "Progress") ]
-                                      )
-                                      TabItem.content (Progress.view state.Progress dispatch) ]
+            TabControl.create [
+                TabControl.tabStripPlacement Dock.Bottom
+                TabControl.viewItems [
+                    if state.Workout.Gym.IsSome then
+                        yield
+                            TabItem.create [
+                                TabItem.header (NavigationButton.create [ NavigationButton.content (MaterialIconKind.Barbell, "Workout") ])
+                                TabItem.content (Workout.view state.Workout dispatch)
+                            ]
 
                         yield
-                            TabItem.create
-                                [ TabItem.header (NavigationButton.create [ NavigationButton.content (MaterialIconKind.Cog, "Setup") ])
-                                  TabItem.content (Setup.view state.Setup dispatch) ] ] ]
+                            TabItem.create [
+                                TabItem.header (NavigationButton.create [ NavigationButton.content (MaterialIconKind.Graph, "Progress") ])
+                                TabItem.content (Progress.view state.Progress dispatch)
+                            ]
 
-        ReactiveDialogHost.create [ ReactiveDialogHost.content (Panel.create [ Panel.margin 16; Panel.children [ tabs ] ]) ]
+                    yield
+                        TabItem.create [
+                            TabItem.header (NavigationButton.create [ NavigationButton.content (MaterialIconKind.Cog, "Setup") ])
+                            TabItem.content (Setup.view state.Setup dispatch)
+                        ]
+                ]
+            ]
+
+        ReactiveDialogHost.create [
+            ReactiveDialogHost.content (Panel.create [ Panel.margin 16; Panel.children [ tabs ] ])
+        ]
 
     let init store () =
         let events =

@@ -12,8 +12,8 @@ open Material.Icons.Avalonia
 open Material.Styles.Themes
 open SqlStreamStore
 
-type MainWindow() = 
-    inherit HostWindow() 
+type MainWindow() =
+    inherit HostWindow()
 
     do
         base.Title <- nameof Jacqued
@@ -24,6 +24,7 @@ type MainWindow() =
 #endif
 
 #nowarn "3261"
+
 type App(store: IStreamStore) =
     inherit Application()
 
@@ -50,7 +51,7 @@ type App(store: IStreamStore) =
             | _ -> None
 
         match host with
-        | Some hostControl -> 
+        | Some hostControl ->
             Program.mkProgram (Shell.init store) (Shell.update store) Shell.view
             |> Program.withHost hostControl
 

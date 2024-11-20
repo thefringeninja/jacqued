@@ -25,8 +25,7 @@ and CompleteRepSet =
     { MesocycleId: MesocycleId; Reps: uint }
 
 and FailRepSet =
-    { MesocycleId: MesocycleId
-      Reps: uint }
+    { MesocycleId: MesocycleId; Reps: uint }
 
 type Event =
     | GymSetup of GymSetup

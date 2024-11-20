@@ -5,13 +5,13 @@ open System.IO
 open Android.App
 open Android.Content
 open Android.Content.PM
-open Android.OS
 open Avalonia
 open Avalonia.Android
 open Microsoft.Data.Sqlite
 open SqlStreamStore
 
 #nowarn "3261"
+
 [<Activity(Label = "Jacqued.Android",
            Theme = "@style/MyTheme.NoActionBar",
            // Icon = "@drawable/icon",
@@ -25,7 +25,7 @@ type MainActivity() as this =
 
     do this.streamStore <- MainActivity.createStreamStore Android.App.Application.Context
 
-    static member createStreamStore(context: Context) =       
+    static member createStreamStore(context: Context) =
         let dataSource = Path.Combine(context.GetExternalFilesDir(null).Path, "jacqued.db")
 
         let cs = SqliteConnectionStringBuilder()

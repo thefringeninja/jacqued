@@ -21,7 +21,7 @@ type Weight(value: decimal) =
 
     member this.Value = value
     static member zero = Weight(0m)
-    
+
     static member Zero = Weight(0m)
 
     static member tryParse(s: string) =
@@ -58,7 +58,8 @@ type PlatePair(weight: Weight) =
         member this.CompareTo(other: PlatePair) = compare weight other.Weight
 
     interface IComparable with
-        member this.CompareTo other = compare weight (other :?> PlatePair).Weight
+        member this.CompareTo other =
+            compare weight (other :?> PlatePair).Weight
 
 type MesocycleId =
     | MesocycleId of Guid
