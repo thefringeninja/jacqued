@@ -2,6 +2,7 @@
 
 open System
 open Avalonia.Input.TextInput
+open Avalonia.Media
 open Avalonia.Threading
 open AvaloniaDialogs.Views
 open Jacqued.Controls
@@ -15,7 +16,8 @@ open Material.Styles.Controls
 
 type Gym =
     { Bar: Bar
-      Plates: PlatePair list
+      PlatePairs: PlatePair list
+      PlatePairColors: Map<Weight, Color>
       MeasurementSystem: MeasurementSystem
       ExerciseDaysPerWeek: ExerciseDaysPerWeek }
 
@@ -39,17 +41,6 @@ type Lifts =
           RepSet = RepSet.One
           OneRepMax = None }
 
-type Progress =
-    { Current: Map<Exercise, Weight * DateTime>
-      History: Map<Exercise, (Weight * bool * DateTime) array> }
-
-    static member zero =
-        { Current =
-            Exercise.all
-            |> List.map (fun exercise -> (exercise, (Weight.zero, DateTime.UnixEpoch)))
-            |> Map.ofList
-          History = Map.empty }
-
 type State =
     { Gym: Gym option
       Lifts: Lifts
@@ -66,14 +57,6 @@ type State =
           SuggestedOneRepMaxes = Map.empty
           WorkoutPlans = Map.empty }
 
-let plateColors =
-    [ PurpleSwatch.Purple700
-      IndigoSwatch.Indigo700
-      LightBlueSwatch.LightBlue700
-      TealSwatch.Teal700
-      GreenSwatch.Green700
-      OrangeSwatch.Orange700 ]
-
 let findWorkoutPlan (workoutPlans: WorkoutPlans) exercise =
     workoutPlans
     |> Map.tryPick (fun mesocycleId workoutPlan ->
@@ -81,9 +64,6 @@ let findWorkoutPlan (workoutPlans: WorkoutPlans) exercise =
             Some(mesocycleId, workoutPlan)
         else
             None)
-
-let exerciseDataPoint exercise progress passed =
-    progress.Current[exercise] |> fst, passed, progress.Current[exercise] |> snd
 
 let update (msg: Msg) (state: State) (handler: Command -> Result<Event list, exn>) : State * Result<Event list, exn> =
     let units =
@@ -108,7 +88,8 @@ let update (msg: Msg) (state: State) (handler: Command -> Result<Event list, exn
             { state with
                 Gym =
                     { Bar = e.Bar
-                      Plates = e.Plates
+                      PlatePairs = e.Plates
+                      PlatePairColors = e.Plates |> PlatePairs.colorMap
                       MeasurementSystem = e.MeasurementSystem
                       ExerciseDaysPerWeek = e.ExercisesDaysPerWeek }
                     |> Some },
@@ -257,44 +238,6 @@ let startMesocycle state dispatch =
 
     floatingLayout [ startMesocycle ] content
 
-let platePairVisualization (platePairs: PlatePair list) units =
-    StackPanel.create
-        [ StackPanel.orientation Orientation.Horizontal
-          StackPanel.children (
-              platePairs
-              |> List.fold
-                  (fun acc plate ->
-                      acc
-                      |> Map.change plate.WeightOfEach (function
-                          | None -> Some 1
-                          | Some count -> Some(count + 1)))
-                  Map.empty
-              |> Map.toList
-              |> List.sortBy fst
-              |> List.rev
-              |> List.mapi (fun i (weight, count) ->
-                  StackPanel.create
-                      [ StackPanel.orientation Orientation.Vertical
-                        StackPanel.children
-                            [ Border.create
-                                  [ Border.height 40
-                                    Border.width 40
-                                    Border.cornerRadius 20
-                                    Border.child (
-                                        TextBlock.create
-                                            [ TextBlock.text $"{weight} {units}"
-                                              TextBlock.classes [ "Button" ]
-                                              TextBlock.verticalAlignment VerticalAlignment.Center ]
-                                    )
-                                    Border.horizontalAlignment HorizontalAlignment.Center
-                                    Border.verticalAlignment VerticalAlignment.Center
-                                    Border.background plateColors[i % plateColors.Length] ]
-                              TextBlock.create
-                                  [ TextBlock.text $"x{count}"
-                                    TextBlock.horizontalAlignment HorizontalAlignment.Center ] ] ])
-              |> List.map generalize
-          ) ]
-
 let currentWorkout (state: State) dispatch =
     let mesocycleId, workoutPlan =
         match findWorkoutPlan state.WorkoutPlans state.Lifts.Exercise with
@@ -325,10 +268,10 @@ let currentWorkout (state: State) dispatch =
             }
             |> Async.StartImmediate)
 
-    let platePairs, bar, units =
+    let platePairs, bar, units, colorMap =
         match state.Gym with
-        | Some gym -> (Calculate.plates gym.Bar gym.Plates weight), gym.Bar, gym.MeasurementSystem
-        | _ -> ([], Bar.Of(Weight.zero), Metric)
+        | Some gym -> (Calculate.plates gym.Bar gym.PlatePairs weight), gym.Bar, gym.MeasurementSystem, gym.PlatePairColors
+        | _ -> ([], Bar.Of(Weight.zero), Metric, Map.empty)
 
     let weight = (platePairs |> List.sumBy (_.Weight)) + bar.Weight
 
@@ -342,7 +285,7 @@ let currentWorkout (state: State) dispatch =
                           TextBlock.text $"Wave {state.Lifts.Wave}, Set {state.Lifts.RepSet}" ]
                     TextBlock.create [ TextBlock.classes [ "Subtitle2" ]; TextBlock.text $"Weight: {weight}" ]
                     TextBlock.create [ TextBlock.classes [ "Subtitle2" ]; TextBlock.text $"Reps: {reps}" ]
-                    platePairVisualization platePairs units ] ]
+                    PlatePairs.control(colorMap, platePairs, units) ] ]
 
     let completeRepSet =
         FloatingButton.create
@@ -364,21 +307,24 @@ let warmup state _ =
                 yield!
                     RepSet.all
                     |> List.map (fun repSet ->
-                        let platePairs, weight, reps, units =
+                        let platePairs, bar, reps, units, colorMap =
                             match state.Gym with
                             | Some gym ->
                                 let oneRepMax = currentOneRepMax state
 
                                 let weight, reps = Calculate.warmupSet repSet oneRepMax
-                                (Calculate.plates gym.Bar gym.Plates weight), weight, reps, gym.MeasurementSystem
-                            | _ -> ([], Weight.zero, 0u, Metric)
+
+                                (Calculate.plates gym.Bar gym.PlatePairs weight), gym.Bar, reps, gym.MeasurementSystem, gym.PlatePairColors
+                            | _ -> ([], Bar.Of(Weight.zero), 0u, Metric, Map.empty)
+
+                        let weight = (platePairs |> List.sumBy (_.Weight)) + bar.Weight
 
                         StackPanel.create
                             [ StackPanel.orientation Orientation.Vertical
                               StackPanel.children
                                   [ TextBlock.create [ TextBlock.classes [ "Subtitle2" ]; TextBlock.text $"Weight: {weight}" ]
                                     TextBlock.create [ TextBlock.classes [ "Subtitle2" ]; TextBlock.text $"Reps: {reps}" ]
-                                    platePairVisualization platePairs units ] ])
+                                    PlatePairs.control (colorMap, platePairs, units) ] ])
                     |> List.map generalize
 
                 ] ]
@@ -386,8 +332,7 @@ let warmup state _ =
 let view state dispatch =
     TabControl.create
         [ TabControl.viewItems
-              [
-                if state.Screen = WorkingOut then
+              [ if state.Screen = WorkingOut then
                     yield (TabItem.create [ TabItem.header "Warmup"; TabItem.content (warmup state dispatch) ])
                 yield
                     (TabItem.create

@@ -12,7 +12,6 @@ open Material.Icons.Avalonia
 open Material.Styles.Themes
 open SqlStreamStore
 
-
 type MainWindow() = 
     inherit HostWindow() 
 

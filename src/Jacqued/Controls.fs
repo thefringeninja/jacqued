@@ -6,6 +6,7 @@ open Avalonia.FuncUI.Builder
 open Avalonia.FuncUI.DSL
 open Avalonia.FuncUI.Helpers
 open Avalonia.FuncUI.Types
+open Avalonia.Input
 open Avalonia.Layout
 open Avalonia.Media
 open LiveChartsCore
@@ -31,6 +32,7 @@ let floatingLayout buttons content =
 
 type NavigationButton() =
     inherit ContentControl()
+
 
 [<AutoOpen>]
 module ComboBox =

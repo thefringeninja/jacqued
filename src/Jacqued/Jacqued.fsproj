@@ -32,6 +32,7 @@
 		<Compile Include="EventStorage.fs" />
 		<Compile Include="Controls.fs" />
 		<Compile Include="Messages.fs" />
+		<Compile Include="PlatePairs.fs" />
 		<Compile Include="Setup.fs" />
 		<Compile Include="Progress.fs" />
 		<Compile Include="Workout.fs" />

@@ -15,6 +15,8 @@ open Material.Styles.Controls
 type State =
     { Bar: Bar
       Plates: PlatePair list
+      PlatePairColors: Map<Weight, Color>
+
       PlateToAdd: Weight
       MeasurementSystem: MeasurementSystem
       ExerciseDaysPerWeek: ExerciseDaysPerWeek }
@@ -22,6 +24,7 @@ type State =
     static member zero =
         { Bar = Bar.Of(Weight.zero)
           Plates = []
+          PlatePairColors = Map.empty
           PlateToAdd = Weight.zero
           MeasurementSystem = Metric
           ExerciseDaysPerWeek = ExerciseDaysPerWeek.Four }
@@ -34,6 +37,7 @@ let update msg state handler : State * Result<Event list, exn> =
             { state with
                 Bar = e.Bar
                 ExerciseDaysPerWeek = e.ExercisesDaysPerWeek
+                PlatePairColors = e.Plates |> PlatePairs.colorMap
                 Plates = e.Plates
                 MeasurementSystem = e.MeasurementSystem },
             List.empty |> Ok
@@ -60,13 +64,18 @@ let update msg state handler : State * Result<Event list, exn> =
     | BarbellWeightChanged weight -> { state with Bar = Bar.Of(weight) }, List.empty |> Ok
     | PlateWeightChanged weight -> { state with PlateToAdd = weight }, List.empty |> Ok
     | AddPlate _ ->
+        let platePairs = state.Plates |> List.append [ PlatePair(state.PlateToAdd) ]
+
         { state with
-            Plates = state.Plates |> List.append [ PlatePair(state.PlateToAdd) ]
+            Plates = platePairs
+            PlatePairColors = platePairs |> PlatePairs.colorMap
             PlateToAdd = Weight.zero },
         List.empty |> Ok
-    | RemovePlate index ->
+    | RemovePlate weight ->
         { state with
-            Plates = state.Plates |> List.removeAt index },
+            Plates =
+                state.Plates
+                |> List.removeAt (state.Plates |> List.findIndex (fun plate -> plate.WeightOfEach = weight)) },
         List.empty |> Ok
     | _ -> state, List.empty |> Ok
 
@@ -96,8 +105,8 @@ let view (state: State) (dispatch: Msg -> unit) =
 
         msg |> dispatch
 
-    let onPlateRemove index _ =
-        let msg = RemovePlate index
+    let onPlateRemove weight =
+        let msg = RemovePlate weight
 
         msg |> dispatch
 
@@ -134,56 +143,44 @@ let view (state: State) (dispatch: Msg -> unit) =
         StackPanel.create
             [ StackPanel.orientation Orientation.Vertical
               StackPanel.children
-                  [ yield
-                        radioButtonGroup
-                            ExerciseDaysPerWeek.all
-                            state.ExerciseDaysPerWeek
-                            "Exercise days"
-                            (nameof ExerciseDaysPerWeek)
-                            (fun days -> days |> ExerciseDaysPerWeekChanged |> dispatch)
-                    yield
-                        radioButtonGroup MeasurementSystem.all state.MeasurementSystem "Units" (nameof MeasurementSystem) (fun units ->
-                            units |> MeasurementSystemChanged |> dispatch)
+                  [ radioButtonGroup
+                        ExerciseDaysPerWeek.all
+                        state.ExerciseDaysPerWeek
+                        "Exercise days"
+                        (nameof ExerciseDaysPerWeek)
+                        (fun days -> days |> ExerciseDaysPerWeekChanged |> dispatch)
 
-                    yield
-                        TextBox.create
-                            [ TextBox.label "Barbell"
-                              TextBox.contentType TextInputContentType.Number
-                              TextBox.text $"{state.Bar.Weight}"
-                              TextBox.onTextChanged onBarbellWeightChange ]
+                    radioButtonGroup MeasurementSystem.all state.MeasurementSystem "Units" (nameof MeasurementSystem) (fun units ->
+                        units |> MeasurementSystemChanged |> dispatch)
 
-                    yield!
-                        state.Plates
-                        |> Seq.mapi (fun index plate ->
-                            DockPanel.create
-                                [ DockPanel.children
-                                      [ Button.create
-                                            [ Button.dock Dock.Right
-                                              Button.onClick ((onPlateRemove index), SubPatchOptions.OnChangeOf state.Plates)
-                                              Button.cornerRadius 20
-                                              Button.height 40
-                                              Button.width 40
-                                              Button.content (MaterialIcon.create [ MaterialIcon.kind MaterialIconKind.Minus ]) ]
-                                        TextBlock.create [ TextBlock.text $"{plate.WeightOfEach} {state.MeasurementSystem}" ] ] ]
-                            |> generalize)
+                    TextBox.create
+                        [ TextBox.label "Barbell"
+                          TextBox.contentType TextInputContentType.Number
+                          TextBox.text $"{state.Bar.Weight}"
+                          TextBox.onTextChanged onBarbellWeightChange ]
 
-                    yield
-                        DockPanel.create
-                            [ DockPanel.children
-                                  [ Button.create
-                                        [ Button.dock Dock.Right
-                                          Button.cornerRadius 20
-                                          Button.height 40
-                                          Button.width 40
-                                          Button.content (MaterialIcon.create [ MaterialIcon.kind MaterialIconKind.Plus ])
-                                          Button.onClick ((onPlateAdd state.PlateToAdd), SubPatchOptions.OnChangeOf state.PlateToAdd) ]
-                                    TextBox.create
-                                        [ TextBox.label "Add plate"
-                                          TextBox.contentType TextInputContentType.Number 
-                                          TextBox.text $"{state.PlateToAdd}"
-                                          TextBox.onTextChanged onPlateWeightChange ] ] ]
+                    DockPanel.create
+                        [ DockPanel.children
+                              [ Button.create
+                                    [ Button.dock Dock.Right
+                                      Button.cornerRadius 20
+                                      Button.height 40
+                                      Button.width 40
+                                      Button.content (MaterialIcon.create [ MaterialIcon.kind MaterialIconKind.Plus ])
+                                      Button.onClick ((onPlateAdd state.PlateToAdd), SubPatchOptions.OnChangeOf state.PlateToAdd) ]
+                                TextBox.create
+                                    [ TextBox.label "Add plate"
+                                      TextBox.contentType TextInputContentType.Number
+                                      TextBox.text $"{state.PlateToAdd}"
+                                      TextBox.onTextChanged onPlateWeightChange ] ] ]
 
-                    ] ]
+                    PlatePairs.control (
+                        state.PlatePairColors,
+                        state.Plates,
+                        state.MeasurementSystem,
+                        onPlateRemove,
+                        SubPatchOptions.OnChangeOf state.Plates
+                    ) ] ]
 
     let setupGym =
         FloatingButton.create

@@ -14,7 +14,7 @@ type Msg =
     | MeasurementSystemChanged of MeasurementSystem
     | ExerciseDaysPerWeekChanged of ExerciseDaysPerWeek
     | AddPlate of Weight
-    | RemovePlate of int
+    | RemovePlate of Weight
     | StartMesocycle of MesocycleId * Exercise * Weight * DateTime
     | OneRepMaxChanged of Weight
     | StartDateChanged of DateTime

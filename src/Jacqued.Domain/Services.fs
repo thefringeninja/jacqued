@@ -1,8 +1,8 @@
 ﻿namespace Jacqued
 
 module Calculate =
-    let set wave set (weight: Weight) =
-        match wave, set with
+    let set wave repSet (weight: Weight) =
+        match wave, repSet with
         | Wave.One, RepSet.One -> weight * 0.75, 5u
         | Wave.One, RepSet.Two -> weight * 0.80, 5u
         | Wave.One, RepSet.Three -> weight * 0.85, 5u
@@ -16,9 +16,7 @@ module Calculate =
         | Wave.Four, RepSet.Two -> weight * 0.65, 5u
         | Wave.Four, RepSet.Three -> weight * 0.70, 5u
 
-    let private set_ = set
-
-    let warmupSet set (weight: Weight) = set_ Wave.Four set weight
+    let warmupSet repSet (weight: Weight) = set Wave.Four repSet weight
 
     let plates (bar: Bar) (platePairs: PlatePair list) (weight: Weight) : PlatePair list =
         let rec loop (acc: PlatePair list) (platePairs: PlatePair list) (weight: Weight) =
