@@ -58,7 +58,7 @@ module MaterialIcon =
         static member kind<'t when 't :> MaterialIcon>(value: MaterialIconKind) : IAttr<'t> =
             AttrBuilder<'t>
                 .CreateProperty<MaterialIconKind>(MaterialIcon.KindProperty, value, ValueNone)
-
+    
 [<AutoOpen>]
 module NavigationButton =
     open Material.Icons

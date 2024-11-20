@@ -31,7 +31,6 @@
 		<Compile Include="CommandHandlers.fs" />
 		<Compile Include="EventStorage.fs" />
 		<Compile Include="Controls.fs" />
-		<Compile Include="Dialogs.fs" />
 		<Compile Include="Messages.fs" />
 		<Compile Include="Setup.fs" />
 		<Compile Include="Progress.fs" />
