@@ -29,7 +29,10 @@ jobs:
       - name: restore packages 
         run: dotnet restore src/Jacqued.Android
       - name: build
-        run: dotnet publish src/Jacqued.Android --output ./publish
+        run: |
+          dotnet publish --output ./publish \
+            /p:ApplicationVersion=$(git tag --list 'v*' --merged | sort --version-sort | wc --lines) \
+            /p:ApplicationDisplayVersion=$(echo ${{ github.ref_name }} | cut -c2-) src/Jacqued.Android
       - name: release
         uses: softprops/action-gh-release@v2
         with:

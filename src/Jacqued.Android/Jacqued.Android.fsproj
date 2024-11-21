@@ -4,8 +4,6 @@
 		<OutputType>Exe</OutputType>
 		<TargetFramework>net8.0-android</TargetFramework>
 		<ApplicationId>com.jacquedfivethreeone</ApplicationId>
-		<ApplicationVersion>1</ApplicationVersion>
-		<ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
 		<AndroidPackageFormat>apk</AndroidPackageFormat>
 		<AndroidEnableProfiledAot>false</AndroidEnableProfiledAot>
 		<SupportedOSPlatformVersion>21</SupportedOSPlatformVersion>
