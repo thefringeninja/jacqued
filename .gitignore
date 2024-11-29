@@ -398,3 +398,6 @@ FodyWeavers.xsd
 *.sln.iml
 /spikes/TeamModelManagement/TeamModelMgmt/Migrations
 .idea/
+
+# java keystore
+.keystore/

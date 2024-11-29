@@ -24,6 +24,11 @@ jobs:
         with:
           fetch-depth: 0
           submodules: true
+      - name: setup keystore
+        run: |
+          mkdir -p .keystore
+          echo ${{ secrets.KEYSTORE }} | base64 --decode >> .keystore/jacqued.jks
+          
       - name: restore workloads
         run: dotnet workload restore src/Jacqued.Android/Jacqued.Android.fsproj
       - name: restore packages 
@@ -32,7 +37,12 @@ jobs:
         run: |
           dotnet publish --output ./publish \
             /p:ApplicationVersion=$(git tag --list 'v*' --merged | sort --version-sort | wc --lines) \
-            /p:ApplicationDisplayVersion=$(echo ${{ github.ref_name }} | cut -c2-) src/Jacqued.Android
+            /p:ApplicationDisplayVersion=$(echo ${{ github.ref_name }} | cut -c2-) src/Jacqued.Android \
+            /p:AndroidKeyStore=True \
+            /p:AndroidSigningKeyStore=$(pwd)/.keystore/jacqued.jks \
+            /p:AndroidSigningStorePass="$(pwd)/.keystore/jacqued.jks ${{ secrets.SIGNING_STORE_PASSWORD }}" \
+            /p:AndroidSigningKeyAlias="${{ secrets.SIGNING_KEY_ALIAS }}" \
+            /p:AndroidSigningKeyPass="${{ secrets.SIGNING_KEY_ALIAS }} ${{ secrets.SIGNING_KEY_PASSWORD }}"
       - name: release
         uses: softprops/action-gh-release@v2
         with:
