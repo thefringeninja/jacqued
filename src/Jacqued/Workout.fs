@@ -240,7 +240,7 @@ let startMesocycle state dispatch =
             FloatingButton.onClick (onStartMesocycle oneRepMax, SubPatchOptions.OnChangeOf state.Lifts)
         ]
 
-    floatingLayout [ startMesocycle ] content
+    floatingLayout [] [ startMesocycle ] content
 
 let currentWorkout (state: State) dispatch =
     let mesocycleId, workoutPlan =
@@ -306,7 +306,7 @@ let currentWorkout (state: State) dispatch =
             FloatingButton.onClick (onFailRepSetClick, SubPatchOptions.OnChangeOf(state.Lifts))
         ]
 
-    floatingLayout [ failRepSet; completeRepSet ] content
+    floatingLayout [] [ failRepSet; completeRepSet ] content
 
 let warmup state _ =
     StackPanel.create [

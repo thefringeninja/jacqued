@@ -18,16 +18,8 @@
 		<AndroidLinkTool>r8</AndroidLinkTool>
 	</PropertyGroup>
 
-	<Target Name="AndroidVersion" AfterTargets="MinVer" BeforeTargets="BeforeCompile;GetAssemblyVersion;CoreCompile">
-		<PropertyGroup>
-			<ApplicationVersion>$(FileVersion)</ApplicationVersion>
-			<ApplicationDisplayVersion>$(MinVerVersion)</ApplicationDisplayVersion>
-		</PropertyGroup>
-	</Target>
-
 	<ItemGroup>
 		<None Include="Properties/**"/>
-		<AndroidResource Include="Resources/**/*"/>
 	</ItemGroup>
 
 	<ItemGroup>

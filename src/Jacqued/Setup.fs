@@ -1,10 +1,10 @@
 ﻿module Jacqued.Setup
 
-open Avalonia.Input.TextInput
 open Jacqued.Controls
 open Avalonia.Controls
 open Avalonia.FuncUI.DSL
 open Avalonia.FuncUI.Helpers
+open Avalonia.Input.TextInput
 open Avalonia.Layout
 open Avalonia.Media
 open Material.Icons
@@ -194,4 +194,4 @@ let view (state: State) (dispatch: Msg -> unit) =
             FloatingButton.onClick (onSetupGym, SubPatchOptions.OnChangeOf state)
         ]
 
-    floatingLayout [ setupGym ] content
+    floatingLayout [ ] [ setupGym ] content
