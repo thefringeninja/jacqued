@@ -1,0 +1,14 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+	<Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))"/>
+	<PropertyGroup>
+		<OutputType>Exe</OutputType>
+		<IsPackable>false</IsPackable>
+		<GenerateProgramFile>false</GenerateProgramFile>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Expecto" Version="10.2.1"/>
+		<PackageReference Include="YoloDev.Expecto.TestSdk" Version="0.14.3"/>
+		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.12.0"/>
+	</ItemGroup>
+</Project>
