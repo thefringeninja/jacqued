@@ -1,5 +1,6 @@
 ﻿namespace Jacqued
 
+open System
 open Avalonia.Controls
 open Avalonia.FuncUI.DSL
 open AvaloniaDialogs.Views
@@ -46,10 +47,12 @@ module Shell =
                 [ let dialog, result = "", Cmd.none
                   yield { state with Dialog = dialog |> Some } |> Results.State ]
             | _ ->
-                [ let setup, result = Setup.update msg state.Setup gym
+                [ let setup, result = Setup.update gym msg state.Setup
                   yield result |> Results.Cmd
 
-                  let workout, result = Workout.update msg state.Workout mesocycle
+                  let workout, result =
+                      Workout.update (fun () -> DateTime.Now) mesocycle msg state.Workout
+
                   yield result |> Results.Cmd
 
                   yield

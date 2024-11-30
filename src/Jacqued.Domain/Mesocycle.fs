@@ -63,7 +63,8 @@ let private completeRepSet (command: CompleteRepSet) state =
                       Wave = state.Wave
                       Reps = command.Reps
                       Weight = weight
-                      RepSet = state.RepSet }
+                      RepSet = state.RepSet
+                      CompletedAt = command.CompletedAt }
 
             if state.RepSet = RepSet.Three && state.Wave = Wave.Four then
                 let suggestedOneRepMax =
@@ -98,7 +99,8 @@ let private failRepSet (command: FailRepSet) state =
                 Reps = command.Reps
                 SuggestedOneRepMax = weight * 0.9
                 Weight = weight
-                RepSet = state.RepSet } ]
+                RepSet = state.RepSet
+                FailedAt = command.FailedAt } ]
 
 let handle =
     function

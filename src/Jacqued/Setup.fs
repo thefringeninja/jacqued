@@ -28,7 +28,7 @@ type State =
           MeasurementSystem = Metric
           ExerciseDaysPerWeek = ExerciseDaysPerWeek.Four }
 
-let update msg state handler : State * Result<Event list, exn> =
+let update handler msg state =
     match msg with
     | Event e ->
         match e with

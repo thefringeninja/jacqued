@@ -39,3 +39,5 @@ jobs:
         run: dotnet restore
       - name: build
         run: dotnet build --configuration Release
+      - name: test
+        run: dotnet test --configuration Release --logger GitHubActions

@@ -40,8 +40,6 @@ type PlatePairs() =
                             | Some count -> Some(count + 1)))
                     Map.empty
                 |> Map.toList
-                |> List.sortBy fst
-                |> List.rev
                 |> List.map (fun (weight, count) ->
                     let children =
                         [ yield

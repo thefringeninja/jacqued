@@ -20,4 +20,5 @@ type Msg =
     | StartDateChanged of DateTime
     | CompleteRepSet of MesocycleId * uint
     | FailRepSet of MesocycleId * uint
+    | ContinueExercise
     | ApplicationError of ApplicationError
