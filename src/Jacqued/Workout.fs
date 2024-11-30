@@ -25,6 +25,7 @@ type WorkoutPlans = Map<MesocycleId, WorkoutPlan>
 type Screen =
     | StartMesocycle
     | WorkingOut
+    | RestDay
 
 type Lifts =
     { Exercise: Exercise
@@ -64,21 +65,23 @@ let findWorkoutPlan (workoutPlans: WorkoutPlans) exercise =
         else
             None)
 
-let update (msg: Msg) (state: State) (handler: Command -> Result<Event list, exn>) : State * Result<Event list, exn> =
-    let units =
+let update (now: _ -> DateTime) handler msg state =
+    let units, exerciseDaysPerWeek =
         match state.Gym with
-        | Some gym -> gym.MeasurementSystem
-        | _ -> MeasurementSystem.Metric
+        | Some gym -> gym.MeasurementSystem, gym.ExerciseDaysPerWeek
+        | _ -> MeasurementSystem.Metric, ExerciseDaysPerWeek.Four
 
-    let next =
-        let nextExercise = state.Lifts.Exercise |> Exercise.next
-
-        let screen =
-            match findWorkoutPlan state.WorkoutPlans nextExercise with
-            | Some _ -> Screen.WorkingOut
-            | _ -> Screen.StartMesocycle
-
-        nextExercise, screen
+    let nextExercise exercise = exercise |> Exercise.next
+    
+    let nextScreen nextExercise =
+        match findWorkoutPlan state.WorkoutPlans nextExercise with
+        | Some _ -> Screen.WorkingOut
+        | _ -> Screen.StartMesocycle
+        
+    let nextScreenWithRest nextScreen (date:DateTime) =
+         let nextExerciseDate = Calculate.nextExerciseDay exerciseDaysPerWeek date.Date
+         let now = now().Date
+         if now <= nextExerciseDate then Screen.RestDay else nextScreen
 
     match msg with
     | Event e ->
@@ -109,10 +112,11 @@ let update (msg: Msg) (state: State) (handler: Command -> Result<Event list, exn
 
             match e.RepSet with
             | RepSet.Three ->
-                let nextExercise, screen = next
+                let nextExercise = state.Lifts.Exercise |> nextExercise
+                let nextScreen = nextExercise |> nextScreen |> nextScreenWithRest <| e.CompletedAt
 
                 { state with
-                    State.Screen = screen
+                    State.Screen = nextScreen
                     State.Lifts.Exercise = nextExercise
                     State.Lifts.Wave = state.Waves[nextExercise]
                     State.Waves = state.Waves |> Map.add e.Exercise (e.Wave |> Wave.next)
@@ -123,10 +127,11 @@ let update (msg: Msg) (state: State) (handler: Command -> Result<Event list, exn
                     State.Lifts.RepSet = repSet |> RepSet.next },
                 List.empty |> Ok
         | MesocycleFailed e ->
-            let nextExercise, screen = next
+            let nextExercise = state.Lifts.Exercise |> nextExercise
+            let nextScreen = nextExercise |> nextScreen |> nextScreenWithRest <| e.FailedAt
 
             { state with
-                State.Screen = screen
+                State.Screen = nextScreen
                 State.Lifts.Exercise = nextExercise
                 State.Lifts.Wave = state.Waves[nextExercise]
                 State.Lifts.RepSet = RepSet.One
@@ -166,15 +171,21 @@ let update (msg: Msg) (state: State) (handler: Command -> Result<Event list, exn
         handler (
             Command.CompleteRepSet
                 { MesocycleId = mesocycleId
-                  Reps = reps }
+                  Reps = reps
+                  CompletedAt = now () }
         )
     | Msg.FailRepSet(mesocycleId, reps) ->
         state,
         handler (
             Command.FailRepSet
                 { MesocycleId = mesocycleId
-                  Reps = reps }
+                  Reps = reps
+                  FailedAt = now () }
         )
+    | Msg.ContinueExercise ->
+        { state with
+            State.Screen = nextScreen state.Lifts.Exercise },
+        List.empty |> Ok
     | _ -> state, List.empty |> Ok
 
 let currentOneRepMax state =
@@ -341,6 +352,20 @@ let warmup state _ =
         ]
     ]
 
+let restDay _ dispatch =
+    let onContinueClick _ = Msg.ContinueExercise |> dispatch
+
+    floatingLayout
+        []
+        []
+        (StackPanel.create [
+            StackPanel.orientation Orientation.Vertical
+            StackPanel.children [
+                TextBlock.create [ TextBlock.text "Some inspirational text"; TextBlock.classes [ "Subtitle2" ] ]
+                Button.create [ Button.content "Continue"; Button.onClick onContinueClick ]
+            ]
+        ])
+
 let view state dispatch =
     TabControl.create [
         TabControl.viewItems [
@@ -353,6 +378,7 @@ let view state dispatch =
                         match state.Screen with
                         | StartMesocycle -> startMesocycle state dispatch
                         | WorkingOut -> currentWorkout state dispatch
+                        | RestDay -> restDay state dispatch
                     )
                 ])
         ]

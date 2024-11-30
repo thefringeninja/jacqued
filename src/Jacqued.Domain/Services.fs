@@ -1,5 +1,7 @@
 ﻿namespace Jacqued
 
+open System
+
 module Calculate =
     let set wave repSet (weight: Weight) =
         match wave, repSet with
@@ -37,4 +39,27 @@ module Calculate =
             else
                 weight + smallestPlatePair.Weight - remainder
 
-        loop [] sortedPlatePairs (weightRoundedUp - bar.Weight)
+        loop [] sortedPlatePairs (weightRoundedUp - bar.Weight) |> List.sort |> List.rev
+
+    let nextExerciseDay (exerciseDaysPerWeek: ExerciseDaysPerWeek) (date: DateTime) =
+        match exerciseDaysPerWeek with
+        | ExerciseDaysPerWeek.Three ->
+            match date.DayOfWeek with
+            | DayOfWeek.Monday
+            | DayOfWeek.Wednesday
+            | DayOfWeek.Saturday -> 2
+            | DayOfWeek.Sunday
+            | DayOfWeek.Tuesday
+            | DayOfWeek.Thursday -> 1
+            | _ -> 3
+        | ExerciseDaysPerWeek.Four ->
+            match date.DayOfWeek with
+            | DayOfWeek.Sunday
+            | DayOfWeek.Monday
+            | DayOfWeek.Wednesday
+            | DayOfWeek.Thursday -> 1
+            | DayOfWeek.Tuesday
+            | DayOfWeek.Saturday -> 2
+            | _ -> 3
+
+        |> date.AddDays

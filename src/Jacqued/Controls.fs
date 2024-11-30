@@ -1,6 +1,5 @@
 ﻿module Jacqued.Controls
 
-open Avalonia
 open Avalonia.Controls
 open Avalonia.FuncUI.Builder
 open Avalonia.FuncUI.DSL
