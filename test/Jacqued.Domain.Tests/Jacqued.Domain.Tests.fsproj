@@ -1,0 +1,11 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+	<ItemGroup>
+		<Compile Include="Services.fs" />
+		<Compile Include="Main.fs"/>
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="../../src/Jacqued.Domain/Jacqued.Domain.fsproj"/>
+	</ItemGroup>
+
+</Project>

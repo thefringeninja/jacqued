@@ -5,16 +5,12 @@ open Microsoft.FSharp.Collections
 
 [<Struct; CustomComparison; CustomEquality>]
 type Weight(value: decimal) =
-    // do
-    //     if value < 0m then
-    //         invalidArg (nameof value) "value cannot be less than 0"
-
     override this.Equals(other) = value = (other :?> Weight).Value
     override this.GetHashCode() = value.GetHashCode()
     override this.ToString() = value.ToString("F2")
 
     interface IComparable<Weight> with
-        member this.CompareTo(other: Weight) = compare value other.Value
+        member this.CompareTo other = compare value other.Value
 
     interface IComparable with
         member this.CompareTo other = compare value (other :?> Weight).Value
@@ -50,16 +46,17 @@ type PlatePair(weight: Weight) =
     member this.Weight = weight * 2
     member this.WeightOfEach = weight
 
-    override this.Equals(other) = weight = (other :?> PlatePair).Weight
+    override this.Equals(other) = weight = (other :?> PlatePair).WeightOfEach
     override this.GetHashCode() = weight.GetHashCode()
     override this.ToString() = weight.ToString()
 
     interface IComparable<PlatePair> with
-        member this.CompareTo(other: PlatePair) = compare weight other.Weight
+        member this.CompareTo other = compare weight other.WeightOfEach
+
 
     interface IComparable with
         member this.CompareTo other =
-            compare weight (other :?> PlatePair).Weight
+            compare weight (other :?> PlatePair).WeightOfEach
 
 type MesocycleId =
     | MesocycleId of Guid
