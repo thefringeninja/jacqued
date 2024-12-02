@@ -1,7 +1,7 @@
 ﻿module Jacqued.Progress
 
 open System
-open Jacqued.Controls
+open Jacqued.DSL
 open LiveChartsCore
 open LiveChartsCore.Defaults
 open LiveChartsCore.Measure

@@ -1,12 +1,13 @@
 ﻿module Jacqued.Setup
 
-open Jacqued.Controls
 open Avalonia.Controls
 open Avalonia.FuncUI.DSL
 open Avalonia.FuncUI.Helpers
 open Avalonia.Input.TextInput
 open Avalonia.Layout
 open Avalonia.Media
+open Jacqued.Controls
+open Jacqued.DSL
 open Material.Icons
 open Material.Icons.Avalonia
 open Material.Styles.Controls

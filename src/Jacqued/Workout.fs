@@ -5,11 +5,12 @@ open Avalonia.Input.TextInput
 open Avalonia.Media
 open Avalonia.Threading
 open AvaloniaDialogs.Views
-open Jacqued.Controls
 open Avalonia.Controls
 open Avalonia.FuncUI.DSL
 open Avalonia.FuncUI.Helpers
 open Avalonia.Layout
+open Jacqued.Controls
+open Jacqued.DSL
 open Material.Icons
 open Material.Styles.Controls
 

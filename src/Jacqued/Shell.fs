@@ -7,6 +7,7 @@ open AvaloniaDialogs.Views
 open Elmish
 open Jacqued.CommandHandlers
 open Jacqued.Controls
+open Jacqued.DSL
 open Material.Icons
 open SqlStreamStore
 
