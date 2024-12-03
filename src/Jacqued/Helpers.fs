@@ -31,7 +31,7 @@ let floatingLayout topAppBarButtons floatingButtons content =
                     ]
                 ]
             ]
-            Panel.create [ Grid.row 1; Grid.rowSpan 2; Panel.children [ content ] ]
+            ScrollViewer.create [ Grid.row 1; Grid.rowSpan 2; ScrollViewer.content (content |> generalize) ]
             DockPanel.create [
                 Grid.row 2
                 DockPanel.lastChildFill false
