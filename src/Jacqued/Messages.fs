@@ -19,6 +19,7 @@ type Msg =
     | OneRepMaxChanged of Weight
     | StartDateChanged of DateTime
     | CompleteRepSet of MesocycleId * uint
+    | ExerciseDateChanged of DateTime
     | CompleteWave of MesocycleId
     | FailRepSet of MesocycleId * uint
     | ContinueExercise

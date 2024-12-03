@@ -164,7 +164,11 @@ let update (now: _ -> DateTime) handler msg state =
         { state with
             State.Lifts.StartingAt = startingAt |> Some },
         List.empty |> Ok
-    | Msg.SelectedAssistanceWorkIndexChanged index ->
+    | ExerciseDateChanged date ->
+        { state with
+            State.Lifts.StartingAt = date |> Some },
+        List.empty |> Ok
+    | SelectedAssistanceWorkIndexChanged index ->
         { state with
             State.Lifts.SelectedAssistanceWorkIndex = index },
         List.empty |> Ok
@@ -187,14 +191,20 @@ let update (now: _ -> DateTime) handler msg state =
             Command.CompleteRepSet
                 { MesocycleId = mesocycleId
                   Reps = reps
-                  CompletedAt = now () }
+                  CompletedAt =
+                    match state.Lifts.StartingAt with
+                    | Some date -> date
+                    | _ -> now () }
         )
     | Msg.CompleteWave(mesocycleId) ->
         state,
         handler (
             Command.CompleteWave
                 { MesocycleId = mesocycleId
-                  CompletedAt = now () }
+                  CompletedAt =
+                    match state.Lifts.StartingAt with
+                    | Some date -> date
+                    | _ -> now () }
         )
     | Msg.FailRepSet(mesocycleId, reps) ->
         state,
@@ -202,7 +212,10 @@ let update (now: _ -> DateTime) handler msg state =
             Command.FailRepSet
                 { MesocycleId = mesocycleId
                   Reps = reps
-                  FailedAt = now () }
+                  FailedAt =
+                    match state.Lifts.StartingAt with
+                    | Some date -> date
+                    | _ -> now () }
         )
     | Msg.ContinueExercise ->
         { state with
@@ -289,6 +302,13 @@ let currentWorkout (state: State) dispatch =
     let onCompleteRepSetClick _ =
         (mesocycleId, reps) |> Msg.CompleteRepSet |> dispatch
 
+    let onExcerciseDateChange (d: Nullable<DateTimeOffset>) =
+        (if d.HasValue then
+             d.Value.Date |> ExerciseDateChanged
+         else
+             "No date selected" |> Message |> ApplicationError)
+        |> dispatch
+
     let onFailRepSetClick _ =
         Dispatcher.UIThread.Post(fun _ ->
             async {
@@ -317,6 +337,15 @@ let currentWorkout (state: State) dispatch =
             StackPanel.orientation Orientation.Vertical
             StackPanel.children [
                 TextBlock.create [ TextBlock.classes [ "Headline6" ]; TextBlock.text $"{state.Lifts.Exercise}" ]
+                DatePicker.create [
+                    DatePicker.selectedDate (
+                        match state.Lifts.StartingAt with
+                        | Some startingAt -> startingAt
+                        | _ -> DateTime.Today
+                    )
+                    DatePicker.horizontalAlignment HorizontalAlignment.Stretch
+                    DatePicker.onSelectedDateChanged onExcerciseDateChange
+                ]
                 TextBlock.create [
                     TextBlock.classes [ "Subtitle1" ]
                     TextBlock.text $"Wave {state.Lifts.Wave}, Set {state.Lifts.RepSet}"

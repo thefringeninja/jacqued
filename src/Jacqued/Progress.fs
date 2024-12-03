@@ -26,9 +26,9 @@ let update (msg: Msg) (state: State) : State =
     match msg with
     | Event e ->
         match e with
-        | MesocycleStarted e ->
+        | RepSetCompleted e ->
             { state with
-                State.Current = state.Current |> Map.add e.WorkoutPlan.Exercise (e.OneRepMax, e.StartedAt) }
+                State.Current = state.Current |> Map.add e.Exercise (e.Weight, e.CompletedAt) }
         | MesocycleFailed e ->
             let dataPoint = exerciseDataPoint e.Exercise state false
 
@@ -38,7 +38,7 @@ let update (msg: Msg) (state: State) : State =
                     |> Map.change e.Exercise (function
                         | Some history -> history |> Array.append [| dataPoint |] |> Some
                         | None -> [| dataPoint |] |> Some) }
-        | MesocycleCompleted e ->
+        | WaveCompleted e ->
             let dataPoint = exerciseDataPoint e.Exercise state true
 
             { state with
@@ -59,7 +59,7 @@ let view state _ =
 
         columnSeries.Values <-
             history
-            |> Array.map (fun (weight: Weight, passed, date) -> DateTimePoint(date, weight.Value |> float))
+            |> Array.map (fun (weight: Weight, passed, date: DateTime) -> DateTimePoint(date.Date, weight.Value |> float))
 
         columnSeries
 
