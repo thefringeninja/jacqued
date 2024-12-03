@@ -50,6 +50,8 @@ module Shell =
             | _ ->
                 [ let setup, result = Setup.update gym msg state.Setup
                   yield result |> Results.Cmd
+                  
+                  let progress = Progress.update msg state.Progress 
 
                   let workout, result =
                       Workout.update (fun () -> DateTime.Now) mesocycle msg state.Workout
@@ -59,6 +61,7 @@ module Shell =
                   yield
                       { state with
                           Setup = setup
+                          Progress = progress
                           Workout = workout }
                       |> Results.State ]
 
