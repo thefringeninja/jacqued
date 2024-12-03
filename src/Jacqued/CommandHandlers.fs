@@ -38,6 +38,7 @@ module Mesocycle =
         function
         | StartMesocycle { MesocycleId = MesocycleId id } -> id
         | CompleteRepSet { MesocycleId = MesocycleId id } -> id
+        | CompleteWave { MesocycleId = MesocycleId id } -> id
         | FailRepSet { MesocycleId = MesocycleId id } -> id
         | unknown -> invalidOp $"{unknown} was not recognized"
 

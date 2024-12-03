@@ -79,13 +79,20 @@ type Exercise =
     | OverheadPress
 
     static member all = [ Squats; BenchPress; Deadlifts; OverheadPress ]
-
+    static member upper = [ BenchPress; OverheadPress ]
+    static member lower = [ Squats; Deadlifts ]
+    
     static member next exercise =
         match exercise with
         | Squats -> BenchPress
         | BenchPress -> Deadlifts
         | Deadlifts -> OverheadPress
         | OverheadPress -> Squats
+
+    member x.isUpper =
+        Exercise.upper |> List.contains x
+    member x.isLower =
+        Exercise.lower |> List.contains x
 
 type MeasurementSystem =
     | Metric
@@ -102,6 +109,7 @@ type RepSet =
     | One
     | Two
     | Three
+    | Complete
 
     static member all = [ One; Two; Three ]
 
@@ -109,6 +117,7 @@ type RepSet =
         match repSet with
         | RepSet.One -> RepSet.Two
         | RepSet.Two -> RepSet.Three
+        | RepSet.Three -> RepSet.Complete
         | _ -> invalidOp ""
 
 type Wave =

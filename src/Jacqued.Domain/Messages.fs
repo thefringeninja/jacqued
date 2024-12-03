@@ -6,6 +6,7 @@ type Command =
     | SetupGym of SetupGym
     | StartMesocycle of StartMesocycle
     | CompleteRepSet of CompleteRepSet
+    | CompleteWave of CompleteWave
     | FailRepSet of FailRepSet
 
 and SetupGym =
@@ -25,6 +26,9 @@ and CompleteRepSet =
     { MesocycleId: MesocycleId
       Reps: uint
       CompletedAt: DateTime }
+and CompleteWave =
+    { MesocycleId: MesocycleId
+      CompletedAt: DateTime }
 
 and FailRepSet =
     { MesocycleId: MesocycleId
@@ -35,6 +39,7 @@ type Event =
     | GymSetup of GymSetup
     | MesocycleStarted of MesocycleStarted
     | RepSetCompleted of RepSetCompleted
+    | WaveCompleted of WaveCompleted
     | MesocycleFailed of MesocycleFailed
     | MesocycleCompleted of MesocycleCompleted
 
@@ -63,6 +68,12 @@ and RepSetCompleted =
       Wave: Wave
       RepSet: RepSet
       Reps: uint
+      CompletedAt: DateTime }
+
+and WaveCompleted =
+    { MesocycleId: MesocycleId
+      Exercise: Exercise
+      Wave: Wave
       CompletedAt: DateTime }
 
 and MesocycleFailed =

@@ -6,8 +6,8 @@ open Avalonia.FuncUI.Helpers
 open Avalonia.Input.TextInput
 open Avalonia.Layout
 open Avalonia.Media
-open Jacqued.Controls
 open Jacqued.DSL
+open Jacqued.Helpers
 open Material.Icons
 open Material.Icons.Avalonia
 open Material.Styles.Controls
@@ -178,9 +178,9 @@ let view (state: State) (dispatch: Msg -> unit) =
                 ]
 
                 PlatePairs.control (
+                    state.MeasurementSystem,
                     state.PlatePairColors,
                     state.Plates,
-                    state.MeasurementSystem,
                     onPlateRemove,
                     SubPatchOptions.OnChangeOf state.Plates
                 )

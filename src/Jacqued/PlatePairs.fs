@@ -26,7 +26,7 @@ type PlatePairs() =
         |> List.mapi (fun i plate -> (plate.WeightOfEach, PlatePairs.colors[i % PlatePairs.colors.Length]))
         |> Map.ofList
 
-    static member control(colorMap: Map<Weight, Color>, platePairs, units, ?func: Weight -> unit, ?subPatchOptions: SubPatchOptions) =
+    static member control(units, colorMap: Map<Weight, Color>, platePairs, ?func: Weight -> unit, ?subPatchOptions: SubPatchOptions) =
         WrapPanel.create [
             WrapPanel.orientation Orientation.Horizontal
             WrapPanel.children (

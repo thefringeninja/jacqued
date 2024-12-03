@@ -50,6 +50,7 @@ let typeToEventType (event: Event) =
     | GymSetup e -> nameof GymSetup, (e :> obj)
     | MesocycleStarted e -> nameof MesocycleStarted, (e :> obj)
     | RepSetCompleted e -> nameof RepSetCompleted, (e :> obj)
+    | WaveCompleted e -> nameof WaveCompleted, (e :> obj)
     | MesocycleFailed e -> nameof MesocycleFailed, (e :> obj)
     | MesocycleCompleted e -> nameof MesocycleCompleted, (e :> obj)
 
@@ -58,6 +59,7 @@ let eventTypeToType eventType =
     | nameof GymSetup -> typeof<GymSetup>
     | nameof MesocycleStarted -> typeof<MesocycleStarted>
     | nameof RepSetCompleted -> typeof<RepSetCompleted>
+    | nameof WaveCompleted -> typeof<WaveCompleted>
     | nameof MesocycleFailed -> typeof<MesocycleFailed>
     | nameof MesocycleCompleted -> typeof<MesocycleCompleted>
     | _ -> invalidOp ""
