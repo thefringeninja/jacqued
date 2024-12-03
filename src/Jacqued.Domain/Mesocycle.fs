@@ -50,38 +50,50 @@ let private completeRepSet (command: CompleteRepSet) state =
     match state with
     | None -> invalidOp ""
     | Some state ->
-        seq {
-            let weight =
-                match state.WorkoutPlan.Sets |> Map.tryFind (state.Wave, state.RepSet) with
-                | Some(weight, _) -> weight
-                | None -> invalidOp ""
+        let weight =
+            match state.WorkoutPlan.Sets |> Map.tryFind (state.Wave, state.RepSet) with
+            | Some(weight, _) -> weight
+            | None -> invalidOp ""
 
-            yield
-                RepSetCompleted
-                    { MesocycleId = state.MesocycleId
-                      Exercise = state.WorkoutPlan.Exercise
-                      Wave = state.Wave
-                      Reps = command.Reps
-                      Weight = weight
-                      RepSet = state.RepSet
-                      CompletedAt = command.CompletedAt }
+        [ RepSetCompleted
+              { MesocycleId = state.MesocycleId
+                Exercise = state.WorkoutPlan.Exercise
+                Wave = state.Wave
+                Reps = command.Reps
+                Weight = weight
+                RepSet = state.RepSet
+                CompletedAt = command.CompletedAt }
 
-            if state.RepSet = RepSet.Three && state.Wave = Wave.Four then
-                let suggestedOneRepMax =
-                    state.OneRepMax
-                    + match (state.MeasurementSystem, state.WorkoutPlan.Exercise) with
-                      | Metric, (Squats | Deadlifts) -> Weight(5m)
-                      | Metric, (BenchPress | OverheadPress) -> Weight(2.5m)
-                      | Imperial, (Squats | Deadlifts) -> Weight(10m)
-                      | Imperial, (BenchPress | OverheadPress) -> Weight(5m)
+          ]
 
-                yield
-                    MesocycleCompleted
-                        { MesocycleId = state.MesocycleId
-                          Exercise = state.WorkoutPlan.Exercise
-                          SuggestedOneRepMax = suggestedOneRepMax }
-        }
-        |> Seq.toList
+let private completeWave (command: CompleteWave) state =
+    match state with
+    | None -> invalidOp ""
+    | Some state ->
+        [ if state.RepSet <> RepSet.Complete then
+              invalidOp ""
+          else
+              yield
+                  WaveCompleted
+                      { MesocycleId = state.MesocycleId
+                        Exercise = state.WorkoutPlan.Exercise
+                        Wave = state.Wave
+                        CompletedAt = command.CompletedAt }
+
+              if state.Wave = Wave.Four then
+                  let suggestedOneRepMax =
+                      state.OneRepMax
+                      + match (state.MeasurementSystem, state.WorkoutPlan.Exercise) with
+                        | Metric, (Squats | Deadlifts) -> Weight(5m)
+                        | Metric, (BenchPress | OverheadPress) -> Weight(2.5m)
+                        | Imperial, (Squats | Deadlifts) -> Weight(10m)
+                        | Imperial, (BenchPress | OverheadPress) -> Weight(5m)
+
+                  yield
+                      MesocycleCompleted
+                          { MesocycleId = state.MesocycleId
+                            Exercise = state.WorkoutPlan.Exercise
+                            SuggestedOneRepMax = suggestedOneRepMax } ]
 
 let private failRepSet (command: FailRepSet) state =
     match state with
@@ -106,6 +118,7 @@ let handle =
     function
     | StartMesocycle command -> start command
     | CompleteRepSet command -> completeRepSet command
+    | CompleteWave command -> completeWave command
     | FailRepSet command -> failRepSet command
     | _ -> invalidOp ""
 
@@ -121,14 +134,13 @@ let evolve state =
           MeasurementSystem = e.MeasurementSystem
           Status = InProgress }
     | RepSetCompleted e ->
-        match e.RepSet with
-        | RepSet.Three ->
-            { state with
-                Status = Completed
-                RepSet = RepSet.One
-                Wave = e.Wave |> Wave.next }
-        | _ ->
-            { state with
-                RepSet = RepSet.next e.RepSet }
+        { state with
+            RepSet = RepSet.next e.RepSet }
+    | WaveCompleted e ->
+        { state with
+            Status = Completed
+            RepSet = RepSet.One
+            Wave = e.Wave |> Wave.next }
+
     | MesocycleFailed _ -> { state with Status = Failed }
     | _ -> invalidOp ""

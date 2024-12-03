@@ -125,6 +125,13 @@ module FloatingButton =
                     ]
                 ]
             )
+[<AutoOpen>]
+module Separator =
+    let create(attrs: IAttr<Separator> list): IView<Separator> =
+        ViewBuilder.Create<Separator>(attrs)
+    
+    type Separator with
+        end
 
 [<AutoOpen>]
 module CartesianChart =

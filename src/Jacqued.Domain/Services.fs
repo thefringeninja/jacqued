@@ -17,6 +17,7 @@ module Calculate =
         | Wave.Four, RepSet.One -> weight * 0.40, 5u
         | Wave.Four, RepSet.Two -> weight * 0.50, 5u
         | Wave.Four, RepSet.Three -> weight * 0.60, 5u
+        | _ -> Weight.zero, 0u
 
     let warmupSet repSet (weight: Weight) = set Wave.Four repSet weight
 
