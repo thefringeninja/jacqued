@@ -24,4 +24,5 @@ type Msg =
     | FailRepSet of MesocycleId * uint
     | ContinueExercise
     | SelectedAssistanceWorkIndexChanged of int
+    | SelectedProgressChartExerciseChanged of Exercise option
     | ApplicationError of ApplicationError
