@@ -27,22 +27,24 @@ jobs:
       - name: setup keystore
         run: |
           mkdir -p .keystore
-          echo ${{ secrets.KEYSTORE }} | base64 --decode >> .keystore/jacqued.jks
-          
+          echo -n "${{ secrets.KEYSTORE }}" | base64 --decode >> .keystore/jacqued.jks
+
       - name: restore workloads
         run: dotnet workload restore src/Jacqued.Android/Jacqued.Android.fsproj
-      - name: restore packages 
+      - name: restore packages
         run: dotnet restore src/Jacqued.Android
       - name: build
         run: |
-          dotnet publish --output ./publish \
+          dotnet publish src/Jacqued.Android \
+            --output ./publish --framework net8.0-android \
+            --verbosity diagnostic \
             /p:ApplicationVersion=$(git tag --list 'v*' --merged | sort --version-sort | wc --lines) \
-            /p:ApplicationDisplayVersion=$(echo ${{ github.ref_name }} | cut -c2-) src/Jacqued.Android \
+            /p:ApplicationDisplayVersion=$(echo ${{ github.ref_name }} | cut -c2-) \
             /p:AndroidKeyStore=True \
-            /p:AndroidSigningKeyStore=$(pwd)/.keystore/jacqued.jks \
-            /p:AndroidSigningStorePass="$(pwd)/.keystore/jacqued.jks ${{ secrets.SIGNING_STORE_PASSWORD }}" \
+            /p:AndroidSigningKeyStore="$(pwd)/.keystore/jacqued.jks" \
+            /p:AndroidSigningStorePass='${{ secrets.SIGNING_STORE_PASSWORD }}' \
             /p:AndroidSigningKeyAlias="${{ secrets.SIGNING_KEY_ALIAS }}" \
-            /p:AndroidSigningKeyPass="${{ secrets.SIGNING_KEY_ALIAS }} ${{ secrets.SIGNING_KEY_PASSWORD }}"
+            /p:AndroidSigningKeyPass='${{ secrets.SIGNING_KEY_PASSWORD }}'
       - name: release
         uses: softprops/action-gh-release@v2
         with:
