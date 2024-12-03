@@ -12,6 +12,7 @@ open LiveChartsCore
 open LiveChartsCore.Kernel.Sketches
 open LiveChartsCore.Measure
 open LiveChartsCore.SkiaSharpView.Avalonia
+open LiveChartsCore.SkiaSharpView.Drawing
 open Material.Styles.Assists
 
 [<AutoOpen>]
@@ -155,6 +156,14 @@ module CartesianChart =
         static member series<'t when 't :> CartesianChart>(value: seq<ISeries>) : IAttr<'t> =
             AttrBuilder<'t>
                 .CreateProperty<seq<ISeries>>(property = CartesianChart.SeriesProperty, value = value, comparer = ValueNone)
+                
+        static member legend<'t when 't :> CartesianChart>(value:IChartLegend<SkiaSharpDrawingContext>): IAttr<'t> =
+            let name = nameof Unchecked.defaultof<'t>.Legend
+            let getter: 't -> IChartLegend<SkiaSharpDrawingContext> = (_.Legend)
+            let setter: 't * IChartLegend<SkiaSharpDrawingContext> -> unit = (fun (control, value) -> control.Legend <- value)
+
+            AttrBuilder<'t>
+                .CreateProperty<IChartLegend<SkiaSharpDrawingContext>>(name, value, ValueSome getter, ValueSome setter, ValueNone)
 
 [<AutoOpen>]
 module ReactiveDialogHost =

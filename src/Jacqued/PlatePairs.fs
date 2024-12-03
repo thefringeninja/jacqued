@@ -12,12 +12,7 @@ open Material.Icons.Avalonia
 
 type PlatePairs() =
     static member colors =
-        [ PurpleSwatch.Purple400
-          IndigoSwatch.Indigo400
-          LightBlueSwatch.LightBlue400
-          TealSwatch.Teal400
-          GreenSwatch.Green400
-          OrangeSwatch.Orange400 ]
+        Colors.swatches |> List.take 6
 
     static member colorMap(platePairs: PlatePair list) =
         platePairs

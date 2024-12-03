@@ -19,8 +19,10 @@ type Msg =
     | OneRepMaxChanged of Weight
     | StartDateChanged of DateTime
     | CompleteRepSet of MesocycleId * uint
+    | ExerciseDateChanged of DateTime
     | CompleteWave of MesocycleId
     | FailRepSet of MesocycleId * uint
     | ContinueExercise
     | SelectedAssistanceWorkIndexChanged of int
+    | SelectedProgressChartExerciseChanged of Exercise option
     | ApplicationError of ApplicationError
