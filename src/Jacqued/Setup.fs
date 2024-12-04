@@ -144,7 +144,7 @@ let view (state: State) (dispatch: Msg -> unit) =
     let setupGym =
         MaterialButton.create [
             Button.dock Dock.Right
-            Button.content ("Setup gym", MaterialIconKind.Check |> Some)
+            Button.content ("Setup gym", MaterialIconKind.Check)
             Button.isEnabled setupGymEnabled
             Button.onClick (onSetupGym, SubPatchOptions.OnChangeOf state)
         ]

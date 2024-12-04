@@ -1,4 +1,4 @@
-namespace Jacqued
+module Jacqued.Resources
 
 open System
 open Avalonia
@@ -6,14 +6,15 @@ open Avalonia.Controls
 open Avalonia.Styling
 open Material.Colors.Recommended
 
-module Resources =
-    let swatches =
-        [ PurpleSwatch.Purple400
-          IndigoSwatch.Indigo400
-          LightBlueSwatch.LightBlue400
-          TealSwatch.Teal400
-          GreenSwatch.Green400
-          OrangeSwatch.Orange400 ]
+let swatches =
+    [ PurpleSwatch.Purple400
+      IndigoSwatch.Indigo400
+      LightBlueSwatch.LightBlue400
+      TealSwatch.Teal400
+      GreenSwatch.Green400
+      OrangeSwatch.Orange400 ]
+
+module Themes =
 
 
     let private theme name =

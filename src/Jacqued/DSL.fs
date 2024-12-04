@@ -105,8 +105,10 @@ module MaterialButton =
         ViewBuilder.Create<Button>([ attrs; [ Button.padding 0; Button.cornerRadius 20 ] ] |> List.concat)
 
     type Button with
-        static member content<'t when 't :> Button>(text: string, iconKind: MaterialIconKind option) : IAttr<'t> =
+        static member content<'t when 't :> Button>(text: string, ?iconKind: MaterialIconKind) : IAttr<'t> =
             Button.content (buttonContent (text |> Some) iconKind Orientation.Horizontal)
+        static member content<'t when 't :> Button>(iconKind: MaterialIconKind) : IAttr<'t> =
+            Button.content (buttonContent None (iconKind |> Some) Orientation.Horizontal)
 
 [<AutoOpen>]
 module NavigationButton =
