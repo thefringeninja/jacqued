@@ -12,7 +12,7 @@ open Material.Icons.Avalonia
 
 type PlatePairs() =
     static member colors =
-        Colors.swatches |> List.take 6
+        Resources.swatches |> List.take 6
 
     static member colorMap(platePairs: PlatePair list) =
         platePairs

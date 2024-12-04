@@ -45,6 +45,23 @@ let floatingLayout topAppBarButtons floatingButtons content =
         ]
     ]
 
+let buttonBar (buttons: IView<Button> list) : IView =
+    let mapButton i button : IView =
+        let attrs: IAttr<Button> list =
+            [ yield Button.dock (if i = 0 then Dock.Right else Dock.Left)
+
+              if i > 0 then
+                  let controlTheme = Resources.materialOutlineButton.Value
+                  yield Button.theme controlTheme ]
+
+        View.withAttrs attrs button
+
+    DockPanel.create [
+        DockPanel.margin 8
+        DockPanel.lastChildFill false
+        DockPanel.children (buttons |> List.mapi mapButton)
+    ]
+
 let divide (views: IView list) : IView list =
     [ for i in 0 .. (views.Length - 1) do
           yield views |> List.item i

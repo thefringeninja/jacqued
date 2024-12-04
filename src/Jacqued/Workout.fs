@@ -257,6 +257,12 @@ let startMesocycle state dispatch =
 
     let oneRepMax = currentOneRepMax state
 
+    let startMesocycle =
+        MaterialButton.create [
+            Button.content ("Start Mesocycle", MaterialIconKind.Check |> Some)
+            Button.onClick (onStartMesocycle oneRepMax, SubPatchOptions.OnChangeOf state.Lifts)
+        ]
+
     let content =
         StackPanel.create [
             StackPanel.orientation Orientation.Vertical
@@ -277,16 +283,11 @@ let startMesocycle state dispatch =
                     TextBox.text $"{oneRepMax}"
                     TextBox.onTextChanged onOneRepMaxChange
                 ]
+                buttonBar [ startMesocycle ]
             ]
         ]
 
-    let startMesocycle =
-        FloatingButton.create [
-            FloatingButton.content MaterialIconKind.Check
-            FloatingButton.onClick (onStartMesocycle oneRepMax, SubPatchOptions.OnChangeOf state.Lifts)
-        ]
-
-    floatingLayout [] [ startMesocycle ] content
+    floatingLayout [] [] content
 
 let currentWorkout (state: State) dispatch =
     let mesocycleId, workoutPlan =
@@ -332,6 +333,20 @@ let currentWorkout (state: State) dispatch =
 
     let weight = (platePairs |> List.sumBy (_.Weight)) + bar.Weight
 
+    let completeRepSet =
+        MaterialButton.create [
+            Button.dock Dock.Right
+            Button.content ("Complete Set", MaterialIconKind.Barbell |> Some)
+            Button.onClick (onCompleteRepSetClick, SubPatchOptions.OnChangeOf(state.Lifts))
+        ]
+
+    let failRepSet =
+        MaterialButton.create [
+            Button.dock Dock.Left
+            Button.content ("Fail Set", MaterialIconKind.CancelCircle |> Some)
+            Button.onClick (onFailRepSetClick, SubPatchOptions.OnChangeOf(state.Lifts))
+        ]
+
     let content =
         StackPanel.create [
             StackPanel.orientation Orientation.Vertical
@@ -353,22 +368,11 @@ let currentWorkout (state: State) dispatch =
                 TextBlock.create [ TextBlock.classes [ "Subtitle2" ]; TextBlock.text $"Weight: {weight}{units}" ]
                 TextBlock.create [ TextBlock.classes [ "Subtitle2" ]; TextBlock.text $"Reps: {reps}" ]
                 PlatePairs.control (units, colorMap, platePairs)
+                buttonBar [ completeRepSet; failRepSet ]
             ]
         ]
 
-    let completeRepSet =
-        FloatingButton.create [
-            FloatingButton.content MaterialIconKind.Barbell
-            FloatingButton.onClick (onCompleteRepSetClick, SubPatchOptions.OnChangeOf(state.Lifts))
-        ]
-
-    let failRepSet =
-        FloatingButton.create [
-            FloatingButton.content MaterialIconKind.CancelCircle
-            FloatingButton.onClick (onFailRepSetClick, SubPatchOptions.OnChangeOf(state.Lifts))
-        ]
-
-    floatingLayout [] [ failRepSet; completeRepSet ] content
+    floatingLayout [] [] content
 
 let warmup state _ =
     let content =
@@ -409,13 +413,16 @@ let warmup state _ =
 
 let restDay _ dispatch =
     let onContinueClick _ = Msg.ContinueExercise |> dispatch
+    
+    let ``continue`` = MaterialButton.create [ Button.content ("Continue", None); Button.onClick onContinueClick ]  
 
     let content =
         StackPanel.create [
             StackPanel.orientation Orientation.Vertical
             StackPanel.children [
                 TextBlock.create [ TextBlock.text "Some inspirational text"; TextBlock.classes [ "Subtitle2" ] ]
-                Button.create [ Button.content "Continue"; Button.onClick onContinueClick ]
+                
+                buttonBar [ ``continue`` ]
             ]
         ]
 
@@ -487,14 +494,21 @@ let assistance (state: State) dispatch =
         let assistance = assistance[state.Lifts.SelectedAssistanceWorkIndex] |> snd
 
         let completeWave =
-            Button.create [
-                Button.content $"Complete Wave {state.Lifts.Wave}"
+            MaterialButton.create [
+                Button.dock Dock.Right
+                Button.content ($"Complete Wave {state.Lifts.Wave}", MaterialIconKind.Barbell |> Some)
                 Button.onClick (onCompleteWaveClick, SubPatchOptions.OnChangeOf(state.Lifts))
                 Button.isEnabled (state.Lifts.RepSet = RepSet.Complete)
             ]
 
         let content =
-            StackPanel.create [ StackPanel.children [ comboBox; assistance (); completeWave ] ]
+            StackPanel.create [
+                StackPanel.children [
+                    comboBox
+                    assistance ()
+                    buttonBar [ completeWave ]
+                ]
+            ]
 
         floatingLayout [] [] content |> generalize
     | _ -> StackPanel.create []
