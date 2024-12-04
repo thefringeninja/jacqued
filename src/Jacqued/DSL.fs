@@ -1,5 +1,6 @@
 module Jacqued.DSL
 
+open Avalonia
 open Avalonia.Controls
 open Avalonia.FuncUI.Builder
 open Avalonia.FuncUI.DSL
@@ -13,6 +14,8 @@ open LiveChartsCore.Kernel.Sketches
 open LiveChartsCore.Measure
 open LiveChartsCore.SkiaSharpView.Avalonia
 open LiveChartsCore.SkiaSharpView.Drawing
+open Material.Icons
+open Material.Icons.Avalonia
 open Material.Styles.Assists
 
 [<AutoOpen>]
@@ -31,9 +34,6 @@ module TextBox =
 
 [<AutoOpen>]
 module MaterialIcon =
-    open Material.Icons
-    open Material.Icons.Avalonia
-
     let create (attrs: IAttr<MaterialIcon> list) : IView<MaterialIcon> = ViewBuilder.Create<MaterialIcon>(attrs)
 
     type MaterialIcon with
@@ -42,52 +42,88 @@ module MaterialIcon =
             AttrBuilder<'t>
                 .CreateProperty<MaterialIconKind>(MaterialIcon.KindProperty, value, ValueNone)
 
+let private buttonContent (text: string option) (iconKind: MaterialIconKind option) (orientation: Orientation) =
+    let padding =
+        match text, iconKind, orientation with
+        | Some _, Some _, Orientation.Horizontal -> Thickness(16, 0, 24, 0)
+        | _, _, Orientation.Horizontal -> Thickness(24, 0, 24, 0)
+        | _ -> Thickness(0, 12, 0, 16)
+
+    let height, iconSize, viewboxSize =
+        match orientation with
+        | Orientation.Horizontal -> 40 |> Some, 16, 16
+        | _ -> None, 24, 32
+
+    StackPanel.create [
+        StackPanel.orientation orientation
+        StackPanel.margin padding
+        if height.IsSome then
+            StackPanel.height height.Value
+        StackPanel.children [
+            match iconKind with
+            | Some iconKind ->
+                yield
+                    Viewbox.create [
+                        Viewbox.stretch Stretch.None
+                        Viewbox.width viewboxSize
+                        Viewbox.height viewboxSize
+                        Viewbox.horizontalAlignment HorizontalAlignment.Stretch
+                        Viewbox.verticalAlignment VerticalAlignment.Stretch
+                        Viewbox.child (
+                            MaterialIcon.create [
+                                MaterialIcon.kind iconKind
+                                MaterialIcon.width iconSize
+                                MaterialIcon.height iconSize
+                            ]
+                        )
+                    ]
+                    |> generalize
+            | _ -> ()
+
+            match text with
+            | Some text ->
+                let padding =
+                    match iconKind, orientation with
+                    | Some _, Orientation.Vertical -> Thickness(0, 4, 0, 0)
+                    | Some _, Orientation.Horizontal -> Thickness(8, 0, 0, 0)
+                    | _ -> Thickness(0)
+
+                yield
+                    TextBlock.create [
+                        TextBlock.text text
+                        TextBlock.padding padding
+                        TextBlock.verticalAlignment VerticalAlignment.Center
+                        TextBlock.classes [ "Subtitle2" ]
+                    ]
+            | _ -> ()
+        ]
+    ]
+
+[<AutoOpen>]
+module MaterialButton =
+    let create (attrs: IAttr<Button> list) : IView<Button> =
+        ViewBuilder.Create<Button>([ attrs; [ Button.padding 0; Button.cornerRadius 20 ] ] |> List.concat)
+
+    type Button with
+        static member content<'t when 't :> Button>(text: string, ?iconKind: MaterialIconKind) : IAttr<'t> =
+            Button.content (buttonContent (text |> Some) iconKind Orientation.Horizontal)
+        static member content<'t when 't :> Button>(iconKind: MaterialIconKind) : IAttr<'t> =
+            Button.content (buttonContent None (iconKind |> Some) Orientation.Horizontal)
+
 [<AutoOpen>]
 module NavigationButton =
     open Jacqued.Controls
-    open Material.Icons
-    open Material.Icons.Avalonia
 
     let create (attrs: IAttr<NavigationButton> list) : IView<NavigationButton> =
         ViewBuilder.Create<NavigationButton>(attrs)
 
     type NavigationButton with
         static member content<'t when 't :> NavigationButton>(iconKind: MaterialIconKind, ?text: string) : IAttr<'t> =
-            NavigationButton.content (
-                StackPanel.create [
-                    StackPanel.orientation Orientation.Vertical
-                    StackPanel.margin (0, 12, 0, 16)
-                    StackPanel.children [
-                        yield
-                            Viewbox.create [
-                                Viewbox.stretch Stretch.Fill
-                                Viewbox.width 24
-                                Viewbox.horizontalAlignment HorizontalAlignment.Stretch
-                                Viewbox.verticalAlignment VerticalAlignment.Stretch
-                                Viewbox.child (
-                                    MaterialIcon.create [ MaterialIcon.kind iconKind; MaterialIcon.width 24; MaterialIcon.height 24 ]
-                                )
-                            ]
-                            |> generalize
-
-                        match text with
-                        | Some text ->
-                            yield
-                                TextBlock.create [
-                                    TextBlock.text text
-                                    TextBlock.verticalAlignment VerticalAlignment.Center
-                                    TextBlock.classes [ "Subtitle2" ]
-                                ]
-                        | _ -> ()
-                    ]
-                ]
-            )
+            NavigationButton.content (buttonContent text (iconKind |> Some) Orientation.Vertical)
 
 [<AutoOpen>]
 module FloatingButton =
-    open Material.Icons
     open Material.Styles.Controls
-    open Material.Icons.Avalonia
 
     let create (attrs: IAttr<FloatingButton> list) : IView<FloatingButton> =
         ViewBuilder.Create<FloatingButton>(attrs)
@@ -98,39 +134,12 @@ module FloatingButton =
                 .CreateProperty<bool>(FloatingButton.IsExtendedProperty, value, ValueNone)
 
         static member content<'t when 't :> FloatingButton>(iconKind: MaterialIconKind, ?text: string) : IAttr<'t> =
-            FloatingButton.content (
-                StackPanel.create [
-                    StackPanel.orientation Orientation.Horizontal
-                    StackPanel.height 24
-                    StackPanel.children [
-                        yield
-                            Viewbox.create [
-                                Viewbox.stretch Stretch.Fill
-                                Viewbox.horizontalAlignment HorizontalAlignment.Stretch
-                                Viewbox.verticalAlignment VerticalAlignment.Stretch
-                                Viewbox.child (
-                                    MaterialIcon.create [ MaterialIcon.kind iconKind; MaterialIcon.width 24; MaterialIcon.height 24 ]
-                                )
-                            ]
-                            |> generalize
+            FloatingButton.content (buttonContent text (iconKind |> Some) Orientation.Horizontal)
 
-                        match text with
-                        | Some text ->
-                            yield
-                                TextBlock.create [
-                                    TextBlock.text text
-                                    TextBlock.verticalAlignment VerticalAlignment.Center
-                                    TextBlock.classes [ "Subtitle2" ]
-                                ]
-                        | _ -> ()
-                    ]
-                ]
-            )
 [<AutoOpen>]
 module Separator =
-    let create(attrs: IAttr<Separator> list): IView<Separator> =
-        ViewBuilder.Create<Separator>(attrs)
-    
+    let create (attrs: IAttr<Separator> list) : IView<Separator> = ViewBuilder.Create<Separator>(attrs)
+
     type Separator with
         end
 
@@ -156,11 +165,13 @@ module CartesianChart =
         static member series<'t when 't :> CartesianChart>(value: seq<ISeries>) : IAttr<'t> =
             AttrBuilder<'t>
                 .CreateProperty<seq<ISeries>>(property = CartesianChart.SeriesProperty, value = value, comparer = ValueNone)
-                
-        static member legend<'t when 't :> CartesianChart>(value:IChartLegend<SkiaSharpDrawingContext>): IAttr<'t> =
+
+        static member legend<'t when 't :> CartesianChart>(value: IChartLegend<SkiaSharpDrawingContext>) : IAttr<'t> =
             let name = nameof Unchecked.defaultof<'t>.Legend
             let getter: 't -> IChartLegend<SkiaSharpDrawingContext> = (_.Legend)
-            let setter: 't * IChartLegend<SkiaSharpDrawingContext> -> unit = (fun (control, value) -> control.Legend <- value)
+
+            let setter: 't * IChartLegend<SkiaSharpDrawingContext> -> unit =
+                (fun (control, value) -> control.Legend <- value)
 
             AttrBuilder<'t>
                 .CreateProperty<IChartLegend<SkiaSharpDrawingContext>>(name, value, ValueSome getter, ValueSome setter, ValueNone)

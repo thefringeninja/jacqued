@@ -69,7 +69,7 @@ let dataItems = [ [ None ]; Exercise.all |> List.map Some ] |> List.concat
 
 let series =
     (Exercise.all,
-     Colors.swatches
+     Resources.swatches
      |> List.take 4
      |> List.map (_.ToUInt32())
      |> List.map (SKColor >> SolidColorPaint))

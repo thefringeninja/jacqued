@@ -89,6 +89,12 @@ type Exercise =
         | Deadlifts -> OverheadPress
         | OverheadPress -> Squats
 
+    static member previous exercise =
+        match exercise with
+        | Squats -> OverheadPress
+        | BenchPress -> Squats
+        | Deadlifts -> BenchPress
+        | OverheadPress -> Deadlifts
     member x.isUpper =
         Exercise.upper |> List.contains x
     member x.isLower =

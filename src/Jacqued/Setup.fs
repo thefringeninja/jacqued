@@ -141,6 +141,14 @@ let view (state: State) (dispatch: Msg -> unit) =
         ]
         |> generalize
 
+    let setupGym =
+        MaterialButton.create [
+            Button.dock Dock.Right
+            Button.content ("Setup gym", MaterialIconKind.Check)
+            Button.isEnabled setupGymEnabled
+            Button.onClick (onSetupGym, SubPatchOptions.OnChangeOf state)
+        ]
+
     let content =
         StackPanel.create [
             StackPanel.orientation Orientation.Vertical
@@ -184,15 +192,9 @@ let view (state: State) (dispatch: Msg -> unit) =
                     onPlateRemove,
                     SubPatchOptions.OnChangeOf state.Plates
                 )
+
+                buttonBar [ setupGym ]
             ]
         ]
 
-    let setupGym =
-        FloatingButton.create [
-            FloatingButton.content (MaterialIconKind.Check, "Setup gym")
-            FloatingButton.isExtended true
-            FloatingButton.isEnabled setupGymEnabled
-            FloatingButton.onClick (onSetupGym, SubPatchOptions.OnChangeOf state)
-        ]
-
-    floatingLayout [ ] [ setupGym ] content
+    floatingLayout [] [] content

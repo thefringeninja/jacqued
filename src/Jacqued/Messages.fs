@@ -20,6 +20,8 @@ type Msg =
     | StartDateChanged of DateTime
     | CompleteRepSet of MesocycleId * uint
     | ExerciseDateChanged of DateTime
+    | IncreaseReps
+    | DecreaseReps
     | CompleteWave of MesocycleId
     | FailRepSet of MesocycleId * uint
     | ContinueExercise
