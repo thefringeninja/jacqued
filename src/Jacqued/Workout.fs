@@ -27,7 +27,7 @@ type WorkoutPlans = Map<MesocycleId, WorkoutPlan>
 type Screen =
     | StartMesocycle
     | WorkingOut
-    | RestDay
+    | Summary
 
 type Lifts =
     { Exercise: Exercise
@@ -35,6 +35,7 @@ type Lifts =
       Wave: Wave
       RepSet: RepSet
       Reps: uint
+      CompletedReps: Map<RepSet, Weight * uint>
       SelectedAssistanceWorkIndex: int
       SelectedTabIndex: int
       OneRepMax: Weight option }
@@ -45,6 +46,7 @@ type Lifts =
           Wave = Wave.One
           RepSet = RepSet.One
           Reps = 0u
+          CompletedReps = Map.empty
           SelectedAssistanceWorkIndex = 0
           SelectedTabIndex = 0
           OneRepMax = None }
@@ -91,7 +93,7 @@ let update (now: _ -> DateTime) handler msg state =
         let now = now().Date
 
         if now < nextExerciseDate then
-            Screen.RestDay
+            Screen.Summary
         else
             nextScreen
 
@@ -127,6 +129,7 @@ let update (now: _ -> DateTime) handler msg state =
             { state with
                 State.Lifts.RepSet = nextRepSet
                 State.Lifts.Reps = 0u
+                State.Lifts.CompletedReps = state.Lifts.CompletedReps |> Map.add e.RepSet (e.Weight, e.Reps)
                 State.Lifts.SelectedTabIndex = if nextRepSet = RepSet.Complete then 2 else 1 },
             List.empty |> Ok
         | WaveCompleted e ->
@@ -153,6 +156,7 @@ let update (now: _ -> DateTime) handler msg state =
                 State.Lifts.Wave = state.Waves[nextExercise]
                 State.Lifts.RepSet = RepSet.One
                 State.Lifts.Reps = 0u
+                State.Lifts.CompletedReps = state.Lifts.CompletedReps |> Map.add e.RepSet (e.Weight, e.Reps)
                 State.SuggestedOneRepMaxes = state.SuggestedOneRepMaxes |> Map.add e.Exercise e.SuggestedOneRepMax
                 State.Waves = state.Waves |> Map.add e.Exercise Wave.One
                 State.WorkoutPlans = state.WorkoutPlans |> Map.remove e.MesocycleId },
@@ -233,7 +237,8 @@ let update (now: _ -> DateTime) handler msg state =
         )
     | Msg.ContinueExercise ->
         { state with
-            State.Screen = nextScreen state.Lifts.Exercise },
+            State.Screen = nextScreen state.Lifts.Exercise
+            State.Lifts.CompletedReps = Map.empty },
         List.empty |> Ok
     | _ -> state, List.empty |> Ok
 
@@ -385,9 +390,8 @@ let currentWorkout (state: State) dispatch =
             Button.onClick (onFailRepSetClick, SubPatchOptions.OnChangeOf(state.Lifts))
             Button.isEnabled (state.Lifts.Reps < reps)
         ]
-        
-    let plus =
-        if state.Lifts.RepSet = RepSet.Three then "+" else "" 
+
+    let plus = if state.Lifts.RepSet = RepSet.Three then "+" else ""
 
     let content =
         StackPanel.create [
@@ -463,20 +467,57 @@ let warmup state _ =
 
     floatingLayout [] [] content
 
-let restDay _ dispatch =
+let summary state dispatch =
+    let summary =
+        StackPanel.create [
+            StackPanel.orientation Orientation.Vertical
+            StackPanel.children [
+                yield
+                    TextBlock.create [
+                        TextBlock.classes [ "Headline6" ]
+                        TextBlock.text $"{state.Lifts.Exercise |> Exercise.previous}"
+                    ]
+                yield TextBlock.create [ TextBlock.classes [ "Subtitle1" ]; TextBlock.text $"Wave {state.Lifts.Wave}" ]
+
+                yield!
+                    RepSet.all
+                    |> List.map (fun repSet ->
+                        let units =
+                            match state.Gym with
+                            | Some gym -> gym.MeasurementSystem
+                            | _ -> Metric
+
+                        match (state.Lifts.CompletedReps |> Map.tryFind repSet) with
+                        | Some(weight, reps) ->
+                            StackPanel.create [
+                                StackPanel.orientation Orientation.Vertical
+                                StackPanel.children [
+                                    TextBlock.create [
+                                        TextBlock.classes [ "Subtitle2" ]
+                                        TextBlock.text $"Set {state.Lifts.RepSet}"
+                                    ]
+                                    TextBlock.create [ TextBlock.classes [ "Subtitle2" ]; TextBlock.text $"Weight: {weight}{units}" ]
+                                    TextBlock.create [ TextBlock.classes [ "Subtitle2" ]; TextBlock.text $"Reps: {reps}" ]
+                                ]
+                            ]
+                        | _ -> StackPanel.create [])
+                    |> List.map generalize
+                    |> divide
+            ]
+        ]
+
     let onContinueClick _ = Msg.ContinueExercise |> dispatch
 
     let ``continue`` =
-        MaterialButton.create [ Button.content ("Continue", MaterialIconKind.Check); Button.onClick onContinueClick ]
+        MaterialButton.create [
+            Button.content ("Continue", MaterialIconKind.Check)
+            Button.onClick onContinueClick
+        ]
 
     let content =
         StackPanel.create [
             StackPanel.orientation Orientation.Vertical
-            StackPanel.children [
-                TextBlock.create [ TextBlock.text "Some inspirational text"; TextBlock.classes [ "Subtitle2" ] ]
-
-                buttonBar [ ``continue`` ]
-            ]
+            StackPanel.children [ summary; buttonBar [ ``continue`` ] ]
         ]
 
     floatingLayout [] [] content
@@ -577,8 +618,8 @@ let view state dispatch =
                 yield
                     TabItem.content (
                         match (state.Screen, state.Lifts.RepSet) with
-                        | RestDay, _
-                        | _, RepSet.Complete -> restDay state dispatch
+                        | Summary, _
+                        | _, RepSet.Complete -> summary state dispatch
                         | StartMesocycle, _ -> startMesocycle state dispatch
                         | WorkingOut, _ -> currentWorkout state dispatch
                     )
