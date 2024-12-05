@@ -28,10 +28,12 @@
 
 
 	<ItemGroup>
+		<Compile Include="Util.fs" />
 		<Compile Include="Resources.fs" />
 		<Compile Include="CommandHandlers.fs"/>
 		<Compile Include="EventStorage.fs"/>
 		<Compile Include="Controls.fs" />
+		<Compile Include="Typography.fs" />
 		<Compile Include="DSL.fs" />
 		<Compile Include="Helpers.fs" />
 		<Compile Include="Messages.fs"/>

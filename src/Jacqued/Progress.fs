@@ -79,7 +79,7 @@ let series =
         columnSeries.Fill <- null
         columnSeries.Stroke <- paint
         columnSeries.GeometryStroke <- paint
-        
+
         columnSeries :> ISeries)
     |> List.toArray
 
@@ -87,33 +87,32 @@ let view state dispatch =
     let onSelectedExerciseChange (e: obj) =
         (e :?> Exercise option) |> Msg.SelectedProgressChartExerciseChanged |> dispatch
 
+    let itemTemplate item =
+        match item with
+        | Some item -> item.ToString()
+        | _ -> "All"
+        |> Typography.body2
+
+    let dataTemplateView = DataTemplateView<Exercise option>.create itemTemplate
+
     let selector =
         ComboBox.create [
             DockPanel.dock Dock.Top
             ComboBox.onSelectedItemChanged onSelectedExerciseChange
             ComboBox.dataItems dataItems
-            ComboBox.itemTemplate (
-                DataTemplateView<Exercise option>.create (fun item ->
-                    TextBlock.create [
-                        TextBlock.text (
-                            match item with
-                            | Some item -> item.ToString()
-                            | _ -> "All"
-                        )
-                    ])
-            )
+            ComboBox.itemTemplate dataTemplateView
         ]
-        
 
-    let mutateSeries i (columnSeries:ISeries) =
+    let mutateSeries i (columnSeries: ISeries) =
         let exercise = Exercise.all[i]
         let history = state.History[exercise]
-        
+
         columnSeries.IsVisible <- state.Exercise.IsNone || state.Exercise.Value = exercise
+
         columnSeries.Values <-
             history
             |> Array.map (fun (weight: Weight, passed, date: DateTime) -> DateTimePoint(date.Date, weight.Value |> float))
-        
+
     series |> Array.iteri mutateSeries
 
     let chart =
@@ -125,7 +124,7 @@ let view state dispatch =
             CartesianChart.xaxes [ DateTimeAxis(TimeSpan.FromDays(1), (fun d -> d.ToString("M"))) ]
         ]
 
-    let content = DockPanel.create [ DockPanel.lastChildFill true; DockPanel.children [ selector; chart ] ]
-    
+    let content =
+        DockPanel.create [ DockPanel.lastChildFill true; DockPanel.children [ selector; chart ] ]
+
     floatingLayout [] [] content
-    

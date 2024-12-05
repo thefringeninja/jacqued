@@ -18,13 +18,8 @@ module Themes =
 
 
     let private theme name =
-        let uc (s: string) =
-            s
-            |> Seq.mapi (fun i c -> if i = 0 then Char.ToUpper c else c)
-            |> Seq.map string
-            |> String.concat ""
 
-        let name = name |> uc
+        let name = name |> Util.pascalize
 
         lazy
             (match Application.Current.TryFindResource name with
