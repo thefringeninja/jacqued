@@ -11,8 +11,7 @@ open Material.Icons
 open Material.Icons.Avalonia
 
 type PlatePairs() =
-    static member colors =
-        Resources.swatches |> List.take 6
+    static member colors = Resources.swatches |> List.take 6
 
     static member colorMap(platePairs: PlatePair list) =
         platePairs
@@ -36,18 +35,18 @@ type PlatePairs() =
                 |> Map.toList
                 |> List.map (fun (weight, count) ->
                     let children =
-                        [ yield
-                              TextBlock.create [
-                                  TextBlock.text $"{weight} {units} (x{count})"
-                                  let rightMargin =
-                                      function
-                                      | Some _ -> 0
-                                      | _ -> 16
+                        [ let rightMargin =
+                              function
+                              | Some _ -> 0
+                              | _ -> 16
 
-                                  TextBlock.margin (16, 0, rightMargin func, 0)
-                                  TextBlock.verticalAlignment VerticalAlignment.Center
-                              ]
+                          yield
+                              View.withAttrs
+                                  [ TextBlock.margin (16, 0, rightMargin func, 0)
+                                    TextBlock.verticalAlignment VerticalAlignment.Center ]
+                                  (Typography.body2 $"{weight} {units} (x{count})")
                               |> generalize
+
                           if func.IsSome then
                               yield
                                   ContentControl.create [

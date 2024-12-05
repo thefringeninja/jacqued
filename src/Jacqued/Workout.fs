@@ -286,7 +286,7 @@ let startMesocycle state dispatch =
         StackPanel.create [
             StackPanel.orientation Orientation.Vertical
             StackPanel.children [
-                TextBlock.create [ TextBlock.classes [ "Headline6" ]; TextBlock.text $"{state.Lifts.Exercise}" ]
+                Typography.headline6 $"{state.Lifts.Exercise}"
                 DatePicker.create [
                     DatePicker.selectedDate (
                         match state.Lifts.StartingAt with
@@ -397,7 +397,9 @@ let currentWorkout (state: State) dispatch =
         StackPanel.create [
             StackPanel.orientation Orientation.Vertical
             StackPanel.children [
-                TextBlock.create [ TextBlock.classes [ "Headline6" ]; TextBlock.text $"{state.Lifts.Exercise}" ]
+                Typography.headline6 $"{state.Lifts.Exercise}, Wave {state.Lifts.Wave}, Set {state.Lifts.RepSet}"
+                Typography.body2 $"Weight: {weight}{units}"
+                Typography.body2 $"Reps: {reps}{plus}"
                 DatePicker.create [
                     DatePicker.selectedDate (
                         match state.Lifts.StartingAt with
@@ -407,19 +409,10 @@ let currentWorkout (state: State) dispatch =
                     DatePicker.horizontalAlignment HorizontalAlignment.Stretch
                     DatePicker.onSelectedDateChanged onExcerciseDateChange
                 ]
-                TextBlock.create [
-                    TextBlock.classes [ "Subtitle1" ]
-                    TextBlock.text $"Wave {state.Lifts.Wave}, Set {state.Lifts.RepSet}, Reps {reps}{plus}"
-                ]
-                TextBlock.create [ TextBlock.classes [ "Subtitle2" ]; TextBlock.text $"Weight: {weight}{units}" ]
                 DockPanel.create [
                     DockPanel.children [
                         View.withAttrs [ Control.dock Dock.Right ] (segmentedButtonBar [ decreaseReps; increaseReps ])
-                        TextBlock.create [
-                            TextBlock.dock Dock.Left
-                            TextBlock.classes [ "Subtitle2" ]
-                            TextBlock.text $"Reps: {state.Lifts.Reps}"
-                        ]
+                        View.withAttrs [ Control.dock Dock.Left ] (Typography.body2 $"Completed Reps: {state.Lifts.Reps}")
                     ]
                 ]
 
@@ -434,35 +427,33 @@ let warmup state _ =
     let content =
         StackPanel.create [
             StackPanel.orientation Orientation.Vertical
-            StackPanel.children [
-                yield TextBlock.create [ TextBlock.classes [ "Headline6" ]; TextBlock.text $"{state.Lifts.Exercise}" ]
-                yield!
-                    RepSet.all
-                    |> List.map (fun repSet ->
-                        let platePairs, bar, reps, units, colorMap =
-                            match state.Gym with
-                            | Some gym ->
-                                let oneRepMax = currentOneRepMax state
+            StackPanel.children (
+                RepSet.all
+                |> List.map (fun repSet ->
+                    let platePairs, bar, reps, units, colorMap =
+                        match state.Gym with
+                        | Some gym ->
+                            let oneRepMax = currentOneRepMax state
 
-                                let weight, reps = Calculate.warmupSet repSet oneRepMax
+                            let weight, reps = Calculate.warmupSet repSet oneRepMax
 
-                                (Calculate.plates gym.Bar gym.PlatePairs weight), gym.Bar, reps, gym.MeasurementSystem, gym.PlatePairColors
-                            | _ -> ([], Bar.Of(Weight.zero), 0u, Metric, Map.empty)
+                            (Calculate.plates gym.Bar gym.PlatePairs weight), gym.Bar, reps, gym.MeasurementSystem, gym.PlatePairColors
+                        | _ -> ([], Bar.Of(Weight.zero), 0u, Metric, Map.empty)
 
-                        let weight = (platePairs |> List.sumBy (_.Weight)) + bar.Weight
+                    let weight = (platePairs |> List.sumBy (_.Weight)) + bar.Weight
 
-                        StackPanel.create [
-                            StackPanel.orientation Orientation.Vertical
-                            StackPanel.children [
-                                TextBlock.create [ TextBlock.classes [ "Subtitle2" ]; TextBlock.text $"Weight: {weight}{units}" ]
-                                TextBlock.create [ TextBlock.classes [ "Subtitle2" ]; TextBlock.text $"Reps: {reps}" ]
-                                PlatePairs.control (units, colorMap, platePairs)
-                            ]
-                        ])
-                    |> List.map generalize
-                    |> divide
-
-            ]
+                    StackPanel.create [
+                        StackPanel.orientation Orientation.Vertical
+                        StackPanel.children [
+                            Typography.headline6 $"{state.Lifts.Exercise}, Set {repSet}"
+                            Typography.body2 $"Weight: {weight}{units}"
+                            Typography.body2 $"Reps: {reps}"
+                            PlatePairs.control (units, colorMap, platePairs)
+                        ]
+                    ])
+                |> List.map generalize
+                |> divide
+            )
         ]
 
     floatingLayout [] [] content
@@ -472,12 +463,7 @@ let summary state dispatch =
         StackPanel.create [
             StackPanel.orientation Orientation.Vertical
             StackPanel.children [
-                yield
-                    TextBlock.create [
-                        TextBlock.classes [ "Headline6" ]
-                        TextBlock.text $"{state.Lifts.Exercise |> Exercise.previous}"
-                    ]
-                yield TextBlock.create [ TextBlock.classes [ "Subtitle1" ]; TextBlock.text $"Wave {state.Lifts.Wave}" ]
+                yield Typography.headline6 $"{state.Lifts.Exercise |> Exercise.previous}, Wave {state.Lifts.Wave}"
 
                 yield!
                     RepSet.all
@@ -492,12 +478,9 @@ let summary state dispatch =
                             StackPanel.create [
                                 StackPanel.orientation Orientation.Vertical
                                 StackPanel.children [
-                                    TextBlock.create [
-                                        TextBlock.classes [ "Subtitle2" ]
-                                        TextBlock.text $"Set {state.Lifts.RepSet}"
-                                    ]
-                                    TextBlock.create [ TextBlock.classes [ "Subtitle2" ]; TextBlock.text $"Weight: {weight}{units}" ]
-                                    TextBlock.create [ TextBlock.classes [ "Subtitle2" ]; TextBlock.text $"Reps: {reps}" ]
+                                    Typography.body2 $"Set {state.Lifts.RepSet}"
+                                    Typography.body2 $"Weight: {weight}{units}"
+                                    Typography.body2 $"Reps: {reps}"
                                 ]
                             ]
                         | _ -> StackPanel.create [])
@@ -575,12 +558,9 @@ let assistance (state: State) dispatch =
                        gym.MeasurementSystem
                        oneRepMax)) ]
 
-        let comboBoxItem text =
-            TextBlock.create [ TextBlock.text text ] |> generalize
-
         let comboBox =
             ComboBox.create [
-                ComboBox.viewItems (assistance |> List.map fst |> List.map comboBoxItem)
+                ComboBox.viewItems (assistance |> List.map fst |> List.map (Typography.body2 >> generalize))
                 ComboBox.onSelectedIndexChanged onSelectedAssistanceWorkChange
                 ComboBox.selectedIndex state.Lifts.SelectedAssistanceWorkIndex
             ]

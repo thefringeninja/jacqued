@@ -31,23 +31,21 @@ module Assistance =
 
             StackPanel.create [
                 StackPanel.children [
-                    TextBlock.create [ TextBlock.classes [ "Subtitle1" ]; TextBlock.text $"Set {set}" ]
-                    TextBlock.create [ TextBlock.classes [ "Subtitle2" ]; TextBlock.text $"Weight: {weight}{units}" ]
-                    TextBlock.create [ TextBlock.classes [ "Subtitle2" ]; TextBlock.text "Reps: 10" ]
+                    Typography.headline6 $"{exercise}, Set {set}"
+                    Typography.body2 $"Weight: {weight}{units}"
+                    Typography.body2 "Reps: 10"
                     PlatePairs.control (units, colorMap, platePairs)
                 ]
             ]
 
         StackPanel.create [
             StackPanel.orientation Orientation.Vertical
-            StackPanel.children [
-                yield TextBlock.create [ TextBlock.classes [ "Headline6" ]; TextBlock.text $"{exercise}" ]
-                yield!
-                    [ 0..1..4 ]
-                    |> List.map calculateWeight
-                    |> List.map calculatePlates
-                    |> List.mapi control
-                    |> List.map generalize
-                    |> divide
-            ]
+            StackPanel.children (
+                [ 0..1..4 ]
+                |> List.map calculateWeight
+                |> List.map calculatePlates
+                |> List.mapi control
+                |> List.map generalize
+                |> divide
+            )
         ]

@@ -9,6 +9,7 @@ open Avalonia.FuncUI.Types
 open Avalonia.Input
 open Avalonia.Layout
 open Avalonia.Media
+open Jacqued
 open LiveChartsCore
 open LiveChartsCore.Kernel.Sketches
 open LiveChartsCore.Measure
@@ -89,12 +90,10 @@ let private buttonContent (text: string option) (iconKind: MaterialIconKind opti
                     | _ -> Thickness(0)
 
                 yield
-                    TextBlock.create [
-                        TextBlock.text text
-                        TextBlock.padding padding
-                        TextBlock.verticalAlignment VerticalAlignment.Center
-                        TextBlock.classes [ "Subtitle2" ]
-                    ]
+                    View.withAttrs
+                        [ TextBlock.padding padding
+                          TextBlock.verticalAlignment VerticalAlignment.Center ]
+                        (Typography.button text)
             | _ -> ()
         ]
     ]
@@ -107,6 +106,7 @@ module MaterialButton =
     type Button with
         static member content<'t when 't :> Button>(text: string, ?iconKind: MaterialIconKind) : IAttr<'t> =
             Button.content (buttonContent (text |> Some) iconKind Orientation.Horizontal)
+
         static member content<'t when 't :> Button>(iconKind: MaterialIconKind) : IAttr<'t> =
             Button.content (buttonContent None (iconKind |> Some) Orientation.Horizontal)
 

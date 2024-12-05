@@ -118,9 +118,7 @@ let view (state: State) (dispatch: Msg -> unit) =
         |> dispatch
 
     let radioButtonGroup items selected label groupName action =
-        let label =
-            TextBlock.create [ TextBlock.text label; TextBlock.fontWeight FontWeight.Bold ]
-            |> generalize
+        let label = Typography.body2 label |> generalize
 
         let radioButtons =
             items
