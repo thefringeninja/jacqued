@@ -105,7 +105,13 @@ let view state dispatch =
 
     let mutateSeries i (columnSeries: ISeries) =
         let exercise = Exercise.all[i]
-        let history = state.History[exercise]
+
+        let history =
+            state.History
+            |> Map.tryFind exercise
+            |> function
+                | Some history -> history
+                | _ -> [||]
 
         columnSeries.IsVisible <- state.Exercise.IsNone || state.Exercise.Value = exercise
 
