@@ -62,7 +62,7 @@ let eventTypeToType eventType =
     | nameof WaveCompleted -> typeof<WaveCompleted>
     | nameof MesocycleFailed -> typeof<MesocycleFailed>
     | nameof MesocycleCompleted -> typeof<MesocycleCompleted>
-    | _ -> invalidOp ""
+    | _ -> invalidOp "Invalid event"
 
 let private deserializeData (eventType: string) (data: string) : Event =
     let unionCaseInfo =
@@ -79,7 +79,7 @@ let private deserializeData (eventType: string) (data: string) : Event =
 
     match optionalEvent with
     | Some e -> e
-    | None -> invalidOp ""
+    | None -> invalidOp "No event found"
 
 let private deserialize (s: StreamMessage) : Event =
     let data = s.GetJsonData().Result

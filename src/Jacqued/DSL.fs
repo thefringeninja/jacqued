@@ -207,3 +207,19 @@ module TwofoldDialog =
         static member negativeText<'t when 't :> TwofoldDialog>(value: string) : IAttr<'t> =
             AttrBuilder<'t>
                 .CreateProperty<string>(property = TwofoldDialog.NegativeTextProperty, value = value, comparer = ValueNone)
+
+[<AutoOpen>]
+module SingleActionDialog =
+    open AvaloniaDialogs.Views
+    let create (attrs: IAttr<SingleActionDialog> list) : IView<SingleActionDialog> =
+        ViewBuilder.Create<SingleActionDialog>(attrs)
+
+    type SingleActionDialog with
+        static member message<'t when 't :> SingleActionDialog>(value: string) : IAttr<'t> =
+            AttrBuilder<'t>
+                .CreateProperty<string>(property = SingleActionDialog.MessageProperty, value = value, comparer = ValueNone)
+
+        static member buttonText<'t when 't :> SingleActionDialog>(value: string) : IAttr<'t> =
+            AttrBuilder<'t>
+                .CreateProperty<string>(property = SingleActionDialog.ButtonTextProperty, value = value, comparer = ValueNone)
+        

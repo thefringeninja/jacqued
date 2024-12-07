@@ -27,7 +27,7 @@ type State =
 
 let private start (command: StartMesocycle) state =
     match state with
-    | Some _ -> invalidOp ""
+    | Some _ -> invalidOp "Mesocycle already started"
     | None ->
         let ninetyPercent = command.OneRepMax * 0.9
 
@@ -46,14 +46,19 @@ let private start (command: StartMesocycle) state =
                   { Exercise = command.Exercise
                     Sets = sets } } ]
 
+let mesocycleNotStarted () = invalidOp "Mesocycle not started"
+
+let unknownSet wave repSet = invalidOp $"Could not find Wave {wave}, Set {repSet} in the workout plan"
+
 let private completeRepSet (command: CompleteRepSet) state =
     match state with
-    | None -> invalidOp ""
+    | None -> mesocycleNotStarted ()
+
     | Some state ->
         let weight =
             match state.WorkoutPlan.Sets |> Map.tryFind (state.Wave, state.RepSet) with
             | Some(weight, _) -> weight
-            | None -> invalidOp ""
+            | None -> unknownSet state.Wave state.RepSet
 
         [ RepSetCompleted
               { MesocycleId = state.MesocycleId
@@ -68,10 +73,10 @@ let private completeRepSet (command: CompleteRepSet) state =
 
 let private completeWave (command: CompleteWave) state =
     match state with
-    | None -> invalidOp ""
+    | None -> mesocycleNotStarted()
     | Some state ->
         [ if state.RepSet <> RepSet.Complete then
-              invalidOp ""
+              invalidOp "Expected set to be complete"
           else
               yield
                   WaveCompleted
@@ -97,12 +102,12 @@ let private completeWave (command: CompleteWave) state =
 
 let private failRepSet (command: FailRepSet) state =
     match state with
-    | None -> invalidOp ""
+    | None -> mesocycleNotStarted()
     | Some state ->
         let weight =
             match state.WorkoutPlan.Sets |> Map.tryFind (state.Wave, state.RepSet) with
             | Some(weight, _) -> weight
-            | None -> invalidOp ""
+            | None -> unknownSet state.Wave state.RepSet
 
         [ MesocycleFailed
               { MesocycleId = state.MesocycleId
@@ -120,7 +125,7 @@ let handle =
     | CompleteRepSet command -> completeRepSet command
     | CompleteWave command -> completeWave command
     | FailRepSet command -> failRepSet command
-    | _ -> invalidOp ""
+    | _ -> invalidOp "Invalid command"
 
 let evolve state =
     function
@@ -143,4 +148,4 @@ let evolve state =
             Wave = e.Wave |> Wave.next }
 
     | MesocycleFailed _ -> { state with Status = Failed }
-    | _ -> invalidOp ""
+    | _ -> state
