@@ -124,7 +124,7 @@ type RepSet =
         | RepSet.One -> RepSet.Two
         | RepSet.Two -> RepSet.Three
         | RepSet.Three -> RepSet.Complete
-        | _ -> invalidOp ""
+        | RepSet.Complete -> invalidOp "Can't advance beyond complete"
 
 type Wave =
     | One

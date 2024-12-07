@@ -85,6 +85,8 @@ let findWorkoutPlan (workoutPlans: WorkoutPlans) exercise =
             None)
 
 let update (now: _ -> DateTime) handler msg state =
+    invalidOp "your mom"
+
     let units, exerciseDaysPerWeek =
         match state.Gym with
         | Some gym -> gym.MeasurementSystem, gym.ExerciseDaysPerWeek
@@ -327,12 +329,12 @@ let currentWorkout (state: State) dispatch =
     let mesocycleId, workoutPlan =
         match findWorkoutPlan state.WorkoutPlans state.Lifts.Exercise with
         | Some workoutPlan -> workoutPlan
-        | _ -> invalidOp ""
+        | _ -> invalidOp "Could not find workout plan"
 
     let weight, reps =
         match workoutPlan.Sets |> Map.tryFind (state.Lifts.Wave, state.Lifts.RepSet) with
         | Some set -> set
-        | _ -> invalidOp ""
+        | _ -> invalidOp "Could not find set"
 
     let onCompleteRepSetClick _ =
         (mesocycleId, state.Lifts.Reps) |> Msg.CompleteRepSet |> dispatch

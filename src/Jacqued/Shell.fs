@@ -3,6 +3,7 @@
 open System
 open Avalonia.Controls
 open Avalonia.FuncUI.DSL
+open Avalonia.Threading
 open AvaloniaDialogs.Views
 open Elmish
 open Jacqued.CommandHandlers
@@ -48,22 +49,25 @@ module Shell =
                 [ let dialog, result = "", Cmd.none
                   yield { state with Dialog = dialog |> Some } |> Results.State ]
             | _ ->
-                [ let setup, result = Setup.update gym msg state.Setup
-                  yield result |> Results.Cmd
-                  
-                  let progress = Progress.update msg state.Progress 
+                try
+                    [ let setup, result = Setup.update gym msg state.Setup
+                      yield result |> Results.Cmd
 
-                  let workout, result =
-                      Workout.update (fun () -> DateTime.Now) mesocycle msg state.Workout
+                      let progress = Progress.update msg state.Progress
 
-                  yield result |> Results.Cmd
+                      let workout, result =
+                          Workout.update (fun () -> DateTime.Now) mesocycle msg state.Workout
 
-                  yield
-                      { state with
-                          Setup = setup
-                          Progress = progress
-                          Workout = workout }
-                      |> Results.State ]
+                      yield result |> Results.Cmd
+
+                      yield
+                          { state with
+                              Setup = setup
+                              Progress = progress
+                              Workout = workout }
+                          |> Results.State ]
+                with exn ->
+                    [ exn |> Result.Error |> Results.Cmd ]
 
         let cmd =
             results
