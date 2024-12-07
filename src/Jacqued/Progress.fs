@@ -7,39 +7,63 @@ open Avalonia.FuncUI.DSL
 open Jacqued.DSL
 open Jacqued.Helpers
 open LiveChartsCore
-open LiveChartsCore.Defaults
+open LiveChartsCore.Kernel
 open LiveChartsCore.Measure
 open LiveChartsCore.SkiaSharpView
 open LiveChartsCore.SkiaSharpView.Avalonia
 open LiveChartsCore.SkiaSharpView.Painting
 open LiveChartsCore.SkiaSharpView.SKCharts
+open Microsoft.FSharp.Core
 open SkiaSharp
+
+type WorkoutPoint =
+    { Date: DateTime
+      Weight: Weight
+      MesocycleNumber: uint
+      Failed: bool
+      Wave: Wave }
 
 type State =
     { Exercise: Exercise option
-      Current: Map<Exercise, Weight * DateTime>
-      History: Map<Exercise, (Weight * bool * DateTime) array> }
+      Current: Map<Exercise, (Weight * DateTime) * uint>
+      History: Map<Exercise, WorkoutPoint array> }
 
     static member zero =
         { Exercise = None
           Current =
             Exercise.all
-            |> List.map (fun exercise -> (exercise, (Weight.zero, DateTime.UnixEpoch)))
+            |> List.map (fun exercise -> (exercise, ((Weight.zero, DateTime.UnixEpoch), 0u)))
             |> Map.ofList
           History = Map.empty }
 
-let exerciseDataPoint exercise progress passed =
-    progress.Current[exercise] |> fst, passed, progress.Current[exercise] |> snd
+let exerciseDataPoint exercise wave number progress passed =
+    { Date = (progress.Current[exercise] |> fst |> snd)
+      Weight = (progress.Current[exercise] |> fst |> fst)
+      MesocycleNumber = progress.Current[exercise] |> snd
+      Failed = not passed
+      Wave = wave }
 
 let update (msg: Msg) (state: State) : State =
     match msg with
     | Event e ->
         match e with
+        | MesocycleStarted e ->
+
+            { state with
+                State.Current =
+                    state.Current
+                    |> Map.change e.WorkoutPlan.Exercise (function
+                        | Some (_, number) -> ((Weight.zero, DateTime.UnixEpoch), number + 1u) |> Some
+                        | _ -> None) }
         | RepSetCompleted e ->
             { state with
-                State.Current = state.Current |> Map.add e.Exercise (e.Weight, e.CompletedAt) }
+                State.Current =
+                    state.Current
+                    |> Map.change e.Exercise (function
+                        | Some (_, number) -> ((e.Weight, e.CompletedAt), number) |> Some
+                        | _ -> None) }
         | MesocycleFailed e ->
-            let dataPoint = exerciseDataPoint e.Exercise state false
+            let dataPoint = exerciseDataPoint e.Exercise e.Wave 1u state false
 
             { state with
                 State.History =
@@ -48,7 +72,7 @@ let update (msg: Msg) (state: State) : State =
                         | Some history -> history |> Array.append [| dataPoint |] |> Some
                         | None -> [| dataPoint |] |> Some) }
         | WaveCompleted e ->
-            let dataPoint = exerciseDataPoint e.Exercise state true
+            let dataPoint = exerciseDataPoint e.Exercise e.Wave 1u state true
 
             { state with
                 State.History =
@@ -74,11 +98,15 @@ let series =
      |> List.map (_.ToUInt32())
      |> List.map (SKColor >> SolidColorPaint))
     ||> List.map2 (fun exercise paint ->
-        let columnSeries = LineSeries<DateTimePoint>()
+        let columnSeries = LineSeries<WorkoutPoint>()
         columnSeries.Name <- exercise.ToString()
         columnSeries.Fill <- null
         columnSeries.Stroke <- paint
         columnSeries.GeometryStroke <- paint
+
+        columnSeries.YToolTipLabelFormatter <- (fun point -> $"Mesocycle {point.Model.MesocycleNumber}, Wave: {point.Model.Wave}, Weight: {point.Model.Weight}")
+
+        columnSeries.Mapping <- fun workout index -> Coordinate(workout.Date.Ticks |> float, workout.Weight.Value |> float)
 
         columnSeries :> ISeries)
     |> List.toArray
@@ -115,9 +143,7 @@ let view state dispatch =
 
         columnSeries.IsVisible <- state.Exercise.IsNone || state.Exercise.Value = exercise
 
-        columnSeries.Values <-
-            history
-            |> Array.map (fun (weight: Weight, passed, date: DateTime) -> DateTimePoint(date.Date, weight.Value |> float))
+        columnSeries.Values <- history
 
     series |> Array.iteri mutateSeries
 

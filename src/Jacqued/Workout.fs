@@ -55,15 +55,24 @@ type State =
     { Gym: Gym option
       Lifts: Lifts
       Waves: Map<Exercise, Wave>
+      MesocycleNumbers: Map<Exercise, uint>
       SuggestedOneRepMaxes: Map<Exercise, Weight>
       WorkoutPlans: WorkoutPlans
-      Screen: Screen }
-
+      Screen: Screen } with
+    member this.MesocycleNumber =       
+       this.MesocycleNumbers
+       |> Map.tryFind this.Lifts.Exercise
+       |> function
+          | Some count -> count
+          | _ -> 1u
+           
+    
     static member zero =
         { Gym = None
           Lifts = Lifts.zero
           Screen = Screen.StartMesocycle
           Waves = Exercise.all |> List.map (fun exercise -> (exercise, Wave.One)) |> Map.ofList
+          MesocycleNumbers = Map.empty
           SuggestedOneRepMaxes = Map.empty
           WorkoutPlans = Map.empty }
 
@@ -121,6 +130,11 @@ let update (now: _ -> DateTime) handler msg state =
                 State.Lifts.StartingAt = None
                 State.Waves = state.Waves |> Map.add e.WorkoutPlan.Exercise Wave.One
                 State.WorkoutPlans = state.WorkoutPlans |> Map.add e.MesocycleId e.WorkoutPlan
+                State.MesocycleNumbers =
+                    state.MesocycleNumbers
+                    |> Map.change e.WorkoutPlan.Exercise (function
+                        | Some count -> (count + 1u) |> Some
+                        | None -> 1u |> Some)
                 State.SuggestedOneRepMaxes = state.SuggestedOneRepMaxes |> Map.add e.WorkoutPlan.Exercise e.OneRepMax },
             List.empty |> Ok
         | RepSetCompleted e ->
@@ -286,6 +300,7 @@ let startMesocycle state dispatch =
         StackPanel.create [
             StackPanel.orientation Orientation.Vertical
             StackPanel.children [
+                Typography.headline5 $"Mesocycle {state.MesocycleNumber}"
                 Typography.headline6 $"{state.Lifts.Exercise}"
                 DatePicker.create [
                     DatePicker.selectedDate (
@@ -397,6 +412,7 @@ let currentWorkout (state: State) dispatch =
         StackPanel.create [
             StackPanel.orientation Orientation.Vertical
             StackPanel.children [
+                Typography.headline5 $"Mesocycle {state.MesocycleNumber}"
                 Typography.headline6 $"{state.Lifts.Exercise}, Wave {state.Lifts.Wave}, Set {state.Lifts.RepSet}"
                 Typography.body2 $"Weight: {weight}{units}"
                 Typography.body2 $"Reps: {reps}{plus}"
@@ -445,6 +461,7 @@ let warmup state _ =
                     StackPanel.create [
                         StackPanel.orientation Orientation.Vertical
                         StackPanel.children [
+                            Typography.headline5 $"Mesocycle {state.MesocycleNumber}"
                             Typography.headline6 $"{state.Lifts.Exercise}, Set {repSet}"
                             Typography.body2 $"Weight: {weight}{units}"
                             Typography.body2 $"Reps: {reps}"
@@ -458,11 +475,12 @@ let warmup state _ =
 
     floatingLayout [] [] content
 
-let summary state dispatch =
+let summary (state:State) dispatch =
     let summary =
         StackPanel.create [
             StackPanel.orientation Orientation.Vertical
             StackPanel.children [
+                yield Typography.headline5 $"Mesocycle {state.MesocycleNumber}"
                 yield Typography.headline6 $"{state.Lifts.Exercise |> Exercise.previous}, Wave {state.Lifts.Wave}"
 
                 yield!
