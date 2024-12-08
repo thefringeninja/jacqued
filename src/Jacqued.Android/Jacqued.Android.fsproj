@@ -3,7 +3,7 @@
 	<PropertyGroup>
 		<OutputType>Exe</OutputType>
 		<TargetFramework>net8.0-android</TargetFramework>
-		<ApplicationId>com.jacquedfivethreeone</ApplicationId>
+		<ApplicationId Condition="'$(ApplicationId)'==''">com.jacquedfivethreeone.dev</ApplicationId>
 		<AndroidPackageFormat>apk</AndroidPackageFormat>
 		<AndroidEnableProfiledAot>false</AndroidEnableProfiledAot>
 		<SupportedOSPlatformVersion>21</SupportedOSPlatformVersion>

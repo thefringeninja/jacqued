@@ -6,8 +6,17 @@
 jobs:
   publish-android:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        application-id: [ com.jacquedfivethreeone.dev, com.jacquedfivethreeone ]
+      fail-fast: false
 
     steps:
+      - name: checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          submodules: true
       - name: setup dotnet
         uses: actions/setup-dotnet@v4
         with:
@@ -19,11 +28,6 @@ jobs:
           distribution: 'temurin'
       - name: setup android
         uses: android-actions/setup-android@v3
-      - name: checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          submodules: true
       - name: setup keystore
         run: |
           mkdir -p .keystore
@@ -33,10 +37,11 @@ jobs:
         run: dotnet workload restore src/Jacqued.Android/Jacqued.Android.fsproj
       - name: restore packages
         run: dotnet restore src/Jacqued.Android
-      - name: build
+      - name: publish
         run: |
           dotnet publish src/Jacqued.Android \
             --output ./publish --framework net8.0-android \
+            /p:ApplicationId=${{ matrix.application-id }} \
             /p:ApplicationVersion=$(git tag --list 'v*' --merged | sort --version-sort | wc --lines) \
             /p:ApplicationDisplayVersion=$(echo ${{ github.ref_name }} | cut -c2-) \
             /p:AndroidKeyStore=True \
@@ -44,11 +49,34 @@ jobs:
             /p:AndroidSigningStorePass='${{ secrets.SIGNING_STORE_PASSWORD }}' \
             /p:AndroidSigningKeyAlias="${{ secrets.SIGNING_KEY_ALIAS }}" \
             /p:AndroidSigningKeyPass='${{ secrets.SIGNING_KEY_PASSWORD }}'
+      - name: upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          retention-days: 1
+          compression-level: 0
+          path: publish/*.apk
+          name: ${{ matrix.application-id }}
+    
+  release:
+    needs: [ publish-android ]
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          submodules: true
+      - name: download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: publish
+          merge-multiple: true
       - name: release
         uses: softprops/action-gh-release@v2
         with:
           generate_release_notes: true
           draft: true
-          fail_on_unmatched_files: false
+          fail_on_unmatched_files: true
           files: |
             publish/*.apk
