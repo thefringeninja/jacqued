@@ -14,9 +14,9 @@ module Assistance =
         | Descending
 
     let private subTypes =
-        [ (UpDown, [ 0.5; 0.6; 0.7; 0.6; 5 ])
+        [ (UpDown, [ 0.5; 0.6; 0.7; 0.6; 0.5 ])
           (Ascending, [ 0.3; 0.4; 0.5; 0.6; 0.7 ])
-          (Descending, [ 0.7; 0.6; 0.5; 0.4; 0.5 ]) ]
+          (Descending, [ 0.7; 0.6; 0.5; 0.4; 0.3 ]) ]
         |> Map.ofList
 
     let boringButBig subType exercise (bar: Bar) platePairs colorMap units (trainingMax: Weight) =
@@ -31,7 +31,8 @@ module Assistance =
 
             StackPanel.create [
                 StackPanel.children [
-                    Typography.headline6 $"{exercise}, Set {set}"
+                    Typography.headline6 $"{exercise}"
+                    Typography.body2 $"Set {set}"
                     Typography.body2 $"Weight: {weight}{units}"
                     Typography.body2 "Reps: 10"
                     PlatePairs.control (units, colorMap, platePairs)

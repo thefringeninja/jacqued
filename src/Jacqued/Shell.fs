@@ -76,7 +76,7 @@ module Shell =
                 | State _ -> Seq.empty
                 | Cmd results ->
                     match results with
-                    | Result.Ok events -> events |> List.toSeq |> Seq.map (fun event -> event |> Msg.Event)
+                    | Result.Ok events -> events |> Seq.map Msg.Event
                     | Result.Error err -> [ err.Message |> ApplicationError.Message |> Msg.ApplicationError ]) // TODO make dialog message
             |> Seq.concat
             |> Seq.map (fun msg -> msg |> Cmd.ofMsg)
@@ -124,6 +124,6 @@ module Shell =
 
     let init store () =
         let events =
-            (EventStorage.readAll store) |> Seq.map (fun event -> event |> Msg.Event)
+            (EventStorage.readAll store) |> Seq.map Msg.Event
 
         Seq.fold (fun (state, _) event -> update store event state) (State.zero, Cmd.none) events
