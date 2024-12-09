@@ -1,0 +1,13 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<ItemGroup>
+		<Compile Include="Workout.fs" />
+		<Compile Include="Main.fs" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="../../src/Jacqued.Domain/Jacqued.Domain.fsproj"/>
+		<ProjectReference Include="../../src/Jacqued/Jacqued.fsproj"/>
+	</ItemGroup>
+
+</Project>

@@ -34,7 +34,12 @@ let private start (command: StartMesocycle) state =
         let sets =
             RepSet.all
             |> List.allPairs Wave.all
-            |> List.map (fun (wave, set) -> ((wave, set), Calculate.set wave set ninetyPercent))
+            |> List.map (fun (wave, set) ->
+                let weight, reps, _ =
+                    Calculate.set wave set command.Bar command.Plates ninetyPercent
+
+                ((wave, set), (weight, reps)))
+
             |> Map.ofList
 
         [ MesocycleStarted
@@ -42,30 +47,27 @@ let private start (command: StartMesocycle) state =
                 MeasurementSystem = command.MeasurementSystem
                 StartedAt = command.StartedAt
                 OneRepMax = command.OneRepMax
+                TrainingOneRepMax = ninetyPercent
                 WorkoutPlan =
                   { Exercise = command.Exercise
                     Sets = sets } } ]
 
 let mesocycleNotStarted () = invalidOp "Mesocycle not started"
 
-let unknownSet wave repSet = invalidOp $"Could not find Wave {wave}, Set {repSet} in the workout plan"
+let unknownSet wave repSet =
+    invalidOp $"Could not find Wave {wave}, Set {repSet} in the workout plan"
 
 let private completeRepSet (command: CompleteRepSet) state =
     match state with
     | None -> mesocycleNotStarted ()
 
     | Some state ->
-        let weight =
-            match state.WorkoutPlan.Sets |> Map.tryFind (state.Wave, state.RepSet) with
-            | Some(weight, _) -> weight
-            | None -> unknownSet state.Wave state.RepSet
-
         [ RepSetCompleted
               { MesocycleId = state.MesocycleId
                 Exercise = state.WorkoutPlan.Exercise
                 Wave = state.Wave
                 Reps = command.Reps
-                Weight = weight
+                Weight = command.Weight
                 RepSet = state.RepSet
                 CompletedAt = command.CompletedAt }
 
@@ -73,7 +75,7 @@ let private completeRepSet (command: CompleteRepSet) state =
 
 let private completeWave (command: CompleteWave) state =
     match state with
-    | None -> mesocycleNotStarted()
+    | None -> mesocycleNotStarted ()
     | Some state ->
         [ if state.RepSet <> RepSet.Complete then
               invalidOp "Expected set to be complete"
@@ -102,7 +104,7 @@ let private completeWave (command: CompleteWave) state =
 
 let private failRepSet (command: FailRepSet) state =
     match state with
-    | None -> mesocycleNotStarted()
+    | None -> mesocycleNotStarted ()
     | Some state ->
         let weight =
             match state.WorkoutPlan.Sets |> Map.tryFind (state.Wave, state.RepSet) with
@@ -115,7 +117,7 @@ let private failRepSet (command: FailRepSet) state =
                 Wave = state.Wave
                 Reps = command.Reps
                 SuggestedOneRepMax = weight * 0.9
-                Weight = weight
+                Weight = command.Weight
                 RepSet = state.RepSet
                 FailedAt = command.FailedAt } ]
 

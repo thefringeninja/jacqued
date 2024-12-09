@@ -13,6 +13,8 @@ module Typography =
 
     let headline1 = Typography.create
     let headline2 = Typography.create
+    let headline3 = Typography.create
+    let headline4 = Typography.create
     let headline5 = Typography.create
     let headline6 = Typography.create
     let subtitle1 = Typography.create

@@ -3,24 +3,6 @@
 open System
 
 module Calculate =
-    let set wave repSet (weight: Weight) =
-        match wave, repSet with
-        | Wave.One, RepSet.One -> weight * 0.65, 5u
-        | Wave.One, RepSet.Two -> weight * 0.70, 5u
-        | Wave.One, RepSet.Three -> weight * 0.85, 5u
-        | Wave.Two, RepSet.One -> weight * 0.70, 3u
-        | Wave.Two, RepSet.Two -> weight * 0.80, 3u
-        | Wave.Two, RepSet.Three -> weight * 0.90, 3u
-        | Wave.Three, RepSet.One -> weight * 0.75, 5u
-        | Wave.Three, RepSet.Two -> weight * 0.85, 3u
-        | Wave.Three, RepSet.Three -> weight * 0.95, 1u
-        | Wave.Four, RepSet.One -> weight * 0.40, 5u
-        | Wave.Four, RepSet.Two -> weight * 0.50, 5u
-        | Wave.Four, RepSet.Three -> weight * 0.60, 5u
-        | _ -> Weight.zero, 0u
-
-    let warmupSet repSet (weight: Weight) = set Wave.Four repSet weight
-
     let plates (bar: Bar) (platePairs: PlatePair list) (weight: Weight) : PlatePair list =
         let rec loop (acc: PlatePair list) (platePairs: PlatePair list) (weight: Weight) =
             match (platePairs, weight) with
@@ -41,6 +23,31 @@ module Calculate =
                 weight + smallestPlatePair.Weight - remainder
 
         loop [] sortedPlatePairs (weightRoundedUp - bar.Weight) |> List.sort |> List.rev
+
+    let set wave repSet bar platePairs (weight: Weight) =
+        let weight, reps =
+            match wave, repSet with
+            | Wave.One, RepSet.One -> weight * 0.65, 5u
+            | Wave.One, RepSet.Two -> weight * 0.70, 5u
+            | Wave.One, RepSet.Three -> weight * 0.85, 5u
+            | Wave.Two, RepSet.One -> weight * 0.70, 3u
+            | Wave.Two, RepSet.Two -> weight * 0.80, 3u
+            | Wave.Two, RepSet.Three -> weight * 0.90, 3u
+            | Wave.Three, RepSet.One -> weight * 0.75, 5u
+            | Wave.Three, RepSet.Two -> weight * 0.85, 3u
+            | Wave.Three, RepSet.Three -> weight * 0.95, 1u
+            | Wave.Four, RepSet.One -> weight * 0.40, 5u
+            | Wave.Four, RepSet.Two -> weight * 0.50, 5u
+            | Wave.Four, RepSet.Three -> weight * 0.60, 5u
+            | _ -> Weight.zero, 0u
+
+        let platePairs = plates bar platePairs weight
+
+        let weight = (platePairs |> List.sumBy (_.Weight)) + bar.Weight
+
+        weight, reps, platePairs
+
+    let warmupSet repSet bar plates (weight: Weight) = set Wave.Four repSet bar plates weight
 
     let nextExerciseDay (exerciseDaysPerWeek: ExerciseDaysPerWeek) (date: DateTime) =
         match exerciseDaysPerWeek with

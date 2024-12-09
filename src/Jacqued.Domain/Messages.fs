@@ -20,11 +20,14 @@ and StartMesocycle =
       Exercise: Exercise
       OneRepMax: Weight
       StartedAt: DateTime
+      Bar: Bar
+      Plates: PlatePair list
       MeasurementSystem: MeasurementSystem }
 
 and CompleteRepSet =
     { MesocycleId: MesocycleId
       Reps: uint
+      Weight: Weight
       CompletedAt: DateTime }
 and CompleteWave =
     { MesocycleId: MesocycleId
@@ -33,6 +36,7 @@ and CompleteWave =
 and FailRepSet =
     { MesocycleId: MesocycleId
       Reps: uint
+      Weight: Weight
       FailedAt: DateTime }
 
 type Event =
@@ -57,6 +61,7 @@ and OneRepMaxCalculated =
 and MesocycleStarted =
     { MesocycleId: MesocycleId
       OneRepMax: Weight
+      TrainingOneRepMax: Weight
       StartedAt: DateTime
       WorkoutPlan: WorkoutPlan
       MeasurementSystem: MeasurementSystem }

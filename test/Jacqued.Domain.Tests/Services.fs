@@ -17,21 +17,23 @@ module Calculate =
         testList "Calculate set" [
             testTheory
                 "Calculate set"
-                ([ Wave.One, RepSet.One, (65, 5u)
-                   Wave.One, RepSet.Two, (70, 5u)
-                   Wave.One, RepSet.Three, (85, 5u)
-                   Wave.Two, RepSet.One, (70, 3u)
-                   Wave.Two, RepSet.Two, (80, 3u)
-                   Wave.Two, RepSet.Three, (90, 3u)
-                   Wave.Three, RepSet.One, (75, 5u)
-                   Wave.Three, RepSet.Two, (85, 3u)
-                   Wave.Three, RepSet.Three, (95, 1u)
-                   Wave.Four, RepSet.One, (40, 5u)
-                   Wave.Four, RepSet.Two, (50, 5u)
-                   Wave.Four, RepSet.Three, (60, 5u) ]
-                 |> List.map (fun (wave, repSet, (weight, reps)) -> (wave, repSet, (weight |> Weight, reps))))
-            <| fun (wave, repSet, expected) -> Expect.equal (Calculate.set wave repSet ninetyPercentMax) expected ""
+                ([ Wave.One, RepSet.One, (65, 5u, [ 20m; 2.5m ])
+                   Wave.One, RepSet.Two, (70, 5u, [ 20m; 5m ])
+                   Wave.One, RepSet.Three, (85, 5u, [ 20m; 10m; 2.5m ])
+                   Wave.Two, RepSet.One, (70, 3u, [ 20m; 5m ])
+                   Wave.Two, RepSet.Two, (80, 3u, [ 20m; 10m ])
+                   Wave.Two, RepSet.Three, (90, 3u, [ 20m; 15m ])
+                   Wave.Three, RepSet.One, (75, 5u, [ 20m; 5m; 2.5m ])
+                   Wave.Three, RepSet.Two, (85, 3u, [ 20m; 10m; 2.5m ])
+                   Wave.Three, RepSet.Three, (95, 1u, [ 20m; 15m; 2.5m ])
+                   Wave.Four, RepSet.One, (40, 5u, [ 10m ])
+                   Wave.Four, RepSet.Two, (50, 5u, [ 15m ])
+                   Wave.Four, RepSet.Three, (60, 5u, [ 20m ]) ]
+                 |> List.map (fun (wave, repSet, (weight, reps, plates)) ->
+                     (wave, repSet, (weight |> Weight, reps, plates |> List.map (Weight >> PlatePair)))))
+            <| fun (wave, repSet, expected) -> Expect.equal (Calculate.set wave repSet bar platePairs ninetyPercentMax) expected ""
         ]
+
     [<Tests>]
     let plates =
         testTheory
@@ -42,20 +44,22 @@ module Calculate =
 
     [<Tests>]
     let nextWorkoutDate =
-        testTheory "Calculate next workout date" ([
-            ExerciseDaysPerWeek.Three, "11-24", "11-25"
-            ExerciseDaysPerWeek.Three, "11-25", "11-27"
-            ExerciseDaysPerWeek.Three, "11-26", "11-27"
-            ExerciseDaysPerWeek.Three, "11-27", "11-29"
-            ExerciseDaysPerWeek.Three, "11-28", "11-29"
-            ExerciseDaysPerWeek.Three, "11-29", "12-02"
-            ExerciseDaysPerWeek.Three, "11-30", "12-02"
-            ExerciseDaysPerWeek.Four, "11-24", "11-25"
-            ExerciseDaysPerWeek.Four, "11-25", "11-26"
-            ExerciseDaysPerWeek.Four, "11-26", "11-28"
-            ExerciseDaysPerWeek.Four, "11-27", "11-28"
-            ExerciseDaysPerWeek.Four, "11-28", "11-29"
-            ExerciseDaysPerWeek.Four, "11-29", "12-02"
-            ExerciseDaysPerWeek.Four, "11-30", "12-02"
-        ] |> List.map(fun (e, d, ex) ->  (e, DateTime.ParseExact($"2024-{d}", "yyyy-MM-dd", null), DateTime.ParseExact($"2024-{ex}", "yyyy-MM-dd", null))) )
+        testTheory
+            "Calculate next workout date"
+            ([ ExerciseDaysPerWeek.Three, "11-24", "11-25"
+               ExerciseDaysPerWeek.Three, "11-25", "11-27"
+               ExerciseDaysPerWeek.Three, "11-26", "11-27"
+               ExerciseDaysPerWeek.Three, "11-27", "11-29"
+               ExerciseDaysPerWeek.Three, "11-28", "11-29"
+               ExerciseDaysPerWeek.Three, "11-29", "12-02"
+               ExerciseDaysPerWeek.Three, "11-30", "12-02"
+               ExerciseDaysPerWeek.Four, "11-24", "11-25"
+               ExerciseDaysPerWeek.Four, "11-25", "11-26"
+               ExerciseDaysPerWeek.Four, "11-26", "11-28"
+               ExerciseDaysPerWeek.Four, "11-27", "11-28"
+               ExerciseDaysPerWeek.Four, "11-28", "11-29"
+               ExerciseDaysPerWeek.Four, "11-29", "12-02"
+               ExerciseDaysPerWeek.Four, "11-30", "12-02" ]
+             |> List.map (fun (e, d, ex) ->
+                 (e, DateTime.ParseExact($"2024-{d}", "yyyy-MM-dd", null), DateTime.ParseExact($"2024-{ex}", "yyyy-MM-dd", null))))
         <| fun (exerciseDaysPerWeek, date, expected) -> Expect.equal (Calculate.nextExerciseDay exerciseDaysPerWeek date) expected ""

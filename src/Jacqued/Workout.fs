@@ -26,7 +26,9 @@ type WorkoutPlans = Map<MesocycleId, WorkoutPlan>
 
 type Screen =
     | StartMesocycle
+    | Warmup
     | WorkingOut
+    | Assistance
     | Summary
 
 type Lifts =
@@ -37,7 +39,7 @@ type Lifts =
       Reps: uint
       CompletedReps: Map<RepSet, Weight * uint>
       SelectedAssistanceWorkIndex: int
-      SelectedTabIndex: int
+      TrainingOneRepMax: Weight
       OneRepMax: Weight option }
 
     static member zero =
@@ -48,8 +50,8 @@ type Lifts =
           Reps = 0u
           CompletedReps = Map.empty
           SelectedAssistanceWorkIndex = 0
-          SelectedTabIndex = 0
-          OneRepMax = None }
+          OneRepMax = None
+          TrainingOneRepMax = Weight.zero }
 
 type State =
     { Gym: Gym option
@@ -58,15 +60,15 @@ type State =
       MesocycleNumbers: Map<Exercise, uint>
       SuggestedOneRepMaxes: Map<Exercise, Weight>
       WorkoutPlans: WorkoutPlans
-      Screen: Screen } with
-    member this.MesocycleNumber =       
-       this.MesocycleNumbers
-       |> Map.tryFind this.Lifts.Exercise
-       |> function
-          | Some count -> count
-          | _ -> 1u
-           
-    
+      Screen: Screen }
+
+    member this.MesocycleNumber =
+        this.MesocycleNumbers
+        |> Map.tryFind this.Lifts.Exercise
+        |> function
+            | Some count -> count
+            | _ -> 1u
+
     static member zero =
         { Gym = None
           Lifts = Lifts.zero
@@ -85,8 +87,6 @@ let findWorkoutPlan (workoutPlans: WorkoutPlans) exercise =
             None)
 
 let update (now: _ -> DateTime) handler msg state =
-    invalidOp "your mom"
-
     let units, exerciseDaysPerWeek =
         match state.Gym with
         | Some gym -> gym.MeasurementSystem, gym.ExerciseDaysPerWeek
@@ -96,17 +96,8 @@ let update (now: _ -> DateTime) handler msg state =
 
     let nextScreen nextExercise =
         match findWorkoutPlan state.WorkoutPlans nextExercise with
-        | Some _ -> Screen.WorkingOut
+        | Some _ -> Screen.Warmup
         | _ -> Screen.StartMesocycle
-
-    let nextScreenWithRest nextScreen (date: DateTime) =
-        let nextExerciseDate = Calculate.nextExerciseDay exerciseDaysPerWeek date.Date
-        let now = now().Date
-
-        if now < nextExerciseDate then
-            Screen.Summary
-        else
-            nextScreen
 
     match msg with
     | Event e ->
@@ -119,13 +110,13 @@ let update (now: _ -> DateTime) handler msg state =
                       PlatePairColors = e.Plates |> PlatePairs.colorMap
                       MeasurementSystem = e.MeasurementSystem
                       ExerciseDaysPerWeek = e.ExercisesDaysPerWeek }
-                    |> Some
-                State.Lifts.SelectedTabIndex = 1 },
+                    |> Some },
             List.empty |> Ok
         | MesocycleStarted e ->
             { state with
-                State.Screen = Screen.WorkingOut
+                State.Screen = Screen.Warmup
                 State.Lifts.OneRepMax = None
+                State.Lifts.TrainingOneRepMax = e.TrainingOneRepMax
                 State.Lifts.Wave = Wave.One
                 State.Lifts.RepSet = RepSet.One
                 State.Lifts.Reps = 0u
@@ -146,25 +137,27 @@ let update (now: _ -> DateTime) handler msg state =
                 State.Lifts.RepSet = nextRepSet
                 State.Lifts.Reps = 0u
                 State.Lifts.CompletedReps = state.Lifts.CompletedReps |> Map.add e.RepSet (e.Weight, e.Reps)
-                State.Lifts.SelectedTabIndex = if nextRepSet = RepSet.Complete then 2 else 1 },
+                State.Screen =
+                    if nextRepSet = RepSet.Complete then
+                        Assistance
+                    else
+                        state.Screen },
             List.empty |> Ok
         | WaveCompleted e ->
             let nextExercise = state.Lifts.Exercise |> nextExercise
-            let nextScreen = nextExercise |> nextScreen |> nextScreenWithRest <| e.CompletedAt
 
             { state with
-                State.Screen = nextScreen
+                State.Screen = Summary
                 State.Lifts.Exercise = nextExercise
                 State.Lifts.Wave = state.Waves[nextExercise]
                 State.Lifts.RepSet = RepSet.One
-                State.Lifts.SelectedTabIndex = 1
                 State.Lifts.Reps = 0u
                 State.Waves = state.Waves |> Map.add e.Exercise (e.Wave |> Wave.next) },
             List.empty |> Ok
 
         | MesocycleFailed e ->
             let nextExercise = state.Lifts.Exercise |> nextExercise
-            let nextScreen = nextExercise |> nextScreen |> nextScreenWithRest <| e.FailedAt
+            let nextScreen = nextExercise |> nextScreen
 
             { state with
                 State.Screen = nextScreen
@@ -194,6 +187,7 @@ let update (now: _ -> DateTime) handler msg state =
         { state with
             State.Lifts.StartingAt = date |> Some },
         List.empty |> Ok
+    | CompleteWarmup -> { state with State.Screen = WorkingOut }, List.empty |> Ok
     | SelectedAssistanceWorkIndexChanged index ->
         { state with
             State.Lifts.SelectedAssistanceWorkIndex = index },
@@ -206,7 +200,7 @@ let update (now: _ -> DateTime) handler msg state =
         { state with
             State.Lifts.Reps = state.Lifts.Reps - 1u },
         List.empty |> Ok
-    | Msg.StartMesocycle(mesocycleId, exercise, oneRepMax, startedAt) ->
+    | Msg.StartMesocycle(mesocycleId, exercise, oneRepMax, startedAt, bar, platePairs) ->
         if oneRepMax > Weight.zero then
             state,
             handler (
@@ -215,16 +209,19 @@ let update (now: _ -> DateTime) handler msg state =
                       Exercise = exercise
                       StartedAt = startedAt
                       OneRepMax = oneRepMax
+                      Bar = bar
+                      Plates = platePairs
                       MeasurementSystem = units }
             )
         else
             state, List.empty |> Ok
-    | Msg.CompleteRepSet(mesocycleId, reps) ->
+    | Msg.CompleteRepSet(mesocycleId, reps, weight) ->
         state,
         handler (
             Command.CompleteRepSet
                 { MesocycleId = mesocycleId
                   Reps = reps
+                  Weight = weight
                   CompletedAt =
                     match state.Lifts.StartingAt with
                     | Some date -> date
@@ -240,12 +237,13 @@ let update (now: _ -> DateTime) handler msg state =
                     | Some date -> date
                     | _ -> now () }
         )
-    | Msg.FailRepSet(mesocycleId, reps) ->
+    | Msg.FailRepSet(mesocycleId, reps, weight) ->
         state,
         handler (
             Command.FailRepSet
                 { MesocycleId = mesocycleId
                   Reps = reps
+                  Weight = weight
                   FailedAt =
                     match state.Lifts.StartingAt with
                     | Some date -> date
@@ -284,9 +282,11 @@ let startMesocycle state dispatch =
         (MesocycleId.New(),
          state.Lifts.Exercise,
          oneRepMax,
-         match state.Lifts.StartingAt with
-         | None -> DateTime.Today
-         | Some d -> d)
+         (match state.Lifts.StartingAt with
+          | None -> DateTime.Today
+          | Some d -> d),
+         state.Gym.Value.Bar,
+         state.Gym.Value.PlatePairs)
         |> Msg.StartMesocycle
         |> dispatch
 
@@ -302,6 +302,7 @@ let startMesocycle state dispatch =
         StackPanel.create [
             StackPanel.orientation Orientation.Vertical
             StackPanel.children [
+                Typography.headline4 "Start Mesocycle"
                 Typography.headline5 $"Mesocycle {state.MesocycleNumber}"
                 Typography.headline6 $"{state.Lifts.Exercise}"
                 DatePicker.create [
@@ -325,19 +326,72 @@ let startMesocycle state dispatch =
 
     floatingLayout [] [] content
 
-let currentWorkout (state: State) dispatch =
+let warmup (state: State) dispatch =
+    let content =
+        StackPanel.create [
+            StackPanel.orientation Orientation.Vertical
+            StackPanel.children [
+                yield Typography.headline4 "Warmup"
+                yield Typography.headline5 $"Mesocycle {state.MesocycleNumber}"
+                yield Typography.headline6 $"{state.Lifts.Exercise}, Wave {state.Lifts.Wave}"
+
+                yield!
+                    RepSet.all
+                    |> List.map (fun repSet ->
+                        let weight, platePairs, bar, reps, units, colorMap =
+                            match state.Gym with
+                            | Some gym ->
+                                let oneRepMax = currentOneRepMax state
+
+                                let weight, reps, plates =
+                                    Calculate.warmupSet repSet gym.Bar gym.PlatePairs oneRepMax
+
+                                weight, plates, gym.Bar, reps, gym.MeasurementSystem, gym.PlatePairColors
+                            | _ -> (Weight.zero, [], Bar.Of(Weight.zero), 0u, Metric, Map.empty)
+
+                        StackPanel.create [
+                            StackPanel.orientation Orientation.Vertical
+                            StackPanel.children [
+                                Typography.body2 $"Set {repSet}"
+                                Typography.body2 $"Weight: {weight}{units}"
+                                Typography.body2 $"Reps: {reps}"
+                                PlatePairs.control (units, colorMap, platePairs)
+                            ]
+                        ])
+                    |> List.map generalize
+                    |> divide
+
+                let onCompleteWarmupClick _ = Msg.CompleteWarmup |> dispatch
+
+                let completeWarmup =
+                    MaterialButton.create [
+                        Button.content ("Complete Warmup", MaterialIconKind.Barbell)
+                        Button.onClick onCompleteWarmupClick
+                    ]
+
+                yield buttonBar [ completeWarmup ]
+            ]
+        ]
+
+    floatingLayout [] [] content
+
+let workingOut (state: State) dispatch =
     let mesocycleId, workoutPlan =
         match findWorkoutPlan state.WorkoutPlans state.Lifts.Exercise with
         | Some workoutPlan -> workoutPlan
         | _ -> invalidOp "Could not find workout plan"
 
-    let weight, reps =
-        match workoutPlan.Sets |> Map.tryFind (state.Lifts.Wave, state.Lifts.RepSet) with
-        | Some set -> set
-        | _ -> invalidOp "Could not find set"
+    let weight, reps, platePairs, units, colorMap =
+        match state.Gym with
+        | Some gym ->
+            let weight, reps, platePairs =
+                Calculate.set state.Lifts.Wave state.Lifts.RepSet gym.Bar gym.PlatePairs state.Lifts.TrainingOneRepMax
+
+            weight, reps, platePairs, gym.MeasurementSystem, gym.PlatePairColors
+        | _ -> (Weight.zero, 0u, [], Metric, Map.empty)
 
     let onCompleteRepSetClick _ =
-        (mesocycleId, state.Lifts.Reps) |> Msg.CompleteRepSet |> dispatch
+        (mesocycleId, state.Lifts.Reps, weight) |> Msg.CompleteRepSet |> dispatch
 
     let onExcerciseDateChange (d: Nullable<DateTimeOffset>) =
         (if d.HasValue then
@@ -357,7 +411,7 @@ let currentWorkout (state: State) dispatch =
                 let! result = dialog.ShowAsync() |> Async.AwaitTask
 
                 if result.GetValueOrDefault() then
-                    (mesocycleId, state.Lifts.Reps) |> Msg.FailRepSet |> dispatch
+                    (mesocycleId, state.Lifts.Reps, weight) |> Msg.FailRepSet |> dispatch
 
             }
             |> Async.StartImmediate)
@@ -365,13 +419,6 @@ let currentWorkout (state: State) dispatch =
     let onIncreaseRepsClick _ = Msg.IncreaseReps |> dispatch
 
     let onDecreaseRepsClick _ = Msg.DecreaseReps |> dispatch
-
-    let platePairs, bar, units, colorMap =
-        match state.Gym with
-        | Some gym -> (Calculate.plates gym.Bar gym.PlatePairs weight), gym.Bar, gym.MeasurementSystem, gym.PlatePairColors
-        | _ -> ([], Bar.Of(Weight.zero), Metric, Map.empty)
-
-    let weight = (platePairs |> List.sumBy (_.Weight)) + bar.Weight
 
     let increaseReps =
         MaterialButton.create [
@@ -414,8 +461,10 @@ let currentWorkout (state: State) dispatch =
         StackPanel.create [
             StackPanel.orientation Orientation.Vertical
             StackPanel.children [
+                Typography.headline4 "Workout"
                 Typography.headline5 $"Mesocycle {state.MesocycleNumber}"
-                Typography.headline6 $"{state.Lifts.Exercise}, Wave {state.Lifts.Wave}, Set {state.Lifts.RepSet}"
+                Typography.headline6 $"{state.Lifts.Exercise}, Wave {state.Lifts.Wave}"
+                Typography.body2 $"Set {state.Lifts.RepSet}"
                 Typography.body2 $"Weight: {weight}{units}"
                 Typography.body2 $"Reps: {reps}{plus}"
                 DatePicker.create [
@@ -441,64 +490,112 @@ let currentWorkout (state: State) dispatch =
 
     floatingLayout [] [] content
 
-let warmup state _ =
+let assistance (state: State) dispatch =
     let content =
-        StackPanel.create [
-            StackPanel.orientation Orientation.Vertical
-            StackPanel.children (
-                RepSet.all
-                |> List.map (fun repSet ->
-                    let platePairs, bar, reps, units, colorMap =
-                        match state.Gym with
-                        | Some gym ->
-                            let oneRepMax = currentOneRepMax state
+        match state.Gym with
+        | Some gym ->
+            let oneRepMax =
+                match state.SuggestedOneRepMaxes |> Map.tryFind state.Lifts.Exercise with
+                | Some oneRepMax -> oneRepMax
+                | _ -> Weight.zero
 
-                            let weight, reps = Calculate.warmupSet repSet oneRepMax
+            let mesocycleId =
+                match findWorkoutPlan state.WorkoutPlans state.Lifts.Exercise with
+                | Some workoutPlan -> workoutPlan |> fst |> Some
+                | _ -> None
 
-                            (Calculate.plates gym.Bar gym.PlatePairs weight), gym.Bar, reps, gym.MeasurementSystem, gym.PlatePairColors
-                        | _ -> ([], Bar.Of(Weight.zero), 0u, Metric, Map.empty)
+            let onSelectedAssistanceWorkChange index =
+                index |> Msg.SelectedAssistanceWorkIndexChanged |> dispatch
 
-                    let weight = (platePairs |> List.sumBy (_.Weight)) + bar.Weight
+            let onCompleteWaveClick _ =
+                match mesocycleId with
+                | Some mesocycleId -> mesocycleId |> Msg.CompleteWave |> dispatch
+                | _ -> ()
 
-                    StackPanel.create [
-                        StackPanel.orientation Orientation.Vertical
-                        StackPanel.children [
-                            Typography.headline5 $"Mesocycle {state.MesocycleNumber}"
-                            Typography.headline6 $"{state.Lifts.Exercise}, Set {repSet}"
-                            Typography.body2 $"Weight: {weight}{units}"
-                            Typography.body2 $"Reps: {reps}"
-                            PlatePairs.control (units, colorMap, platePairs)
-                        ]
-                    ])
-                |> List.map generalize
-                |> divide
-            )
-        ]
+            let assistance =
+                [ ("Boring But Big (Up Down)",
+                   (fun () ->
+                       boringButBig
+                           BoringButBig.UpDown
+                           state.Lifts.Exercise
+                           gym.Bar
+                           gym.PlatePairs
+                           gym.PlatePairColors
+                           gym.MeasurementSystem
+                           oneRepMax))
+                  ("Boring But Big (Descending)",
+                   (fun () ->
+                       boringButBig
+                           BoringButBig.Descending
+                           state.Lifts.Exercise
+                           gym.Bar
+                           gym.PlatePairs
+                           gym.PlatePairColors
+                           gym.MeasurementSystem
+                           oneRepMax))
+                  ("Boring But Big (Ascending)",
+                   (fun () ->
+                       boringButBig
+                           BoringButBig.Ascending
+                           state.Lifts.Exercise
+                           gym.Bar
+                           gym.PlatePairs
+                           gym.PlatePairColors
+                           gym.MeasurementSystem
+                           oneRepMax)) ]
+
+            let comboBox =
+                ComboBox.create [
+                    ComboBox.viewItems (assistance |> List.map fst |> List.map (Typography.body2 >> generalize))
+                    ComboBox.onSelectedIndexChanged onSelectedAssistanceWorkChange
+                    ComboBox.selectedIndex state.Lifts.SelectedAssistanceWorkIndex
+                ]
+
+            let assistance = assistance[state.Lifts.SelectedAssistanceWorkIndex] |> snd
+
+            let completeWave =
+                MaterialButton.create [
+                    Button.content ($"Complete Wave {state.Lifts.Wave}", MaterialIconKind.Barbell)
+                    Button.onClick (onCompleteWaveClick, SubPatchOptions.OnChangeOf(state.Lifts))
+                    Button.isEnabled (state.Lifts.RepSet = RepSet.Complete)
+                ]
+
+            StackPanel.create [
+                StackPanel.children [
+                    Typography.headline4 "Assistance"
+                    comboBox
+                    assistance ()
+                    buttonBar [ completeWave ]
+                ]
+            ]
+        | _ -> StackPanel.create []
 
     floatingLayout [] [] content
 
-let summary (state:State) dispatch =
-    let summary =
+let summary (state: State) dispatch =
+    let content =
         StackPanel.create [
             StackPanel.orientation Orientation.Vertical
             StackPanel.children [
+                yield Typography.headline4 "Summary"
                 yield Typography.headline5 $"Mesocycle {state.MesocycleNumber}"
                 yield Typography.headline6 $"{state.Lifts.Exercise |> Exercise.previous}, Wave {state.Lifts.Wave}"
+
+                let units =
+                    match state.Gym with
+                    | Some gym -> gym.MeasurementSystem
+                    | _ -> Metric
 
                 yield!
                     RepSet.all
                     |> List.map (fun repSet ->
-                        let units =
-                            match state.Gym with
-                            | Some gym -> gym.MeasurementSystem
-                            | _ -> Metric
 
                         match (state.Lifts.CompletedReps |> Map.tryFind repSet) with
                         | Some(weight, reps) ->
                             StackPanel.create [
                                 StackPanel.orientation Orientation.Vertical
                                 StackPanel.children [
-                                    Typography.body2 $"Set {state.Lifts.RepSet}"
+                                    Typography.body2 $"Set {repSet}"
                                     Typography.body2 $"Weight: {weight}{units}"
                                     Typography.body2 $"Reps: {reps}"
                                 ]
@@ -506,130 +603,28 @@ let summary (state:State) dispatch =
                         | _ -> StackPanel.create [])
                     |> List.map generalize
                     |> divide
+
+                let onNextExerciseClick _ = Msg.ContinueExercise |> dispatch
+
+                let completeWave =
+                    MaterialButton.create [
+                        Button.content ("Next Exercise", MaterialIconKind.ArrowRight)
+                        Button.onClick onNextExerciseClick
+                    ]
+
+                yield buttonBar [ completeWave ]
             ]
-        ]
-
-    let onContinueClick _ = Msg.ContinueExercise |> dispatch
-
-    let ``continue`` =
-        MaterialButton.create [
-            Button.content ("Continue", MaterialIconKind.Check)
-            Button.onClick onContinueClick
-        ]
-
-    let content =
-        StackPanel.create [
-            StackPanel.orientation Orientation.Vertical
-            StackPanel.children [ summary; buttonBar [ ``continue`` ] ]
         ]
 
     floatingLayout [] [] content
 
-let assistance (state: State) dispatch =
-    match state.Gym with
-    | Some gym ->
-        let oneRepMax =
-            match state.SuggestedOneRepMaxes |> Map.tryFind state.Lifts.Exercise with
-            | Some oneRepMax -> oneRepMax
-            | _ -> Weight.zero
-
-        let mesocycleId =
-            match findWorkoutPlan state.WorkoutPlans state.Lifts.Exercise with
-            | Some workoutPlan -> workoutPlan |> fst |> Some
-            | _ -> None
-
-        let onSelectedAssistanceWorkChange index =
-            index |> Msg.SelectedAssistanceWorkIndexChanged |> dispatch
-
-        let onCompleteWaveClick _ =
-            match mesocycleId with
-            | Some mesocycleId -> mesocycleId |> Msg.CompleteWave |> dispatch
-            | _ -> ()
-
-        let assistance =
-            [ ("Boring But Big (Up Down)",
-               (fun () ->
-                   boringButBig
-                       BoringButBig.UpDown
-                       state.Lifts.Exercise
-                       gym.Bar
-                       gym.PlatePairs
-                       gym.PlatePairColors
-                       gym.MeasurementSystem
-                       oneRepMax))
-              ("Boring But Big (Descending)",
-               (fun () ->
-                   boringButBig
-                       BoringButBig.Descending
-                       state.Lifts.Exercise
-                       gym.Bar
-                       gym.PlatePairs
-                       gym.PlatePairColors
-                       gym.MeasurementSystem
-                       oneRepMax))
-              ("Boring But Big (Ascending)",
-               (fun () ->
-                   boringButBig
-                       BoringButBig.Ascending
-                       state.Lifts.Exercise
-                       gym.Bar
-                       gym.PlatePairs
-                       gym.PlatePairColors
-                       gym.MeasurementSystem
-                       oneRepMax)) ]
-
-        let comboBox =
-            ComboBox.create [
-                ComboBox.viewItems (assistance |> List.map fst |> List.map (Typography.body2 >> generalize))
-                ComboBox.onSelectedIndexChanged onSelectedAssistanceWorkChange
-                ComboBox.selectedIndex state.Lifts.SelectedAssistanceWorkIndex
-            ]
-
-        let assistance = assistance[state.Lifts.SelectedAssistanceWorkIndex] |> snd
-
-        let completeWave =
-            MaterialButton.create [
-                Button.dock Dock.Right
-                Button.content ($"Complete Wave {state.Lifts.Wave}", MaterialIconKind.Barbell)
-                Button.onClick (onCompleteWaveClick, SubPatchOptions.OnChangeOf(state.Lifts))
-                Button.isEnabled (state.Lifts.RepSet = RepSet.Complete)
-            ]
-
-        let content =
-            StackPanel.create [ StackPanel.children [ comboBox; assistance (); buttonBar [ completeWave ] ] ]
-
-        floatingLayout [] [] content |> generalize
-    | _ -> StackPanel.create []
-
-let view state dispatch =
-    TabControl.create [
-        TabControl.selectedIndex state.Lifts.SelectedTabIndex
-        TabControl.viewItems [
-            TabItem.create [
-                yield TabItem.header "Warmup"
-                if state.Screen = WorkingOut then
-                    yield TabItem.content (warmup state dispatch)
-                else
-                    yield TabItem.isEnabled false
-            ]
-
-            TabItem.create [
-                yield TabItem.header "Workout"
-                yield
-                    TabItem.content (
-                        match (state.Screen, state.Lifts.RepSet) with
-                        | Summary, _
-                        | _, RepSet.Complete -> summary state dispatch
-                        | StartMesocycle, _ -> startMesocycle state dispatch
-                        | WorkingOut, _ -> currentWorkout state dispatch
-                    )
-                if state.Lifts.RepSet = RepSet.Complete then
-                    yield TabItem.isEnabled false
-            ]
-
-            TabItem.create [
-                yield TabItem.header "Assistance"
-                yield TabItem.content (assistance state dispatch)
-            ]
-        ]
-    ]
+let view (state: State) dispatch =
+    (function
+    | StartMesocycle -> startMesocycle
+    | Warmup -> warmup
+    | WorkingOut -> workingOut
+    | Assistance -> assistance
+    | Summary -> summary)
+        state.Screen
+        state
+        dispatch
