@@ -104,6 +104,7 @@ module Workout =
                     MesocycleNumbers = [ (Squats, 1u) ] |> Map.ofList
                     Lifts =
                         { Lifts.zero with
+                            StartingAt = dateTime |> Some
                             TrainingOneRepMax = 90m |> Weight }
                     Screen = Screen.Warmup }
         }
@@ -126,6 +127,7 @@ module Workout =
                         { Lifts.zero with
                             TrainingOneRepMax = 90m |> Weight
                             RepSet = RepSet.Complete
+                            StartingAt = dateTime |> Some
                             CompletedReps =
                                 RepSet.all
                                 |> List.map (fun repSet ->

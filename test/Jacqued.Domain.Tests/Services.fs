@@ -43,9 +43,9 @@ module Calculate =
         <| fun (weight, expected) -> Expect.sequenceEqual (Calculate.plates bar platePairs weight) expected ""
 
     [<Tests>]
-    let nextWorkoutDate =
+    let nextExerciseDate =
         testTheory
-            "Calculate next workout date"
+            "Calculate next exercise date"
             ([ ExerciseDaysPerWeek.Three, "11-24", "11-25"
                ExerciseDaysPerWeek.Three, "11-25", "11-27"
                ExerciseDaysPerWeek.Three, "11-26", "11-27"
@@ -62,4 +62,4 @@ module Calculate =
                ExerciseDaysPerWeek.Four, "11-30", "12-02" ]
              |> List.map (fun (e, d, ex) ->
                  (e, DateTime.ParseExact($"2024-{d}", "yyyy-MM-dd", null), DateTime.ParseExact($"2024-{ex}", "yyyy-MM-dd", null))))
-        <| fun (exerciseDaysPerWeek, date, expected) -> Expect.equal (Calculate.nextExerciseDay exerciseDaysPerWeek date) expected ""
+        <| fun (exerciseDaysPerWeek, date, expected) -> Expect.equal (Calculate.nextExerciseDate exerciseDaysPerWeek date) expected ""
