@@ -120,7 +120,7 @@ let update (now: _ -> DateTime) handler msg state =
                 State.Lifts.Wave = Wave.One
                 State.Lifts.RepSet = RepSet.One
                 State.Lifts.Reps = 0u
-                State.Lifts.StartingAt = None
+                State.Lifts.StartingAt = e.StartedAt |> Some
                 State.Waves = state.Waves |> Map.add e.WorkoutPlan.Exercise Wave.One
                 State.WorkoutPlans = state.WorkoutPlans |> Map.add e.MesocycleId e.WorkoutPlan
                 State.MesocycleNumbers =
@@ -145,9 +145,12 @@ let update (now: _ -> DateTime) handler msg state =
             List.empty |> Ok
         | WaveCompleted e ->
             let nextExercise = state.Lifts.Exercise |> nextExercise
+            
+            let nextExerciseDate = Calculate.nextExerciseDate exerciseDaysPerWeek e.CompletedAt
 
             { state with
                 State.Screen = Summary
+                State.Lifts.StartingAt = nextExerciseDate |> Some
                 State.Lifts.Exercise = nextExercise
                 State.Lifts.Wave = state.Waves[nextExercise]
                 State.Lifts.RepSet = RepSet.One
