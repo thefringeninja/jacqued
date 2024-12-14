@@ -1,6 +1,8 @@
 ﻿module Jacqued.Helpers
 
+open System
 open Avalonia.Controls
+open Avalonia.Controls.Primitives
 open Avalonia.FuncUI.DSL
 open Avalonia.FuncUI.Helpers
 open Avalonia.FuncUI.Types
@@ -14,6 +16,12 @@ let floatingLayout topAppBarButtons floatingButtons content =
         button
         |> View.withAttrs [ Button.classes [ "Flat" ]; (Button.padding 0 :> IAttr<Button>) ]
         |> generalize
+
+    let scrollbarVisibility =
+        if OperatingSystem.IsAndroid() || OperatingSystem.IsIOS() then
+            ScrollBarVisibility.Hidden
+        else
+            ScrollBarVisibility.Auto
 
     Grid.create [
         Grid.rowDefinitions (RowDefinitions "Auto,*,Auto")
@@ -31,7 +39,13 @@ let floatingLayout topAppBarButtons floatingButtons content =
                     ]
                 ]
             ]
-            ScrollViewer.create [ Grid.row 1; Grid.rowSpan 2; ScrollViewer.content (content |> generalize) ]
+            ScrollViewer.create [
+                Grid.row 1
+                Grid.rowSpan 2
+                ScrollViewer.horizontalScrollBarVisibility ScrollBarVisibility.Disabled
+                ScrollViewer.verticalScrollBarVisibility scrollbarVisibility
+                ScrollViewer.content (content |> generalize)
+            ]
             DockPanel.create [
                 Grid.row 2
                 DockPanel.lastChildFill false
