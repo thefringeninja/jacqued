@@ -145,7 +145,7 @@ let update (now: _ -> DateTime) handler msg state =
             List.empty |> Ok
         | WaveCompleted e ->
             let nextExercise = state.Lifts.Exercise |> nextExercise
-            
+
             let nextExerciseDate = Calculate.nextExerciseDate exerciseDaysPerWeek e.CompletedAt
 
             { state with
@@ -384,14 +384,16 @@ let workingOut (state: State) dispatch =
         | Some workoutPlan -> workoutPlan
         | _ -> invalidOp "Could not find workout plan"
 
-    let weight, reps, platePairs, units, colorMap =
+    let weight, reps =
+        workoutPlan.Sets |> Map.find (state.Lifts.Wave, state.Lifts.RepSet)
+
+    let platePairs, units, colorMap =
         match state.Gym with
         | Some gym ->
-            let weight, reps, platePairs =
-                Calculate.set state.Lifts.Wave state.Lifts.RepSet gym.Bar gym.PlatePairs state.Lifts.TrainingOneRepMax
+            let platePairs = Calculate.plates gym.Bar gym.PlatePairs weight
 
-            weight, reps, platePairs, gym.MeasurementSystem, gym.PlatePairColors
-        | _ -> (Weight.zero, 0u, [], Metric, Map.empty)
+            platePairs, gym.MeasurementSystem, gym.PlatePairColors
+        | _ -> ([], Metric, Map.empty)
 
     let onCompleteRepSetClick _ =
         (mesocycleId, state.Lifts.Reps, weight) |> Msg.CompleteRepSet |> dispatch
