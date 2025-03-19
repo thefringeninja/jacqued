@@ -159,4 +159,4 @@ let view state dispatch =
     let content =
         DockPanel.create [ DockPanel.lastChildFill true; DockPanel.children [ selector; chart ] ]
 
-    floatingLayout [] [] content
+    layout content

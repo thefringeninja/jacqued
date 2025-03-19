@@ -327,7 +327,7 @@ let startMesocycle state dispatch =
             ]
         ]
 
-    floatingLayout [] [] content
+    layout content
 
 let warmup (state: State) dispatch =
     let content =
@@ -376,7 +376,7 @@ let warmup (state: State) dispatch =
             ]
         ]
 
-    floatingLayout [] [] content
+    layout content
 
 let workingOut (state: State) dispatch =
     let mesocycleId, workoutPlan =
@@ -493,7 +493,7 @@ let workingOut (state: State) dispatch =
             ]
         ]
 
-    floatingLayout [] [] content
+    layout content
 
 let assistance (state: State) dispatch =
     let content =
@@ -575,7 +575,7 @@ let assistance (state: State) dispatch =
             ]
         | _ -> StackPanel.create []
 
-    floatingLayout [] [] content
+    layout content
 
 let summary (state: State) dispatch =
     let content =
@@ -621,7 +621,7 @@ let summary (state: State) dispatch =
             ]
         ]
 
-    floatingLayout [] [] content
+    layout content
 
 let view (state: State) dispatch =
     (function
