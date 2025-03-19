@@ -8,55 +8,17 @@ open Avalonia.FuncUI.Helpers
 open Avalonia.FuncUI.Types
 open Avalonia.Layout
 
-let floatingLayout topAppBarButtons floatingButtons content =
-    let margin5 button =
-        button |> View.withAttrs [ Button.margin 5 ] |> generalize
+let private scrollbarVisibility =
+    if OperatingSystem.IsAndroid() || OperatingSystem.IsIOS() then
+        ScrollBarVisibility.Hidden
+    else
+        ScrollBarVisibility.Auto
 
-    let flat button =
-        button
-        |> View.withAttrs [ Button.classes [ "Flat" ]; (Button.padding 0 :> IAttr<Button>) ]
-        |> generalize
-
-    let scrollbarVisibility =
-        if OperatingSystem.IsAndroid() || OperatingSystem.IsIOS() then
-            ScrollBarVisibility.Hidden
-        else
-            ScrollBarVisibility.Auto
-
-    Grid.create [
-        Grid.rowDefinitions (RowDefinitions "Auto,*,Auto")
-        Grid.children [
-            DockPanel.create [
-                DockPanel.lastChildFill false
-                DockPanel.children [
-                    StackPanel.create [
-                        DockPanel.dock Dock.Right
-                        StackPanel.height 24
-                        StackPanel.orientation Orientation.Horizontal
-                        StackPanel.spacing 24
-                        StackPanel.margin (16, 20, 16, 24)
-                        StackPanel.children (topAppBarButtons |> List.map flat)
-                    ]
-                ]
-            ]
-            ScrollViewer.create [
-                Grid.row 1
-                Grid.rowSpan 2
-                ScrollViewer.horizontalScrollBarVisibility ScrollBarVisibility.Disabled
-                ScrollViewer.verticalScrollBarVisibility scrollbarVisibility
-                ScrollViewer.content (content |> generalize)
-            ]
-            DockPanel.create [
-                Grid.row 2
-                DockPanel.lastChildFill false
-                DockPanel.children [
-                    StackPanel.create [
-                        DockPanel.dock Dock.Right
-                        StackPanel.children (floatingButtons |> List.map margin5)
-                    ]
-                ]
-            ]
-        ]
+let layout content =
+    ScrollViewer.create [
+        ScrollViewer.horizontalScrollBarVisibility ScrollBarVisibility.Disabled
+        ScrollViewer.verticalScrollBarVisibility scrollbarVisibility
+        ScrollViewer.content (content |> generalize)
     ]
 
 let buttonBar (buttons: IView<Button> list) : IView =

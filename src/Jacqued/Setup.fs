@@ -195,4 +195,4 @@ let view (state: State) (dispatch: Msg -> unit) =
             ]
         ]
 
-    floatingLayout [] [] content
+    layout content
