@@ -267,6 +267,11 @@ let currentOneRepMax state =
         | Some oneRepMax -> oneRepMax
         | _ -> Weight.zero
 
+let currentDate state =
+    match state.Lifts.StartingAt with
+    | Some startingAt -> startingAt
+    | _ -> DateTime.Today
+
 let startMesocycle state dispatch =
     let onOneRepMaxChange s =
         (match Weight.tryParse s with
@@ -309,11 +314,7 @@ let startMesocycle state dispatch =
                 Typography.headline5 $"Mesocycle {state.MesocycleNumber}"
                 Typography.headline6 $"{state.Lifts.Exercise}"
                 DatePicker.create [
-                    DatePicker.selectedDate (
-                        match state.Lifts.StartingAt with
-                        | Some startingAt -> startingAt
-                        | _ -> DateTime.Today
-                    )
+                    DatePicker.selectedDate (currentDate state)
                     DatePicker.horizontalAlignment HorizontalAlignment.Stretch
                     DatePicker.onSelectedDateChanged onStartDateChange
                 ]
@@ -337,6 +338,7 @@ let warmup (state: State) dispatch =
                 yield Typography.headline4 "Warmup"
                 yield Typography.headline5 $"Mesocycle {state.MesocycleNumber}"
                 yield Typography.headline6 $"{state.Lifts.Exercise}, Wave {state.Lifts.Wave}"
+                yield Typography.subtitle1 $"{(currentDate state):d}"
 
                 yield!
                     RepSet.all
@@ -585,6 +587,7 @@ let summary (state: State) dispatch =
                 yield Typography.headline4 "Summary"
                 yield Typography.headline5 $"Mesocycle {state.MesocycleNumber}"
                 yield Typography.headline6 $"{state.Lifts.Exercise |> Exercise.previous}, Wave {state.Lifts.Wave}"
+                yield Typography.subtitle1 $"{(currentDate state):d}"
 
                 let units =
                     match state.Gym with
