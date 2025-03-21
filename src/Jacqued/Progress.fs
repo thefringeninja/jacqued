@@ -149,7 +149,8 @@ let view state dispatch =
             CartesianChart.series series
             CartesianChart.legendPosition LegendPosition.Top
             CartesianChart.legend chartLegend
-            CartesianChart.xaxes [ DateTimeAxis(TimeSpan.FromDays(1), (fun d -> d.ToString("M"))) ]
+            CartesianChart.zoomMode ZoomAndPanMode.X
+            CartesianChart.xaxes [ DateTimeAxis(TimeSpan.FromDays(1), _.ToString("M")) ]
         ]
 
     let content =
