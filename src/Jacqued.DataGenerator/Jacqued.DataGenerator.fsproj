@@ -1,0 +1,21 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<OutputType>Exe</OutputType>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<Compile Include="Generator.fs" />
+		<Compile Include="Program.fs" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="../Jacqued/Jacqued.fsproj" />
+		<ProjectReference Include="../SqlStreamStore/src/SqlStreamStore.Sqlite/SqlStreamStore.Sqlite.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <PackageReference Include="FSharp.SystemCommandLine" Version="1.0.0-beta4" />
+	</ItemGroup>
+
+</Project>
