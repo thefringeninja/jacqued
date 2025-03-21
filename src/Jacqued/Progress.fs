@@ -13,6 +13,7 @@ open LiveChartsCore.SkiaSharpView
 open LiveChartsCore.SkiaSharpView.Avalonia
 open LiveChartsCore.SkiaSharpView.Painting
 open LiveChartsCore.SkiaSharpView.SKCharts
+open Microsoft.FSharp.Control
 open Microsoft.FSharp.Core
 open SkiaSharp
 
@@ -20,8 +21,7 @@ type WorkoutPoint =
     { Date: DateTime
       Weight: Weight
       MesocycleNumber: uint
-      Failed: bool
-      Wave: Wave }
+      Failed: bool }
 
 type State =
     { Exercise: Exercise option
@@ -36,12 +36,11 @@ type State =
             |> Map.ofList
           History = Map.empty }
 
-let exerciseDataPoint exercise wave number progress passed =
-    { Date = (progress.Current[exercise] |> fst |> snd)
+let exerciseDataPoint exercise date progress passed =
+    { Date = date
       Weight = (progress.Current[exercise] |> fst |> fst)
       MesocycleNumber = progress.Current[exercise] |> snd
-      Failed = not passed
-      Wave = wave }
+      Failed = not passed }
 
 let update (msg: Msg) (state: State) : State =
     match msg with
@@ -53,17 +52,10 @@ let update (msg: Msg) (state: State) : State =
                 State.Current =
                     state.Current
                     |> Map.change e.WorkoutPlan.Exercise (function
-                        | Some (_, number) -> ((Weight.zero, DateTime.UnixEpoch), number + 1u) |> Some
-                        | _ -> None) }
-        | RepSetCompleted e ->
-            { state with
-                State.Current =
-                    state.Current
-                    |> Map.change e.Exercise (function
-                        | Some (_, number) -> ((e.Weight, e.CompletedAt), number) |> Some
+                        | Some(_, number) -> ((e.TrainingOneRepMax, DateTime.UnixEpoch), number + 1u) |> Some
                         | _ -> None) }
         | MesocycleFailed e ->
-            let dataPoint = exerciseDataPoint e.Exercise e.Wave 1u state false
+            let dataPoint = exerciseDataPoint e.Exercise e.FailedAt state false
 
             { state with
                 State.History =
@@ -71,8 +63,8 @@ let update (msg: Msg) (state: State) : State =
                     |> Map.change e.Exercise (function
                         | Some history -> history |> Array.append [| dataPoint |] |> Some
                         | None -> [| dataPoint |] |> Some) }
-        | WaveCompleted e ->
-            let dataPoint = exerciseDataPoint e.Exercise e.Wave 1u state true
+        | WaveCompleted e when e.Wave = Wave.Four ->
+            let dataPoint = exerciseDataPoint e.Exercise e.CompletedAt state true
 
             { state with
                 State.History =
@@ -91,6 +83,8 @@ let dataItems = [ [ None ]; Exercise.all |> List.map Some ] |> List.concat
 
 #nowarn "FS0760"
 
+let errorPaint = SKColor(255uy, 0uy, 0uy) |> SolidColorPaint
+
 let series =
     (Exercise.all,
      Resources.swatches
@@ -103,10 +97,12 @@ let series =
         columnSeries.Fill <- null
         columnSeries.Stroke <- paint
         columnSeries.GeometryStroke <- paint
-
-        columnSeries.YToolTipLabelFormatter <- (fun point -> $"Mesocycle {point.Model.MesocycleNumber}, Wave: {point.Model.Wave}, Weight: {point.Model.Weight}")
-
+        columnSeries.YToolTipLabelFormatter <- (fun point -> $"Mesocycle {point.Model.MesocycleNumber}, Weight: {point.Model.Weight}")
         columnSeries.Mapping <- fun workout index -> Coordinate(workout.Date.Ticks |> float, workout.Weight.Value |> float)
+
+        columnSeries.add_PointMeasured (fun point ->
+            if point.Model.Failed then
+                point.Visual.Stroke <- errorPaint)
 
         columnSeries :> ISeries)
     |> List.toArray
