@@ -175,6 +175,11 @@ module CartesianChart =
 
             AttrBuilder<'t>
                 .CreateProperty<IChartLegend>(name, value, ValueSome getter, ValueSome setter, ValueNone)
+                
+        static member zoomMode<'t when 't :> CartesianChart>(value: ZoomAndPanMode) : IAttr<'t> =
+            AttrBuilder<'t>
+                .CreateProperty<ZoomAndPanMode>(property = CartesianChart.ZoomModeProperty, value = value, comparer = ValueNone)
+            
 
 [<AutoOpen>]
 module ReactiveDialogHost =
