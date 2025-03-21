@@ -23,14 +23,16 @@ module Shell =
           Workout: Workout.State
           Progress: Progress.State
           Screen: Screen
-          Dialog: string option }
+          Dialog: string option
+          SetupComplete: bool }
 
         static member zero =
             { Setup = Setup.State.zero
               Workout = Workout.State.zero
               Progress = Progress.State.zero
               Screen = Setup
-              Dialog = None }
+              Dialog = None
+              SetupComplete = false }
 
     type Results =
         | State of State
@@ -42,6 +44,14 @@ module Shell =
 
         let gym = Gym.create read append
         let mesocycle = Mesocycle.create read append
+        
+        let setupComplete =
+            match msg with
+            Event e ->
+                match e with
+                | GymSetup _ -> true
+                | _ -> state.SetupComplete
+            | _ -> state.SetupComplete
 
         let results =
             match msg with
@@ -90,14 +100,14 @@ module Shell =
                 | Results.Cmd _ -> state
                 | Results.State state -> state
 
-        state', cmd
+        { state' with SetupComplete = setupComplete }, cmd
 
     let view state dispatch =
         let tabs =
             TabControl.create [
                 TabControl.tabStripPlacement Dock.Bottom
                 TabControl.viewItems [
-                    if state.Workout.Gym.IsSome then
+                    if state.SetupComplete then
                         yield
                             TabItem.create [
                                 TabItem.header (NavigationButton.create [ NavigationButton.content (MaterialIconKind.Barbell, "Workout") ])

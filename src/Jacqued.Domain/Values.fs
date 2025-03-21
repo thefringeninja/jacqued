@@ -141,6 +141,13 @@ type Wave =
         | Wave.Three -> Wave.Four
         | Wave.Four -> Wave.One
 
+    static member previous wave =
+        match wave with
+        | Wave.One -> Wave.Four
+        | Wave.Two -> Wave.One
+        | Wave.Three -> Wave.Two
+        | Wave.Four -> Wave.Three
+
 type WorkoutPlan =
     { Exercise: Exercise
       Sets: Map<Wave * RepSet, Weight * uint> }

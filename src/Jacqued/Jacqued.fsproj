@@ -40,7 +40,12 @@
 		<Compile Include="PlatePairs.fs"/>
 		<Compile Include="Setup.fs"/>
 		<Compile Include="Progress.fs"/>
-		<Compile Include="Assistance.fs" />
+		<Compile Include="Workout\Types.fs" />
+		<Compile Include="Workout\StartMesocycle.fs" />
+		<Compile Include="Workout\WarmupLifts.fs" />
+		<Compile Include="Workout\MainLifts.fs" />
+		<Compile Include="Workout\Assistance.fs" />
+		<Compile Include="Workout\Summary.fs" />
 		<Compile Include="Workout.fs"/>
 		<Compile Include="Shell.fs"/>
 		<Compile Include="App.fs"/>

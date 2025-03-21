@@ -23,9 +23,9 @@ type Msg =
     | ExerciseDateChanged of DateTime
     | IncreaseReps
     | DecreaseReps
-    | CompleteWave of MesocycleId
+    | CompleteWave of MesocycleId * DateTime
     | FailRepSet of MesocycleId * uint * Weight
-    | ContinueExercise
+    | ContinueExercise of Exercise
     | SelectedAssistanceWorkIndexChanged of int
     | SelectedProgressChartExerciseChanged of Exercise option
     | ApplicationError of ApplicationError
