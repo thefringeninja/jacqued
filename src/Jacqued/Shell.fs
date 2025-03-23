@@ -1,6 +1,7 @@
 ﻿namespace Jacqued
 
 open System
+open System.IO
 open Avalonia.Controls
 open Avalonia.FuncUI.DSL
 open AvaloniaDialogs.Views
@@ -24,7 +25,9 @@ module Shell =
           Progress: Progress.State
           Screen: Screen
           Dialog: string option
-          SetupComplete: bool }
+          SetupComplete: bool
+          Settings: Configuration.Settings
+          SettingsPath: string option }
 
         static member zero =
             { Setup = Setup.State.zero
@@ -32,7 +35,9 @@ module Shell =
               Progress = Progress.State.zero
               Screen = Setup
               Dialog = None
-              SetupComplete = false }
+              SetupComplete = false
+              Settings = Configuration.Settings.zero
+              SettingsPath = None }
 
     type Results =
         | State of State
@@ -44,10 +49,18 @@ module Shell =
 
         let gym = Gym.create read append
         let mesocycle = Mesocycle.create read append
-        
+
+        let saveSettings (settings: Configuration.Settings) =
+            match state.SettingsPath with
+            | Some settingsPath ->
+                let fileInfo = FileInfo(settingsPath)
+                use writer = fileInfo.CreateText()
+                settings.save writer
+            | _ -> ()
+
         let setupComplete =
             match msg with
-            Event e ->
+            | Event e ->
                 match e with
                 | GymSetup _ -> true
                 | _ -> state.SetupComplete
@@ -60,7 +73,18 @@ module Shell =
                   yield { state with Dialog = dialog |> Some } |> Results.State ]
             | Msg.SelectedThemeChanged theme ->
                 Theme.set theme
-                [ state |> Results.State ]
+
+                let settings =
+                    { state.Settings with
+                        ThemeVariant = theme }
+
+                saveSettings settings
+
+                [ { state with Settings = settings } |> Results.State ]
+            | Msg.ConfigurationSettingsLoaded settings ->
+                Theme.set settings.ThemeVariant
+
+                [ { state with Settings = settings } |> Results.State ]
             | _ ->
                 try
                     [ let setup, result = Setup.update gym msg state.Setup
@@ -103,7 +127,9 @@ module Shell =
                 | Results.Cmd _ -> state
                 | Results.State state -> state
 
-        { state' with SetupComplete = setupComplete }, cmd
+        { state' with
+            SetupComplete = setupComplete },
+        cmd
 
     let view state dispatch =
         let tabs =
@@ -135,8 +161,16 @@ module Shell =
             ReactiveDialogHost.content (Panel.create [ Panel.margin 16; Panel.children [ tabs ] ])
         ]
 
-    let init store () =
+    let init store (settings: Configuration.Settings) settingsPath () =
         let events =
-            (EventStorage.readAll store) |> Seq.map Msg.Event
+            seq {
+                yield Msg.ConfigurationSettingsLoaded settings
+                yield! (EventStorage.readAll store) |> Seq.map Msg.Event
+            }
 
-        Seq.fold (fun (state, _) event -> update store event state) (State.zero, Cmd.none) events
+        Seq.fold
+            (fun (state, _) event -> update store event state)
+            ({ State.zero with
+                SettingsPath = settingsPath |> Some },
+             Cmd.none)
+            events

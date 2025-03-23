@@ -3,7 +3,6 @@
 open System
 open System.IO
 open Android.App
-open Android.Content
 open Android.Content.PM
 open Avalonia
 open Avalonia.Android
@@ -23,10 +22,16 @@ type MainActivity() as this =
     [<DefaultValue(false)>]
     val mutable streamStore: IStreamStore
 
-    do this.streamStore <- MainActivity.createStreamStore Android.App.Application.Context
+    [<DefaultValue(false)>]
+    val mutable settingsPath: string
 
-    static member createStreamStore(context: Context) =
-        let dataSource = Path.Combine(context.GetExternalFilesDir(null).Path, "jacqued.db")
+    do
+        let dataSourceDirectory = Android.App.Application.Context.GetExternalFilesDir(null).Path
+        this.streamStore <- MainActivity.createStreamStore dataSourceDirectory
+        this.settingsPath <- Path.Combine(dataSourceDirectory, "settings.json")
+
+    static member createStreamStore(dataSourceDirectory) =        
+        let dataSource = Path.Combine(dataSourceDirectory, "jacqued.db")
 
         let cs = SqliteConnectionStringBuilder()
         cs.DataSource <- dataSource
@@ -39,7 +44,7 @@ type MainActivity() as this =
         store
 
     override _.CreateAppBuilder() =
-        AppBuilder.Configure<App>(fun () -> App(this.streamStore)).UseAndroid()
+        AppBuilder.Configure<App>(fun () -> App(this.streamStore, this.settingsPath)).UseAndroid()
 
     override this.Dispose(disposing) =
         this.streamStore.Dispose()

@@ -36,6 +36,7 @@
 		<Compile Include="Typography.fs" />
 		<Compile Include="DSL.fs" />
 		<Compile Include="Helpers.fs" />
+		<Compile Include="Configuration.fs" />
 		<Compile Include="Messages.fs"/>
 		<Compile Include="PlatePairs.fs"/>
 		<Compile Include="Setup.fs"/>

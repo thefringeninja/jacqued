@@ -25,7 +25,7 @@ type MainWindow() =
 
 #nowarn "3261"
 
-type App(store: IStreamStore) =
+type App(store: IStreamStore, settingsPath) =
     inherit Application()
 
     override this.Initialize() =
@@ -50,9 +50,10 @@ type App(store: IStreamStore) =
                 (main :> IViewHost) |> Some
             | _ -> None
 
+        let settings = Configuration.load settingsPath
         match host with
         | Some hostControl ->
-            Program.mkProgram (Shell.init store) (Shell.update store) Shell.view
+            Program.mkProgram (Shell.init store settings settingsPath) (Shell.update store) Shell.view
             |> Program.withHost hostControl
 
 #if DEBUG

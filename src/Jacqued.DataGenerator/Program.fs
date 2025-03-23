@@ -13,7 +13,7 @@ let handler (count, output:FileInfo) =
 
     let settings = SqliteStreamStoreSettings(cs.ToString())
     settings.GetUtcNow <- (fun () -> DateTime.UtcNow)
-    let streamStore = new SqliteStreamStore(settings)
+    use streamStore = new SqliteStreamStore(settings)
     streamStore.CreateSchemaIfNotExists()
 
     let events = Generator.generate count

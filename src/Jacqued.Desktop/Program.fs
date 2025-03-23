@@ -10,24 +10,26 @@ module Program =
 
     [<EntryPoint>]
     let main (args: string[]) =
-
         let dataSourceDirectory =
             DirectoryInfo(Path.Combine((Environment.GetFolderPath Environment.SpecialFolder.LocalApplicationData), "Jacqued"))
+        let settingsPath = Path.Combine(dataSourceDirectory.FullName, "settings.json")
 
-        dataSourceDirectory.Create()
+        use store = 
+            dataSourceDirectory.Create()
 
-        let dataSource = Path.Combine(dataSourceDirectory.FullName, "Jacqued.db")
+            let dataSource = Path.Combine(dataSourceDirectory.FullName, "Jacqued.db")
 
-        let cs = SqliteConnectionStringBuilder()
-        cs.DataSource <- dataSource
+            let cs = SqliteConnectionStringBuilder()
+            cs.DataSource <- dataSource
 
-        let settings = SqliteStreamStoreSettings(cs.ToString())
-        settings.GetUtcNow <- (fun () -> DateTime.UtcNow)
-        let store = new SqliteStreamStore(settings)
-        store.CreateSchemaIfNotExists()
+            let settings = SqliteStreamStoreSettings(cs.ToString())
+            settings.GetUtcNow <- (fun () -> DateTime.UtcNow)
+            let store = new SqliteStreamStore(settings)
+            store.CreateSchemaIfNotExists()
+            store
 
         AppBuilder
-            .Configure<App>(fun () -> App(store))
+            .Configure<App>(fun () -> App(store, settingsPath))
             .UsePlatformDetect()
             .UseSkia()
             .StartWithClassicDesktopLifetime(args)
