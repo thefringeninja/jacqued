@@ -13,7 +13,6 @@ open LiveChartsCore.SkiaSharpView
 open LiveChartsCore.SkiaSharpView.Avalonia
 open LiveChartsCore.SkiaSharpView.Painting
 open LiveChartsCore.SkiaSharpView.SKCharts
-open Microsoft.FSharp.Control
 open Microsoft.FSharp.Core
 open SkiaSharp
 

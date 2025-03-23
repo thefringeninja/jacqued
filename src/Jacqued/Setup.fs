@@ -6,20 +6,20 @@ open Avalonia.FuncUI.Helpers
 open Avalonia.Input.TextInput
 open Avalonia.Layout
 open Avalonia.Media
+open Avalonia.Styling
 open Jacqued.DSL
 open Jacqued.Helpers
 open Material.Icons
 open Material.Icons.Avalonia
-open Material.Styles.Controls
 
 type State =
     { Bar: Bar
       Plates: PlatePair list
       PlatePairColors: Map<Weight, Color>
-
       PlateToAdd: Weight
       MeasurementSystem: MeasurementSystem
-      ExerciseDaysPerWeek: ExerciseDaysPerWeek }
+      ExerciseDaysPerWeek: ExerciseDaysPerWeek
+      SelectedTheme: ThemeVariant }
 
     static member zero =
         { Bar = Bar.Of(Weight.zero)
@@ -27,7 +27,8 @@ type State =
           PlatePairColors = Map.empty
           PlateToAdd = Weight.zero
           MeasurementSystem = Metric
-          ExerciseDaysPerWeek = ExerciseDaysPerWeek.Four }
+          ExerciseDaysPerWeek = ExerciseDaysPerWeek.Four
+          SelectedTheme = ThemeVariant.Default }
 
 let update handler msg state =
     match msg with
@@ -77,9 +78,40 @@ let update handler msg state =
                 state.Plates
                 |> List.removeAt (state.Plates |> List.findIndex (fun plate -> plate.WeightOfEach = weight)) },
         List.empty |> Ok
+    | SelectedThemeChanged theme -> { state with SelectedTheme = theme }, List.empty |> Ok
     | _ -> state, List.empty |> Ok
 
-let view (state: State) (dispatch: Msg -> unit) =
+let radioButtonGroup (format: 't -> string) items selected label groupName action =
+    let label = Typography.body2 label |> generalize
+
+    let radioButtons =
+        items
+        |> List.map (fun item ->
+            let isChecked = selected = item
+
+            RadioButton.create [
+                RadioButton.content (format item)
+                RadioButton.groupName groupName
+                RadioButton.isChecked isChecked
+                RadioButton.onChecked (fun _ -> item |> action)
+            ])
+        |> List.map generalize
+
+    StackPanel.create [
+        StackPanel.orientation Orientation.Vertical
+        StackPanel.children ([ [ label ]; radioButtons ] |> List.concat)
+    ]
+    |> generalize
+
+let private themeSelector state dispatch =
+    let themes = [ ThemeVariant.Default; ThemeVariant.Light; ThemeVariant.Dark ]
+
+    let format (item: ThemeVariant) = item.Key |> string
+
+    radioButtonGroup format themes state.SelectedTheme "Theme" (nameof ThemeVariant) (fun theme ->
+        theme |> Msg.SelectedThemeChanged |> dispatch)
+
+let private gymSetup (state: State) (dispatch: Msg -> unit) =
     let onBarbellWeightChange s =
         let msg =
             match Weight.tryParse s with
@@ -117,28 +149,6 @@ let view (state: State) (dispatch: Msg -> unit) =
         |> Msg.SetupGym
         |> dispatch
 
-    let radioButtonGroup items selected label groupName action =
-        let label = Typography.body2 label |> generalize
-
-        let radioButtons =
-            items
-            |> List.map (fun item ->
-                let isChecked = selected = item
-
-                RadioButton.create [
-                    RadioButton.content $"{item}"
-                    RadioButton.groupName groupName
-                    RadioButton.isChecked isChecked
-                    RadioButton.onChecked (fun _ -> item |> action)
-                ])
-            |> List.map generalize
-
-        StackPanel.create [
-            StackPanel.orientation Orientation.Vertical
-            StackPanel.children ([ [ label ]; radioButtons ] |> List.concat)
-        ]
-        |> generalize
-
     let setupGym =
         MaterialButton.create [
             Button.dock Dock.Right
@@ -151,10 +161,17 @@ let view (state: State) (dispatch: Msg -> unit) =
         StackPanel.create [
             StackPanel.orientation Orientation.Vertical
             StackPanel.children [
-                radioButtonGroup ExerciseDaysPerWeek.all state.ExerciseDaysPerWeek "Exercise days" (nameof ExerciseDaysPerWeek) (fun days ->
-                    days |> ExerciseDaysPerWeekChanged |> dispatch)
+                let format item = $"{item}"
 
-                radioButtonGroup MeasurementSystem.all state.MeasurementSystem "Units" (nameof MeasurementSystem) (fun units ->
+                radioButtonGroup
+                    format
+                    ExerciseDaysPerWeek.all
+                    state.ExerciseDaysPerWeek
+                    "Exercise days"
+                    (nameof ExerciseDaysPerWeek)
+                    (fun days -> days |> ExerciseDaysPerWeekChanged |> dispatch)
+
+                radioButtonGroup format MeasurementSystem.all state.MeasurementSystem "Units" (nameof MeasurementSystem) (fun units ->
                     units |> MeasurementSystemChanged |> dispatch)
 
                 TextBox.create [
@@ -193,6 +210,14 @@ let view (state: State) (dispatch: Msg -> unit) =
 
                 buttonBar [ setupGym ]
             ]
+        ]
+
+    content
+
+let view state dispatch =
+    let content =
+        StackPanel.create [
+            StackPanel.children [ themeSelector state dispatch; Separator.create []; gymSetup state dispatch ]
         ]
 
     layout content

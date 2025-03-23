@@ -6,7 +6,6 @@ open Avalonia.FuncUI.Helpers
 open Avalonia.Layout
 open Avalonia.Media
 open Jacqued.DSL
-open Material.Colors.Recommended
 open Material.Icons
 open Material.Icons.Avalonia
 

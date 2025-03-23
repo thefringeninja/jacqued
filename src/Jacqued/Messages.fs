@@ -1,6 +1,7 @@
 ﻿namespace Jacqued
 
 open System
+open Avalonia.Styling
 
 type ApplicationError =
     | Exception of exn
@@ -28,4 +29,5 @@ type Msg =
     | ContinueExercise of Exercise
     | SelectedAssistanceWorkIndexChanged of int
     | SelectedProgressChartExerciseChanged of Exercise option
+    | SelectedThemeChanged of ThemeVariant
     | ApplicationError of ApplicationError

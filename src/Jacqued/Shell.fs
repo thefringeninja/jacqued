@@ -3,12 +3,12 @@
 open System
 open Avalonia.Controls
 open Avalonia.FuncUI.DSL
-open Avalonia.Threading
 open AvaloniaDialogs.Views
 open Elmish
 open Jacqued.CommandHandlers
 open Jacqued.Controls
 open Jacqued.DSL
+open Jacqued.Resources
 open Material.Icons
 open SqlStreamStore
 
@@ -58,6 +58,9 @@ module Shell =
             | Msg.ApplicationError error ->
                 [ let dialog, result = "", Cmd.none
                   yield { state with Dialog = dialog |> Some } |> Results.State ]
+            | Msg.SelectedThemeChanged theme ->
+                Theme.set theme
+                [ state |> Results.State ]
             | _ ->
                 try
                     [ let setup, result = Setup.update gym msg state.Setup

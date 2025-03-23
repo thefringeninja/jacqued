@@ -35,7 +35,7 @@ type App(store: IStreamStore) =
         this.Styles.Add(theme)
         this.Styles.Add(MaterialIconStyles(null))
         this.Styles.Add(DialogHostStyles())
-        this.RequestedThemeVariant <- Styling.ThemeVariant.Light
+        this.RequestedThemeVariant <- Styling.ThemeVariant.Default
 
     override this.OnFrameworkInitializationCompleted() =
         let host =
