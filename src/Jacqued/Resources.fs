@@ -1,6 +1,5 @@
 module Jacqued.Resources
 
-open System
 open Avalonia
 open Avalonia.Controls
 open Avalonia.Styling
@@ -14,8 +13,13 @@ let swatches =
       GreenSwatch.Green400
       OrangeSwatch.Orange400 ]
 
-module Themes =
-
+module Theme =
+    let set theme =
+        let app = Application.Current
+        if isNull app then
+            ()
+        else
+            app.RequestedThemeVariant <- theme
 
     let private theme name =
 

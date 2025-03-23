@@ -14,7 +14,6 @@ open LiveChartsCore
 open LiveChartsCore.Kernel.Sketches
 open LiveChartsCore.Measure
 open LiveChartsCore.SkiaSharpView.Avalonia
-open LiveChartsCore.SkiaSharpView.Drawing
 open Material.Icons
 open Material.Icons.Avalonia
 open Material.Styles.Assists
