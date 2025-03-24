@@ -33,12 +33,15 @@ type Weight(value: decimal) =
     static member (-)(a: Weight, b: Weight) = Weight(a.Value - b.Value)
     static member (%)(a: Weight, b: Weight) = Weight(a.Value % b.Value)
 
-type Bar =
-    private
-    | Bar of Weight
-
-    member this.Weight = let (Bar value) = this in value
-    static member Of(weight: Weight) = Bar(weight)
+[<Struct>]
+type Bar private(value: Weight) =
+    member _.Weight = value
+    static member Of(value: Weight) =
+        if value <= Weight.zero then
+            invalidArg (nameof value) "bar must have positive weight"
+        Bar(value)
+    static member zero = Bar(Weight.zero)
+    override this.ToString() = value.Value.ToString("F2")
 
 [<Struct; CustomComparison; CustomEquality>]
 type PlatePair(weight: Weight) =

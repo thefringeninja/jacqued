@@ -3,7 +3,7 @@ module Jacqued.Generator
 open System
 open Jacqued.Calculate
 
-let private bar = 20m |> Weight |> Bar.Of
+let private bar = 20m |> (Weight >> Bar.Of)
 
 let private plates =
     [ 1.25m; 2.5m; 5m; 5m; 10m; 15m; 20m; 20m ] |> List.map (Weight >> PlatePair)

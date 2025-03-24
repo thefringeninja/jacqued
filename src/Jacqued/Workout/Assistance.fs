@@ -31,7 +31,7 @@ type State =
             |> List.map (fun e -> (e, (MesocycleId.Empty, Wave.One, Weight.zero, DateTime.MinValue)))
             |> Map.ofList
           MeasurementSystem = Metric
-          Bar = Bar.Of Weight.zero
+          Bar = Bar.zero
           GymPlates = []
           ColorMap = Map.empty   }
 

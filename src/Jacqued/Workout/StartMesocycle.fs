@@ -26,7 +26,7 @@ type State =
           ExerciseDaysPerWeek = ExerciseDaysPerWeek.Four
           MeasurementSystem = MeasurementSystem.Metric
           StartingAt = None
-          Bar = Weight.Zero |> Bar.Of
+          Bar = Bar.zero
           GymPlates = []
           Mesocycles = Exercise.all |> List.map (fun e -> (e, (1u, Weight.zero))) |> Map.ofList }
 

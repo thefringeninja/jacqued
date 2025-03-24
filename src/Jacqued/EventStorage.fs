@@ -15,7 +15,10 @@ type WeightConverter() =
 
 type BarConverter() =
     inherit JsonConverter<Bar>()
-    override this.Read(reader, _, _) = Bar.Of(reader.GetDecimal() |> Weight)
+    override this.Read(reader, _, _) =
+        match (reader.GetDecimal() |> Weight) with
+        | weight when weight <= Weight.zero -> Bar.zero
+        | weight -> Bar.Of(weight)
 
     override this.Write(writer, value, _) =
         writer.WriteNumberValue value.Weight.Value

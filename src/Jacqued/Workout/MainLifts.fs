@@ -44,7 +44,7 @@ type State =
                  |> Seq.map (fun e -> (e, Lift.zero))
                  |> Map.ofSeq))
             |> Map.ofList
-          Bar = Bar.Of Weight.zero
+          Bar = Bar.zero
           GymPlates = []
           ColorMap = Map.empty
           StartingAt = None

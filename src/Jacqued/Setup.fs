@@ -22,7 +22,7 @@ type State =
       SelectedTheme: ThemeVariant }
 
     static member zero =
-        { Bar = Bar.Of(Weight.zero)
+        { Bar = Bar.zero
           Plates = []
           PlatePairColors = Map.empty
           PlateToAdd = Weight.zero
