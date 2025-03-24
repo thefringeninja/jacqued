@@ -15,7 +15,7 @@ type Exercises = Map<Exercise, uint * Wave * Lift list>
 type State =
     { CurrentExercise: Exercise
       Exercises: Exercises
-      Date: DateTime
+      Date: DateOnly
       MeasurementSystem: MeasurementSystem
       ExerciseDaysPerWeek: ExerciseDaysPerWeek
       Bar: Bar
@@ -30,7 +30,7 @@ type State =
           Bar = Bar.zero
           GymPlates = []
           ColorMap = Map.empty
-          Date = DateTime.MinValue }
+          Date = DateOnly.MinValue }
 
 let view (state: State) dispatch =
     let mesocycleNumber, wave, set = state.Exercises[state.CurrentExercise]

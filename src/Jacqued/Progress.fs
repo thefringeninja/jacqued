@@ -6,6 +6,7 @@ open Avalonia.FuncUI
 open Avalonia.FuncUI.DSL
 open Jacqued.DSL
 open Jacqued.Helpers
+open Jacqued.Util
 open LiveChartsCore
 open LiveChartsCore.Kernel
 open LiveChartsCore.Measure
@@ -16,22 +17,23 @@ open LiveChartsCore.SkiaSharpView.SKCharts
 open Microsoft.FSharp.Core
 open SkiaSharp
 
+
 type WorkoutPoint =
-    { Date: DateTime
+    { Date: DateOnly
       Weight: Weight
       MesocycleNumber: uint
       Failed: bool }
 
 type State =
     { Exercise: Exercise option
-      Current: Map<Exercise, (Weight * DateTime) * uint>
+      Current: Map<Exercise, (Weight * DateOnly) * uint>
       History: Map<Exercise, WorkoutPoint array> }
 
     static member zero =
         { Exercise = None
           Current =
             Exercise.all
-            |> List.map (fun exercise -> (exercise, ((Weight.zero, DateTime.UnixEpoch), 0u)))
+            |> List.map (fun exercise -> (exercise, ((Weight.zero, DateOnly.epoch), 0u)))
             |> Map.ofList
           History = Map.empty }
 
@@ -51,7 +53,7 @@ let update (msg: Msg) (state: State) : State =
                 State.Current =
                     state.Current
                     |> Map.change e.WorkoutPlan.Exercise (function
-                        | Some(_, number) -> ((e.TrainingOneRepMax, DateTime.UnixEpoch), number + 1u) |> Some
+                        | Some(_, number) -> ((e.TrainingOneRepMax, DateOnly.epoch), number + 1u) |> Some
                         | _ -> None) }
         | MesocycleFailed e ->
             let dataPoint = exerciseDataPoint e.Exercise e.FailedAt state false
@@ -97,7 +99,10 @@ let series =
         columnSeries.Stroke <- paint
         columnSeries.GeometryStroke <- paint
         columnSeries.YToolTipLabelFormatter <- (fun point -> $"Mesocycle {point.Model.MesocycleNumber}, Weight: {point.Model.Weight}")
-        columnSeries.Mapping <- fun workout index -> Coordinate(workout.Date.Ticks |> float, workout.Weight.Value |> float)
+
+        columnSeries.Mapping <-
+            fun workout index ->
+                Coordinate(workout.Date.ToDateTime(TimeOnly.FromTimeSpan(TimeSpan.Zero)).Ticks |> float, workout.Weight.Value |> float)
 
         columnSeries.add_PointMeasured (fun point ->
             if point.Model.Failed then

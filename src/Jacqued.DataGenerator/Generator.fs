@@ -2,6 +2,7 @@ module Jacqued.Generator
 
 open System
 open Jacqued.Calculate
+open Jacqued.Util
 
 let private bar = 20m |> (Weight >> Bar.Of)
 
@@ -30,9 +31,9 @@ let private workout count =
         |> Map.ofList
 
     let startDate =
-        let today = DateTime.Today
+        let today = DateOnly.today
         let daysToAdd = ((DayOfWeek.Monday |> int) - (today.DayOfWeek |> int) + 7) % 7
-        today.AddDays(daysToAdd |> float)
+        today.AddDays(daysToAdd)
 
     let exercises =
         Exercise.all

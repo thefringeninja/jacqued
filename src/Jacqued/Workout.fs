@@ -29,7 +29,7 @@ type State =
           Screen = Screen.StartMesocycle
           Mesocycles = Map.empty }
 
-let update (now: _ -> DateTime) handler msg (state: State) =
+let update (now: _ -> DateOnly) handler msg (state: State) =
     let startMesocycle, startMesocycleResult =
         StartMesocycle.update now handler msg state.StartMesocycle
 

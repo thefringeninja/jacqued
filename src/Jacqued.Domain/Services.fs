@@ -49,7 +49,7 @@ module Calculate =
 
     let warmupSet repSet bar plates (weight: Weight) = set Wave.Four repSet bar plates weight
     
-    let nextExerciseDate (exerciseDaysPerWeek: ExerciseDaysPerWeek) (date: DateTime) =
+    let nextExerciseDate (exerciseDaysPerWeek: ExerciseDaysPerWeek) (date: DateOnly) =
         match exerciseDaysPerWeek with
         | ExerciseDaysPerWeek.Three ->
             match date.DayOfWeek with

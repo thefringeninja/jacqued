@@ -8,3 +8,11 @@ let pascalize (s: string) =
     |> Seq.map string
     |> String.concat ""
 
+let toDateTime (date:DateOnly) = date.ToDateTime(TimeOnly.FromTimeSpan(TimeSpan.Zero))
+
+module DateOnly =
+    
+    let epoch = DateTime.UnixEpoch |> DateOnly.FromDateTime 
+type DateOnly with 
+    static member today
+        with get() = DateTime.Today |> DateOnly.FromDateTime
