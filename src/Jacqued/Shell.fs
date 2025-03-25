@@ -10,6 +10,7 @@ open Jacqued.CommandHandlers
 open Jacqued.Controls
 open Jacqued.DSL
 open Jacqued.Resources
+open Jacqued.Util
 open Material.Icons
 open SqlStreamStore
 
@@ -93,7 +94,7 @@ module Shell =
                       let progress = Progress.update msg state.Progress
 
                       let workout, result =
-                          Workout.update (fun () -> DateTime.Now) mesocycle msg state.Workout
+                          Workout.update (fun () -> DateOnly.today) mesocycle msg state.Workout
 
                       yield result |> Results.Cmd
 

@@ -16,15 +16,15 @@ type Msg =
     | ExerciseDaysPerWeekChanged of ExerciseDaysPerWeek
     | AddPlate of Weight
     | RemovePlate of Weight
-    | StartMesocycle of MesocycleId * Exercise * Weight * DateTime * Bar * PlatePair list
+    | StartMesocycle of MesocycleId * Exercise * Weight * DateOnly * Bar * PlatePair list
     | OneRepMaxChanged of Weight
-    | StartDateChanged of DateTime
+    | StartDateChanged of DateOnly
     | CompleteWarmup
     | CompleteRepSet of MesocycleId * uint * Weight
-    | ExerciseDateChanged of DateTime
+    | ExerciseDateChanged of DateOnly
     | IncreaseReps
     | DecreaseReps
-    | CompleteWave of MesocycleId * DateTime
+    | CompleteWave of MesocycleId * DateOnly
     | FailRepSet of MesocycleId * uint * Weight
     | ContinueExercise of Exercise
     | SelectedAssistanceWorkIndexChanged of int

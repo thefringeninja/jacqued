@@ -15,7 +15,10 @@ type WeightConverter() =
 
 type BarConverter() =
     inherit JsonConverter<Bar>()
-    override this.Read(reader, _, _) = Bar.Of(reader.GetDecimal() |> Weight)
+    override this.Read(reader, _, _) =
+        match (reader.GetDecimal() |> Weight) with
+        | weight when weight <= Weight.zero -> Bar.zero
+        | weight -> Bar.Of(weight)
 
     override this.Write(writer, value, _) =
         writer.WriteNumberValue value.Weight.Value
@@ -29,6 +32,15 @@ type PlatePairConverter() =
     override this.Write(writer, value, _) =
         writer.WriteNumberValue value.WeightOfEach.Value
 
+type DateOnlyConverter() =
+    inherit JsonConverter<DateOnly>()
+    
+    override this.Read(reader, _, _) =
+        reader.GetDateTime() |> DateOnly.FromDateTime
+
+    override this.Write(writer, value, _) =        
+        "O" |> value.ToString |> writer.WriteStringValue 
+    
 let options =
     JsonFSharpOptions()
         .WithUnionAdjacentTag()
@@ -44,6 +56,7 @@ options.PropertyNamingPolicy <- JsonNamingPolicy.CamelCase
 options.Converters.Add(WeightConverter())
 options.Converters.Add(BarConverter())
 options.Converters.Add(PlatePairConverter())
+options.Converters.Add(DateOnlyConverter())
 
 let typeToEventType (event: Event) =
     match event with

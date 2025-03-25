@@ -30,7 +30,7 @@ module Calculate =
                    Wave.Four, RepSet.Two, (50, 5u, [ 15m ])
                    Wave.Four, RepSet.Three, (60, 5u, [ 20m ]) ]
                  |> List.map (fun (wave, repSet, (weight, reps, plates)) ->
-                     (wave, repSet, (weight |> Weight, reps, plates |> List.map (Weight >> PlatePair)))))
+                     (wave, repSet, (weight |> Weight, reps))))
             <| fun (wave, repSet, expected) -> Expect.equal (Calculate.set wave repSet bar platePairs ninetyPercentMax) expected ""
         ]
 
@@ -61,5 +61,5 @@ module Calculate =
                ExerciseDaysPerWeek.Four, "11-29", "12-02"
                ExerciseDaysPerWeek.Four, "11-30", "12-02" ]
              |> List.map (fun (e, d, ex) ->
-                 (e, DateTime.ParseExact($"2024-{d}", "yyyy-MM-dd", null), DateTime.ParseExact($"2024-{ex}", "yyyy-MM-dd", null))))
+                 (e, DateOnly.ParseExact($"2024-{d}", "yyyy-MM-dd", null), DateOnly.ParseExact($"2024-{ex}", "yyyy-MM-dd", null))))
         <| fun (exerciseDaysPerWeek, date, expected) -> Expect.equal (Calculate.nextExerciseDate exerciseDaysPerWeek date) expected ""

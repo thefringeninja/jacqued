@@ -8,6 +8,7 @@ open Avalonia.Layout
 open Jacqued
 open Jacqued.DSL
 open Jacqued.Helpers
+open Jacqued.Util
 open Material.Icons
 
 type Mesocycles = Map<Exercise, uint * Weight>
@@ -16,7 +17,7 @@ type State =
     { CurrentExercise: Exercise
       ExerciseDaysPerWeek: ExerciseDaysPerWeek
       MeasurementSystem: MeasurementSystem
-      StartingAt: DateTime option
+      StartingAt: DateOnly option
       Bar: Bar
       GymPlates: PlatePair list
       Mesocycles: Mesocycles }
@@ -26,13 +27,13 @@ type State =
           ExerciseDaysPerWeek = ExerciseDaysPerWeek.Four
           MeasurementSystem = MeasurementSystem.Metric
           StartingAt = None
-          Bar = Weight.Zero |> Bar.Of
+          Bar = Bar.zero
           GymPlates = []
           Mesocycles = Exercise.all |> List.map (fun e -> (e, (1u, Weight.zero))) |> Map.ofList }
 
 let private currentDate state =
     match state.StartingAt with
-    | Some startingAt -> startingAt
+    | Some startingAt -> startingAt |> toDateTime
     | _ -> DateTime.Today
 
 let view (state: State) dispatch =
@@ -44,7 +45,7 @@ let view (state: State) dispatch =
 
     let onStartDateChange (d: Nullable<DateTimeOffset>) =
         (if d.HasValue then
-             d.Value.Date |> StartDateChanged
+             d.Value.Date |> (DateOnly.FromDateTime >> StartDateChanged)
          else
              "No date selected" |> Message |> ApplicationError)
         |> dispatch
@@ -54,7 +55,7 @@ let view (state: State) dispatch =
          state.CurrentExercise,
          oneRepMax,
          (match state.StartingAt with
-          | None -> DateTime.Today
+          | None -> DateOnly.today
           | Some d -> d),
          state.Bar,
          state.GymPlates)
@@ -77,7 +78,11 @@ let view (state: State) dispatch =
                 Typography.headline5 $"Mesocycle {mesocycleNumber}"
                 Typography.headline6 $"{state.CurrentExercise}"
                 DatePicker.create [
-                    DatePicker.selectedDate (currentDate state)
+                    DatePicker.selectedDate (
+                        match state.StartingAt with
+                        | Some startingAt -> startingAt |> toDateTime
+                        | _ -> DateTime.Today
+                    )
                     DatePicker.horizontalAlignment HorizontalAlignment.Stretch
                     DatePicker.onSelectedDateChanged onStartDateChange
                 ]

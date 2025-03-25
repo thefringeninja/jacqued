@@ -3,7 +3,7 @@
 open Microsoft.FSharp.Core
 
 let private setup (command: SetupGym) _ =
-    if command.Bar <= Bar(Weight(0m)) then
+    if command.Bar <= Bar.zero then
         invalidArg (nameof command) "bar must have positive weight"
 
     if command.Plates.Length = 0 then

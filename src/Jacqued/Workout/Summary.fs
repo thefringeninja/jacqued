@@ -10,7 +10,7 @@ open Jacqued.DSL
 open Jacqued.Helpers
 open Material.Icons
 
-type Exercises = Map<Exercise, uint * Wave * DateTime>
+type Exercises = Map<Exercise, uint * Wave * DateOnly>
 type CompletedReps = Map<Exercise, Map<RepSet, Weight * uint>>
 
 type State =
@@ -23,7 +23,7 @@ type State =
         { CurrentExercise = Squats
           Exercises =
             Exercise.all
-            |> List.map (fun e -> (e, (0u, Wave.One, DateTime.MinValue)))
+            |> List.map (fun e -> (e, (0u, Wave.One, DateOnly.MinValue)))
             |> Map.ofList
           CompletedReps = Exercise.all |> List.map (fun e -> (e, Map.empty)) |> Map.ofList
           MeasurementSystem = Metric }

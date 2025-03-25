@@ -19,7 +19,7 @@ and StartMesocycle =
     { MesocycleId: MesocycleId
       Exercise: Exercise
       OneRepMax: Weight
-      StartedAt: DateTime
+      StartedAt: DateOnly
       Bar: Bar
       Plates: PlatePair list
       MeasurementSystem: MeasurementSystem }
@@ -28,16 +28,16 @@ and CompleteRepSet =
     { MesocycleId: MesocycleId
       Reps: uint
       Weight: Weight
-      CompletedAt: DateTime }
+      CompletedAt: DateOnly }
 and CompleteWave =
     { MesocycleId: MesocycleId
-      CompletedAt: DateTime }
+      CompletedAt: DateOnly }
 
 and FailRepSet =
     { MesocycleId: MesocycleId
       Reps: uint
       Weight: Weight
-      FailedAt: DateTime }
+      FailedAt: DateOnly }
 
 type Event =
     | GymSetup of GymSetup
@@ -62,7 +62,7 @@ and MesocycleStarted =
     { MesocycleId: MesocycleId
       OneRepMax: Weight
       TrainingOneRepMax: Weight
-      StartedAt: DateTime
+      StartedAt: DateOnly
       WorkoutPlan: WorkoutPlan
       MeasurementSystem: MeasurementSystem }
 
@@ -73,13 +73,13 @@ and RepSetCompleted =
       Wave: Wave
       RepSet: RepSet
       Reps: uint
-      CompletedAt: DateTime }
+      CompletedAt: DateOnly }
 
 and WaveCompleted =
     { MesocycleId: MesocycleId
       Exercise: Exercise
       Wave: Wave
-      CompletedAt: DateTime }
+      CompletedAt: DateOnly }
 
 and MesocycleFailed =
     { MesocycleId: MesocycleId
@@ -89,7 +89,7 @@ and MesocycleFailed =
       Wave: Wave
       RepSet: RepSet
       Reps: uint
-      FailedAt: DateTime }
+      FailedAt: DateOnly }
 
 and MesocycleCompleted =
     { MesocycleId: MesocycleId

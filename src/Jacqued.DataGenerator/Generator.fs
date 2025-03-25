@@ -2,8 +2,9 @@ module Jacqued.Generator
 
 open System
 open Jacqued.Calculate
+open Jacqued.Util
 
-let private bar = 20m |> Weight |> Bar.Of
+let private bar = 20m |> (Weight >> Bar.Of)
 
 let private plates =
     [ 1.25m; 2.5m; 5m; 5m; 10m; 15m; 20m; 20m ] |> List.map (Weight >> PlatePair)
@@ -30,9 +31,9 @@ let private workout count =
         |> Map.ofList
 
     let startDate =
-        let today = DateTime.Today
+        let today = DateOnly.today
         let daysToAdd = ((DayOfWeek.Monday |> int) - (today.DayOfWeek |> int) + 7) % 7
-        today.AddDays(daysToAdd |> float)
+        today.AddDays(daysToAdd)
 
     let exercises =
         Exercise.all
@@ -57,7 +58,7 @@ let private workout count =
                 RepSet.all
                 |> List.allPairs Wave.all
                 |> List.map (fun (wave, set) ->
-                    let weight, reps, _ = Calculate.set wave set bar plates trainingMax
+                    let weight, reps = Calculate.set wave set bar plates trainingMax
 
                     ((wave, set), (weight, reps)))
 

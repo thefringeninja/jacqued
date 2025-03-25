@@ -17,7 +17,7 @@ type OneRepMaxes = Map<Exercise, Weight>
 type State =
     { CurrentExercise: Exercise
       SelectedIndex: int
-      Mesocycles: Map<Exercise, MesocycleId * Wave * Weight * DateTime>
+      Mesocycles: Map<Exercise, MesocycleId * Wave * Weight * DateOnly>
       MeasurementSystem: MeasurementSystem
       Bar: Bar
       GymPlates: PlatePair list
@@ -28,10 +28,10 @@ type State =
           SelectedIndex = 0
           Mesocycles =
             Exercise.all
-            |> List.map (fun e -> (e, (MesocycleId.Empty, Wave.One, Weight.zero, DateTime.MinValue)))
+            |> List.map (fun e -> (e, (MesocycleId.Empty, Wave.One, Weight.zero, DateOnly.MinValue)))
             |> Map.ofList
           MeasurementSystem = Metric
-          Bar = Bar.Of Weight.zero
+          Bar = Bar.zero
           GymPlates = []
           ColorMap = Map.empty   }
 

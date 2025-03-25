@@ -10,6 +10,7 @@ open AvaloniaDialogs.Views
 open Jacqued
 open Jacqued.DSL
 open Jacqued.Helpers
+open Jacqued.Util
 open Material.Icons
 
 type WorkoutPlans = Map<Exercise, Map<Wave * RepSet, Lift>>
@@ -19,7 +20,7 @@ type State =
     { CurrentExercise: Exercise
       Exercises: Exercises
       WorkoutPlans: WorkoutPlans
-      StartingAt: DateTime option
+      StartingAt: DateOnly option
       Reps: uint
       MeasurementSystem: MeasurementSystem
       ExerciseDaysPerWeek: ExerciseDaysPerWeek
@@ -44,7 +45,7 @@ type State =
                  |> Seq.map (fun e -> (e, Lift.zero))
                  |> Map.ofSeq))
             |> Map.ofList
-          Bar = Bar.Of Weight.zero
+          Bar = Bar.zero
           GymPlates = []
           ColorMap = Map.empty
           StartingAt = None
@@ -61,7 +62,7 @@ let view (state: State) dispatch =
 
     let onExcerciseDateChange (d: Nullable<DateTimeOffset>) =
         (if d.HasValue then
-             d.Value.Date |> ExerciseDateChanged
+             d.Value.Date |> (DateOnly.FromDateTime >> ExerciseDateChanged)
          else
              "No date selected" |> Message |> ApplicationError)
         |> dispatch
@@ -136,7 +137,7 @@ let view (state: State) dispatch =
                 DatePicker.create [
                     DatePicker.selectedDate (
                         match state.StartingAt with
-                        | Some startingAt -> startingAt
+                        | Some startingAt -> startingAt |> toDateTime
                         | _ -> DateTime.Today
                     )
                     DatePicker.horizontalAlignment HorizontalAlignment.Stretch
@@ -156,7 +157,7 @@ let view (state: State) dispatch =
 
     layout content
 
-let update (now: _ -> DateTime) handler msg state =
+let update (now: _ -> DateOnly) handler msg state =
     let nextExercise exercise = exercise |> Exercise.next
 
     match msg with
