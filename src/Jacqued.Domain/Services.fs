@@ -45,7 +45,7 @@ module Calculate =
 
         let weight = (platePairs |> List.sumBy (_.Weight)) + bar.Weight
 
-        weight, reps, platePairs
+        weight, reps
 
     let warmupSet repSet bar plates (weight: Weight) = set Wave.Four repSet bar plates weight
     

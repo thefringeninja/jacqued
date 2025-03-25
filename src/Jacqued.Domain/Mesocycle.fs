@@ -29,14 +29,13 @@ let private start (command: StartMesocycle) state =
     match state with
     | Some _ -> invalidOp "Mesocycle already started"
     | None ->
-        let ninetyPercent = command.OneRepMax * 0.9
+        let trainingMax = command.OneRepMax * 0.9
 
         let sets =
             RepSet.all
             |> List.allPairs Wave.all
             |> List.map (fun (wave, set) ->
-                let weight, reps, _ =
-                    Calculate.set wave set command.Bar command.Plates ninetyPercent
+                let weight, reps = Calculate.set wave set command.Bar command.Plates trainingMax
 
                 ((wave, set), (weight, reps)))
 
@@ -47,7 +46,7 @@ let private start (command: StartMesocycle) state =
                 MeasurementSystem = command.MeasurementSystem
                 StartedAt = command.StartedAt
                 OneRepMax = command.OneRepMax
-                TrainingOneRepMax = ninetyPercent
+                TrainingOneRepMax = trainingMax
                 WorkoutPlan =
                   { Exercise = command.Exercise
                     Sets = sets } } ]
@@ -69,9 +68,7 @@ let private completeRepSet (command: CompleteRepSet) state =
                 Reps = command.Reps
                 Weight = command.Weight
                 RepSet = state.RepSet
-                CompletedAt = command.CompletedAt }
-
-          ]
+                CompletedAt = command.CompletedAt } ]
 
 let private completeWave (command: CompleteWave) state =
     match state with
@@ -137,7 +134,7 @@ let evolve state =
           RepSet = RepSet.One
           WorkoutPlan = e.WorkoutPlan
           OneRepMax = e.OneRepMax
-          TrainingOneRepMax = e.OneRepMax * 0.9
+          TrainingOneRepMax = e.TrainingOneRepMax
           MeasurementSystem = e.MeasurementSystem
           Status = InProgress }
     | RepSetCompleted e ->
