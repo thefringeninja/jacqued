@@ -74,7 +74,7 @@ let update (now: _ -> DateOnly) handler msg (state: State) =
             | RepSetCompleted e ->
                 match e.RepSet |> RepSet.next with
                 | RepSet.Complete -> Assistance
-                | _ -> state.Screen
+                | _ -> WorkingOut
             | WaveCompleted _ -> Screen.Summary
             | MesocycleFailed e -> nextScreen e.Exercise
             | _ -> state.Screen
