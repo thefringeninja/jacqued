@@ -113,7 +113,7 @@ let update now handler msg (state: State) =
             { state with
                 Mesocycles =
                     state.Mesocycles
-                    |> Map.add e.Exercise ((state.Mesocycles[state.CurrentExercise] |> fst) + 1u, e.SuggestedOneRepMax) },
+                    |> Map.add e.Exercise ((state.Mesocycles[e.Exercise] |> fst) + 1u, e.SuggestedOneRepMax) },
             List.empty |> Ok
         | WaveCompleted e ->
             { state with
@@ -125,7 +125,7 @@ let update now handler msg (state: State) =
                 StartingAt = Calculate.nextExerciseDate state.ExerciseDaysPerWeek e.FailedAt |> Some
                 Mesocycles =
                     state.Mesocycles
-                    |> Map.add e.Exercise ((state.Mesocycles[state.CurrentExercise] |> fst) + 1u, e.SuggestedOneRepMax)
+                    |> Map.add e.Exercise ((state.Mesocycles[e.Exercise] |> fst) + 1u, e.SuggestedOneRepMax)
                 CurrentExercise = e.Exercise |> Exercise.next },
             List.empty |> Ok
         | _ -> state, List.empty |> Ok
