@@ -211,7 +211,7 @@ let update (now: _ -> DateOnly) handler msg state =
             
             { state with
                 Reps = 0u
-                CurrentExercise = state.CurrentExercise |> nextExercise
+                CurrentExercise = e.Exercise |> nextExercise
                 StartingAt = Calculate.nextExerciseDate state.ExerciseDaysPerWeek e.CompletedAt |> Some
                 
                 Exercises =
@@ -221,7 +221,7 @@ let update (now: _ -> DateOnly) handler msg state =
         | MesocycleFailed e ->
             { state with
                 Reps = 0u
-                CurrentExercise = state.CurrentExercise |> nextExercise
+                CurrentExercise = e.Exercise |> nextExercise
                 StartingAt = Calculate.nextExerciseDate state.ExerciseDaysPerWeek e.FailedAt |> Some },
             List.empty |> Ok
         | MesocycleCompleted e ->
