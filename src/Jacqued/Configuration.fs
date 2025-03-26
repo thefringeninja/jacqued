@@ -1,56 +1,8 @@
 module Jacqued.Configuration
 
 open System.IO
-open System.Text.Json
-open System.Text.Json.Serialization
-open Avalonia.Styling
-
-let private options =
-    JsonFSharpOptions()
-        .WithUnionAdjacentTag()
-        .WithUnionNamedFields()
-        .WithUnionUnwrapRecordCases()
-        .WithUnwrapOption()
-        .WithUnionUnwrapSingleCaseUnions()
-        .WithUnionAllowUnorderedTag()
-        .WithUnionUnwrapFieldlessTags()
-        .WithSkippableOptionFields()
-        .ToJsonSerializerOptions()
-
-options.PropertyNamingPolicy <- JsonNamingPolicy.CamelCase
-type SettingsData =
-    { ThemeVariant: string option }
-
-    static member zero = { ThemeVariant = None }
-
-type Settings =
-    { ThemeVariant: ThemeVariant }
-
-    static member zero = { ThemeVariant = ThemeVariant.Default }
-
-    static member create(data: SettingsData option) =
-        match data with
-        | Some data ->
-            let themeVariant =
-                match data.ThemeVariant with
-                | Some name ->
-                    match name.ToLowerInvariant() with
-                    | "light" -> ThemeVariant.Light
-                    | "dark" -> ThemeVariant.Dark
-                    | _ -> ThemeVariant.Default
-                | None -> ThemeVariant.Default
-
-            { ThemeVariant = themeVariant } 
-        | None -> Settings.zero
-    
-    static member load (reader:StreamReader) =
-        let data = JsonSerializer.Deserialize<SettingsData>(reader.ReadToEnd(), options) |> Some
-        Settings.create data
-        
-    member this.save (writer:StreamWriter) =
-        let data:SettingsData = { ThemeVariant = this.ThemeVariant.Key.ToString().ToLowerInvariant() |> Some  }
-        writer.Write(JsonSerializer.Serialize(data, options))
-
+open Jacqued
+open Jacqued.Resources
 
 let load path =
     let fileInfo = FileInfo(path)
@@ -58,7 +10,7 @@ let load path =
     if fileInfo.Exists then
         try
             use reader = fileInfo.OpenText()
-            Settings.load reader
+            Settings.load(reader, path)
         with _ ->
             Settings.zero
     else
@@ -73,3 +25,31 @@ let save path (settings: Settings) =
         settings.save writer
     with _ ->
         ()
+
+
+
+let update msg (state:Settings) =
+    let saveSettings (settings: Settings) =
+        match state.SettingsPath with
+        | Some settingsPath ->
+            let fileInfo = FileInfo(settingsPath)
+            use writer = fileInfo.CreateText()
+            settings.save writer
+        | _ -> ()
+
+    match msg with
+    | Msg.SelectedThemeChanged theme ->
+        Theme.set theme
+
+        let settings =
+            { state with
+                ThemeVariant = theme }
+
+        saveSettings settings
+        
+        settings, List.empty |> Ok
+    | Msg.ConfigurationSettingsLoaded settings ->
+        Theme.set settings.ThemeVariant
+
+        settings, List.empty |> Ok
+    | _ -> state, List.empty |> Ok

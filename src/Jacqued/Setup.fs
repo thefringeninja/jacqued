@@ -79,6 +79,7 @@ let update handler msg state =
                 |> List.removeAt (state.Plates |> List.findIndex (fun plate -> plate.WeightOfEach = weight)) },
         List.empty |> Ok
     | SelectedThemeChanged theme -> { state with SelectedTheme = theme }, List.empty |> Ok
+    | ConfigurationSettingsLoaded { ThemeVariant = theme } -> { state with SelectedTheme = theme }, List.empty |> Ok
     | _ -> state, List.empty |> Ok
 
 let radioButtonGroup (format: 't -> string) items selected label groupName action =

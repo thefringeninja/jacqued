@@ -30,5 +30,5 @@ type Msg =
     | SelectedAssistanceWorkIndexChanged of int
     | SelectedProgressChartExerciseChanged of Exercise option
     | SelectedThemeChanged of ThemeVariant
-    | ConfigurationSettingsLoaded of Configuration.Settings
+    | ConfigurationSettingsLoaded of Settings
     | ApplicationError of ApplicationError
