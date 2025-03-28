@@ -53,7 +53,7 @@ type App(store: IStreamStore, settingsPath) =
         let settings = Configuration.load settingsPath
         match host with
         | Some hostControl ->
-            Program.mkProgram (Shell.init store settings settingsPath) (Shell.update store) Shell.view
+            Program.mkProgram (Shell.init store settings) (Shell.update store) Shell.view
             |> Program.withHost hostControl
 
 #if DEBUG
