@@ -4,6 +4,7 @@ open System
 open Jacqued.Calculate
 open Jacqued.Util
 
+let private rand = Random()
 let private bar = 20m |> (Weight >> Bar.Of)
 
 let private plates =
@@ -87,7 +88,10 @@ let private workout count =
                           RepSet = repSet
                           Weight = weight
                           Wave = wave
-                          Reps = reps
+                          Reps =
+                              match repSet with
+                              | RepSet.Three -> reps + (rand.Next(0, 10) |> uint32)
+                              | _ -> reps
                           CompletedAt = startedAt })
 
             yield
