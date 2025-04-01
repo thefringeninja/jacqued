@@ -14,11 +14,11 @@ let private scrollbarVisibility =
     else
         ScrollBarVisibility.Auto
 
-let layout content =
+let layout (content:IView) =
     ScrollViewer.create [
         ScrollViewer.horizontalScrollBarVisibility ScrollBarVisibility.Disabled
         ScrollViewer.verticalScrollBarVisibility scrollbarVisibility
-        ScrollViewer.content (content |> generalize)
+        ScrollViewer.content content
     ]
 
 let buttonBar (buttons: IView<Button> list) : IView =
@@ -27,7 +27,7 @@ let buttonBar (buttons: IView<Button> list) : IView =
             [ yield Button.dock (if i = 0 then Dock.Right else Dock.Left)
 
               if i > 0 then
-                  let controlTheme = Resources.Theme.materialOutlineButton.Value
+                  let controlTheme = Resources.Theme.materialOutlineButton
                   yield Button.theme controlTheme ]
 
         View.withAttrs attrs button
@@ -40,7 +40,7 @@ let buttonBar (buttons: IView<Button> list) : IView =
 let segmentedButtonBar (buttons: IView<Button> list) =
     let mapButton i button : IView =
         let attrs: IAttr<Button> list =
-            [ yield Button.theme Resources.Theme.materialOutlineButton.Value
+            [ yield Button.theme Resources.Theme.materialOutlineButton
 
               if i = 0 then
                   yield Button.cornerRadius (16, 0, 0, 16)

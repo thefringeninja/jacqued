@@ -34,7 +34,7 @@ let save (settings: Settings) =
 
 let update msg (state: Settings) =
     match msg with
-    | Msg.SelectedThemeChanged theme ->
+    | Msg.SelectTheme theme ->
         Theme.set theme
 
         let settings = { state with ThemeVariant = theme }

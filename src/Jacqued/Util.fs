@@ -1,6 +1,9 @@
 module Jacqued.Util
 
 open System
+open Avalonia.Media
+open Avalonia.Skia
+open LiveChartsCore.SkiaSharpView.Painting
 
 let pascalize (s: string) =
     s
@@ -8,7 +11,8 @@ let pascalize (s: string) =
     |> Seq.map string
     |> String.concat ""
 
-let toDateTime (date:DateOnly) = date.ToDateTime(TimeOnly.FromTimeSpan(TimeSpan.Zero))
+module TimeOnly =
+    let zero = TimeOnly.FromTimeSpan(TimeSpan.Zero)
 
 module DateOnly =
     
@@ -16,3 +20,9 @@ module DateOnly =
 type DateOnly with 
     static member today
         with get() = DateTime.Today |> DateOnly.FromDateTime
+
+    member this.DateTime = this.ToDateTime(TimeOnly.zero)
+
+type Color with
+    member this.ToPaint() =
+        new SolidColorPaint(this.ToSKColor())

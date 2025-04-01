@@ -10,10 +10,6 @@ open Avalonia.Input
 open Avalonia.Layout
 open Avalonia.Media
 open Jacqued
-open LiveChartsCore
-open LiveChartsCore.Kernel.Sketches
-open LiveChartsCore.Measure
-open LiveChartsCore.SkiaSharpView.Avalonia
 open Material.Icons
 open Material.Icons.Avalonia
 open Material.Styles.Assists
@@ -144,11 +140,30 @@ module Separator =
 
 [<AutoOpen>]
 module CartesianChart =
-
+    open LiveChartsCore
+    open LiveChartsCore.Kernel.Events
+    open LiveChartsCore.Kernel.Sketches
+    open LiveChartsCore.Measure
+    open LiveChartsCore.Painting
+    open LiveChartsCore.SkiaSharpView.Avalonia
+    
     let create (attrs: IAttr<CartesianChart> list) : IView<CartesianChart> =
         ViewBuilder.Create<CartesianChart>(attrs)
 
     type CartesianChart with
+        static member onVisualElementsPointerDown<'t when 't :> CartesianChart>(func: VisualElementsEventArgs -> unit, ?subPatchOptions) =
+            let name = nameof Unchecked.defaultof<'t>.add_VisualElementsPointerDown
+            
+            let factory: SubscriptionFactory<VisualElementsEventArgs> =
+                fun (control, func, token) ->
+                    let control = control :?> 't
+                    let handler = VisualElementsHandler(fun _ -> func)
+                    
+                    control.add_VisualElementsPointerDown(handler)
+                    
+                    token.Register(fun _ -> control.remove_VisualElementsPointerDown(handler)) |> ignore
+            
+            AttrBuilder<'t>.CreateSubscription<VisualElementsEventArgs>(name, factory, func, ?subPatchOptions = subPatchOptions)
         static member xaxes<'t when 't :> CartesianChart>(value: seq<ICartesianAxis>) : IAttr<'t> =
             AttrBuilder<'t>
                 .CreateProperty<seq<ICartesianAxis>>(property = CartesianChart.XAxesProperty, value = value, comparer = ValueNone)
@@ -171,14 +186,39 @@ module CartesianChart =
 
             let setter: 't * IChartLegend -> unit =
                 (fun (control, value) -> control.Legend <- value)
-
+            
             AttrBuilder<'t>
                 .CreateProperty<IChartLegend>(name, value, ValueSome getter, ValueSome setter, ValueNone)
                 
+        static member tooltip<'t when 't :> CartesianChart>(value: IChartTooltip) : IAttr<'t> =
+            let name = nameof Unchecked.defaultof<'t>.Tooltip
+            let getter: 't -> IChartTooltip = (_.Tooltip)
+
+            let setter: 't * IChartTooltip -> unit =
+                (fun (control, value) -> control.Tooltip <- value)
+            
+            AttrBuilder<'t>
+                .CreateProperty<IChartTooltip>(name, value, ValueSome getter, ValueSome setter, ValueNone)
+
         static member zoomMode<'t when 't :> CartesianChart>(value: ZoomAndPanMode) : IAttr<'t> =
             AttrBuilder<'t>
-                .CreateProperty<ZoomAndPanMode>(property = CartesianChart.ZoomModeProperty, value = value, comparer = ValueNone)
-            
+                .CreateProperty<ZoomAndPanMode>(property = CartesianChart.ZoomModeProperty, value = value, comparer = ValueNone)            
+
+        static member legendTextPaint<'t when 't :> CartesianChart>(value: Paint) : IAttr<'t> =
+            AttrBuilder<'t>
+                .CreateProperty<Paint>(property = CartesianChart.LegendTextPaintProperty, value = value, comparer = ValueNone)
+
+        static member legendBackgroundPaint<'t when 't :> CartesianChart>(value: Paint) : IAttr<'t> =
+            AttrBuilder<'t>
+                .CreateProperty<Paint>(property = CartesianChart.LegendBackgroundPaintProperty, value = value, comparer = ValueNone)
+
+        static member tooltipTextPaint<'t when 't :> CartesianChart>(value: Paint) : IAttr<'t> =
+            AttrBuilder<'t>
+                .CreateProperty<Paint>(property = CartesianChart.TooltipTextPaintProperty, value = value, comparer = ValueNone)
+                
+        static member tooltipBackgroundPaint<'t when 't :> CartesianChart>(value: Paint) : IAttr<'t> =
+            AttrBuilder<'t>
+                .CreateProperty<Paint>(property = CartesianChart.TooltipBackgroundPaintProperty, value = value, comparer = ValueNone)
 
 [<AutoOpen>]
 module ReactiveDialogHost =

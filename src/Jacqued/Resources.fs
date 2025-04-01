@@ -30,4 +30,5 @@ module Theme =
              | true, theme -> theme :?> ControlTheme
              | _ -> failwith $"Could not find theme '{name}'")
 
-    let rec materialOutlineButton = theme (nameof materialOutlineButton)
+    let rec materialOutlineButton = (theme (nameof materialOutlineButton)).Value
+    let rec materialFlatButton = (theme (nameof materialFlatButton)).Value

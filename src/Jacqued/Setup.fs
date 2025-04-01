@@ -78,7 +78,7 @@ let update handler msg state =
                 state.Plates
                 |> List.removeAt (state.Plates |> List.findIndex (fun plate -> plate.WeightOfEach = weight)) },
         List.empty |> Ok
-    | SelectedThemeChanged theme -> { state with SelectedTheme = theme }, List.empty |> Ok
+    | SelectTheme theme -> { state with SelectedTheme = theme }, List.empty |> Ok
     | ConfigurationSettingsLoaded { ThemeVariant = theme } -> { state with SelectedTheme = theme }, List.empty |> Ok
     | _ -> state, List.empty |> Ok
 
@@ -110,7 +110,7 @@ let private themeSelector state dispatch =
     let format (item: ThemeVariant) = item.Key |> string
 
     radioButtonGroup format themes state.SelectedTheme "Theme" (nameof ThemeVariant) (fun theme ->
-        theme |> Msg.SelectedThemeChanged |> dispatch)
+        theme |> Msg.SelectTheme |> dispatch)
 
 let private gymSetup (state: State) (dispatch: Msg -> unit) =
     let onBarbellWeightChange s =
