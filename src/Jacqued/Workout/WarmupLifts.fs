@@ -89,8 +89,9 @@ let update msg (state: State) =
             let mesocycleNumber, _, _ = state.Exercises[e.WorkoutPlan.Exercise]
 
             let calculateWarmupSet repSet =
-                let weight, reps =
-                    Calculate.warmupSet repSet state.Bar state.GymPlates e.TrainingOneRepMax
+                let reps = Calculate.warmupReps[repSet]
+                let weight =
+                    Calculate.warmUpWeight repSet state.Bar state.GymPlates e.TrainingOneRepMax
 
                 let plates = Calculate.plates state.Bar state.GymPlates weight
                 { Weight = weight
