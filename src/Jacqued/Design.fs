@@ -2,7 +2,7 @@ module Jacqued.Design
 
 open Avalonia
 open Avalonia.Controls
-open Avalonia.Platform
+open Avalonia.Media
 open Avalonia.Styling
 open Material.Colors
 open Material.Colors.Recommended
@@ -61,15 +61,40 @@ module Theme =
         else
             app.ActualThemeVariant
 
-    let private theme name =
-        let name = name |> Util.pascalize
+    module Brushes =
+        let private resource name =
+            let name = name |> Util.pascalize
 
-        lazy
-            (match Application.Current.TryFindResource name with
-             | true, theme -> theme :?> ControlTheme
-             | _ -> failwith $"Could not find theme '{name}'")
+            lazy
+                (match Application.Current.TryFindResource $"Material{name}Brush" with
+                 | true, theme -> theme :?> IBrush
+                 | _ -> failwith $"Could not find theme '{name}'")
 
-    let rec materialButton = (theme (nameof materialButton)).Value
-    let rec materialOutlineButton = (theme (nameof materialOutlineButton)).Value
-    let rec materialFlatButton = (theme (nameof materialFlatButton)).Value
-    let rec materialFloatingButton = (theme (nameof materialFloatingButton)).Value
+        let rec primaryLightForeground = (resource (nameof primaryLightForeground)).Value
+        let rec primaryMidForeground = (resource (nameof primaryMidForeground)).Value
+        let rec primaryForeground = (resource (nameof primaryForeground)).Value
+        let rec primaryLight = (resource (nameof primaryLight)).Value
+        let rec primaryMid = (resource (nameof primaryMid)).Value
+        let rec primaryDark = (resource (nameof primaryDark)).Value
+        let rec secondaryLightForeground = (resource (nameof secondaryLightForeground)).Value
+        let rec secondaryMidForeground = (resource (nameof secondaryMidForeground)).Value
+        let rec secondaryDarkForeground = (resource (nameof secondaryDarkForeground)).Value
+        let rec secondaryLight = (resource (nameof secondaryLight)).Value
+        let rec secondaryMid = (resource (nameof secondaryMid)).Value
+        let rec secondaryDark = (resource (nameof secondaryDark)).Value
+
+    
+        
+    module Controls =
+        let private resource name =
+            let name = name |> Util.pascalize
+
+            lazy
+                (match Application.Current.TryFindResource $"Material{name}" with
+                 | true, theme -> theme :?> ControlTheme
+                 | _ -> failwith $"Could not find theme '{name}'")
+
+        let rec button = (resource (nameof button)).Value
+        let rec outlineButton = (resource (nameof outlineButton)).Value
+        let rec flatButton = (resource (nameof flatButton)).Value
+        let rec floatingButton = (resource (nameof floatingButton)).Value

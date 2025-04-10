@@ -5,8 +5,6 @@ open Avalonia.Controls
 open Avalonia.FuncUI.DSL
 open Avalonia.FuncUI.Helpers
 open Avalonia.Layout
-open Avalonia.Media
-open Avalonia.Styling
 open Jacqued
 open Jacqued.Controls
 open Jacqued.DSL
@@ -21,9 +19,7 @@ type State =
       Mesocycles: Map<Exercise, MesocycleId * Wave * Weight * DateOnly>
       MeasurementSystem: MeasurementSystem
       Bar: Bar
-      GymPlates: PlatePair list
-      PlatePairColorIndex: PlatePair list
-      ActualTheme: ThemeVariant }
+      GymPlates: PlatePair list }
 
     static member zero =
         { CurrentExercise = Squats
@@ -34,9 +30,7 @@ type State =
             |> Map.ofList
           MeasurementSystem = Metric
           Bar = Bar.zero
-          GymPlates = []
-          PlatePairColorIndex = List.empty
-          ActualTheme = ThemeVariant.Default }
+          GymPlates = [] }
 
 type BoringButBig =
     | UpDown
@@ -70,7 +64,7 @@ let view (state: State) dispatch =
                     WrapPanel.create [
                         WrapPanel.orientation Orientation.Horizontal
                         WrapPanel.children (
-                            PlatePairs.control (state.MeasurementSystem, state.ActualTheme, state.PlatePairColorIndex, platePairs)
+                            PlatePairs.control (state.MeasurementSystem, platePairs)
                         )
                     ]
                 ]
@@ -136,8 +130,7 @@ let update handler msg (state: State) =
             { state with
                 Bar = e.Bar
                 MeasurementSystem = e.MeasurementSystem
-                GymPlates = e.Plates
-                PlatePairColorIndex = e.Plates |> PlatePairs.index },
+                GymPlates = e.Plates },
             List.empty |> Ok
         | MesocycleStarted e ->
             { state with
@@ -165,5 +158,4 @@ let update handler msg (state: State) =
                 { MesocycleId = mesocycleId
                   CompletedAt = date }
         )
-    | ActualThemeSelected theme -> { state with ActualTheme = theme }, List.empty |> Ok
     | _ -> state, List.empty |> Ok

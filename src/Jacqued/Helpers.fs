@@ -28,9 +28,9 @@ let buttonBar (buttons: IView<MaterialButton> list) : IView =
             [ yield MaterialButton.dock (if i = 0 then Dock.Right else Dock.Left)
 
               if i > 0 then
-                  yield MaterialButton.theme Theme.materialOutlineButton
+                  yield MaterialButton.theme Theme.Controls.outlineButton
               else
-                  yield MaterialButton.theme Theme.materialButton ]
+                  yield MaterialButton.theme Theme.Controls.button ]
 
         View.withAttrs attrs button
 
@@ -42,7 +42,7 @@ let buttonBar (buttons: IView<MaterialButton> list) : IView =
 let segmentedButtonBar (buttons: IView<MaterialButton> list) =
     let mapButton i button : IView =
         let attrs: IAttr<MaterialButton> list =
-            [ yield MaterialButton.theme Theme.materialOutlineButton
+            [ yield MaterialButton.theme Theme.Controls.outlineButton
 
               if i = 0 then
                   yield MaterialButton.cornerRadius (16, 0, 0, 16)

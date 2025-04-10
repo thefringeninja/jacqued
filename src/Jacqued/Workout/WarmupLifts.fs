@@ -5,8 +5,6 @@ open Avalonia.Controls
 open Avalonia.FuncUI
 open Avalonia.FuncUI.DSL
 open Avalonia.Layout
-open Avalonia.Media
-open Avalonia.Styling
 open Jacqued
 open Jacqued.Controls
 open Jacqued.DSL
@@ -22,9 +20,7 @@ type State =
       MeasurementSystem: MeasurementSystem
       ExerciseDaysPerWeek: ExerciseDaysPerWeek
       Bar: Bar
-      GymPlates: PlatePair list
-      PlatePairColorIndex: PlatePair list
-      ActualTheme: ThemeVariant }
+      GymPlates: PlatePair list }
 
     static member zero =
         { MeasurementSystem = Metric
@@ -33,9 +29,7 @@ type State =
           Exercises = Exercise.all |> List.map (fun e -> (e, (0u, Wave.One, []))) |> Map.ofList
           Bar = Bar.zero
           GymPlates = []
-          PlatePairColorIndex = List.empty
-          Date = DateOnly.MinValue
-          ActualTheme = ThemeVariant.Default }
+          Date = DateOnly.MinValue }
 
 let view (state: State) dispatch =
     let mesocycleNumber, wave, set = state.Exercises[state.CurrentExercise]
@@ -61,12 +55,7 @@ let view (state: State) dispatch =
                                 WrapPanel.create [
                                     WrapPanel.orientation Orientation.Horizontal
                                     WrapPanel.children (
-                                        PlatePairs.control (
-                                            state.MeasurementSystem,
-                                            state.ActualTheme,
-                                            state.PlatePairColorIndex,
-                                            set.Plates
-                                        )
+                                        PlatePairs.control (state.MeasurementSystem, set.Plates)
                                     )
                                 ]
                             ]
@@ -97,8 +86,7 @@ let update msg (state: State) =
                 Bar = e.Bar
                 ExerciseDaysPerWeek = e.ExercisesDaysPerWeek
                 GymPlates = e.Plates
-                MeasurementSystem = e.MeasurementSystem
-                PlatePairColorIndex = e.Plates |> PlatePairs.index }
+                MeasurementSystem = e.MeasurementSystem }
         | MesocycleStarted e ->
             let mesocycleNumber, _, _ = state.Exercises[e.WorkoutPlan.Exercise]
 
@@ -135,5 +123,4 @@ let update msg (state: State) =
                 CurrentExercise = e.Exercise |> Exercise.next
                 Date = e.FailedAt |> Calculate.nextExerciseDate state.ExerciseDaysPerWeek }
         | _ -> state
-    | ActualThemeSelected theme -> { state with ActualTheme = theme }
     | _ -> state

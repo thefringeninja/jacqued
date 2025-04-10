@@ -15,24 +15,20 @@ open Material.Icons
 type State =
     { Bar: Bar
       Plates: PlatePair list
-      PlatePairColorIndex: PlatePair list
       PlateToAdd: Weight
       MeasurementSystem: MeasurementSystem
       ExerciseDaysPerWeek: ExerciseDaysPerWeek
-      SelectedTheme: ThemeVariant
-      ActualTheme: ThemeVariant }
+      SelectedTheme: ThemeVariant }
 
     static member zero =
         { Bar = Bar.zero
           Plates = []
-          PlatePairColorIndex = List.empty
           PlateToAdd = Weight.zero
           MeasurementSystem = Metric
           ExerciseDaysPerWeek = ExerciseDaysPerWeek.Four
-          SelectedTheme = ThemeVariant.Default
-          ActualTheme = ThemeVariant.Default }
+          SelectedTheme = ThemeVariant.Default }
 
-let update handler msg state =
+let update handler msg (state:State) =
     match msg with
     | Event e ->
         match e with
@@ -40,7 +36,6 @@ let update handler msg state =
             { state with
                 Bar = e.Bar
                 ExerciseDaysPerWeek = e.ExercisesDaysPerWeek
-                PlatePairColorIndex = e.Plates |> PlatePairs.index
                 Plates = e.Plates
                 MeasurementSystem = e.MeasurementSystem },
             List.empty |> Ok
@@ -71,7 +66,6 @@ let update handler msg state =
 
         { state with
             Plates = platePairs
-            PlatePairColorIndex = platePairs |> PlatePairs.index
             PlateToAdd = Weight.zero },
         List.empty |> Ok
     | RemovePlate weight ->
@@ -82,7 +76,6 @@ let update handler msg state =
         List.empty |> Ok
     | SelectTheme theme -> { state with SelectedTheme = theme }, List.empty |> Ok
     | ConfigurationSettingsLoaded { ThemeVariant = theme } -> { state with SelectedTheme = theme }, List.empty |> Ok
-    | ActualThemeSelected theme -> { state with ActualTheme = theme }, List.empty |> Ok
     | _ -> state, List.empty |> Ok
 
 let private radioButtonGroup (format: 't -> string) items selected label groupName action =
@@ -199,8 +192,6 @@ let private gymSetup (state: State) (dispatch: Msg -> unit) =
                         yield!
                             PlatePairs.control (
                                 state.MeasurementSystem,
-                                state.ActualTheme,
-                                state.PlatePairColorIndex,
                                 state.Plates,
                                 onPlateRemove,
                                 SubPatchOptions.OnChangeOf state.Plates

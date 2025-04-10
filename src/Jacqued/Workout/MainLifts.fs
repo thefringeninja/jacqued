@@ -4,7 +4,6 @@ open System
 open Avalonia.Controls
 open Avalonia.FuncUI.DSL
 open Avalonia.Layout
-open Avalonia.Media
 open Avalonia.Styling
 open Avalonia.Threading
 open AvaloniaDialogs.Views
@@ -29,7 +28,6 @@ type State =
       ExerciseDaysPerWeek: ExerciseDaysPerWeek
       Bar: Bar
       GymPlates: PlatePair list
-      PlatePairColorIndex: PlatePair list
       ActualTheme: ThemeVariant }
 
     static member zero =
@@ -51,7 +49,6 @@ type State =
             |> Map.ofList
           Bar = Bar.zero
           GymPlates = []
-          PlatePairColorIndex = List.empty
           StartingAt = None
           Reps = 0u
           ActualTheme = ThemeVariant.Default }
@@ -114,7 +111,7 @@ let view (state: State) dispatch =
     let completeRepSet =
         MaterialButton.create [
             MaterialButton.dock Dock.Right
-            MaterialButton.theme Theme.materialButton
+            MaterialButton.theme Theme.Controls.button
             MaterialButton.content ("Complete Set", MaterialIconKind.Barbell)
             MaterialButton.onClick (onCompleteRepSetClick, SubPatchOptions.OnChangeOf(state))
             MaterialButton.isEnabled (state.Reps >= lift.Reps)
@@ -123,7 +120,7 @@ let view (state: State) dispatch =
     let failRepSet =
         MaterialButton.create [
             MaterialButton.dock Dock.Left
-            MaterialButton.theme Theme.materialOutlineButton
+            MaterialButton.theme Theme.Controls.outlineButton
             MaterialButton.content ("Fail Set", MaterialIconKind.CancelCircle)
             MaterialButton.onClick (onFailRepSetClick, SubPatchOptions.OnChangeOf(state))
             MaterialButton.isEnabled (state.Reps < lift.Reps)
@@ -160,7 +157,7 @@ let view (state: State) dispatch =
                 WrapPanel.create [
                     WrapPanel.orientation Orientation.Horizontal
                     WrapPanel.children (
-                        PlatePairs.control (state.MeasurementSystem, state.ActualTheme, state.PlatePairColorIndex, lift.Plates)
+                        PlatePairs.control (state.MeasurementSystem, lift.Plates)
                     )
                 ]
 
@@ -180,8 +177,7 @@ let update (now: _ -> DateOnly) handler msg state =
             { state with
                 Bar = e.Bar
                 GymPlates = e.Plates
-                MeasurementSystem = e.MeasurementSystem
-                PlatePairColorIndex = e.Plates |> PlatePairs.index },
+                MeasurementSystem = e.MeasurementSystem },
             List.empty |> Ok
         | MesocycleStarted e ->
             let mesocycleNumber, _, _, _ = state.Exercises[e.WorkoutPlan.Exercise]

@@ -414,7 +414,7 @@ let view (state: State) dispatch =
                             MaterialButton.create [
                                 Button.dock Dock.Left
                                 Button.content MaterialIconKind.ArrowBack
-                                Button.theme Design.Theme.materialFlatButton
+                                Button.theme Theme.Controls.flatButton
                                 Button.onClick onDismissExerciseDetailClick
                             ]
                         ]
