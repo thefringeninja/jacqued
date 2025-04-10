@@ -16,7 +16,7 @@ type Settings =
 
     static member zero = { ThemeVariant = ThemeVariant.Default; SettingsPath = None }
 
-    static member create(data: SettingsData option, path: string option) =
+    static member create(data: SettingsData option) =
         match data with
         | Some data ->
             let themeVariant =
@@ -28,7 +28,7 @@ type Settings =
                     | _ -> ThemeVariant.Default
                 | None -> ThemeVariant.Default
 
-            { ThemeVariant = themeVariant; SettingsPath = path } 
+            { ThemeVariant = themeVariant; SettingsPath = None } 
         | None -> Settings.zero
 
     static member options = 
@@ -48,9 +48,9 @@ type Settings =
         
         options
     
-    static member load (reader:StreamReader, path: string) =
+    static member load (reader:StreamReader) =
         let data = JsonSerializer.Deserialize<SettingsData>(reader.ReadToEnd(), Settings.options) |> Some
-        Settings.create(data, path |> Some)
+        Settings.create data
         
     member this.save (writer:StreamWriter) =
         let data:SettingsData = { ThemeVariant = this.ThemeVariant.Key.ToString().ToLowerInvariant() |> Some  }

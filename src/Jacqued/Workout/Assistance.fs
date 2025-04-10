@@ -5,9 +5,8 @@ open Avalonia.Controls
 open Avalonia.FuncUI.DSL
 open Avalonia.FuncUI.Helpers
 open Avalonia.Layout
-open Avalonia.Media
 open Jacqued
-
+open Jacqued.Controls
 open Jacqued.DSL
 open Jacqued.Helpers
 open Material.Icons
@@ -20,8 +19,7 @@ type State =
       Mesocycles: Map<Exercise, MesocycleId * Wave * Weight * DateOnly>
       MeasurementSystem: MeasurementSystem
       Bar: Bar
-      GymPlates: PlatePair list
-      ColorMap: Map<Weight, Color> }
+      GymPlates: PlatePair list }
 
     static member zero =
         { CurrentExercise = Squats
@@ -32,8 +30,7 @@ type State =
             |> Map.ofList
           MeasurementSystem = Metric
           Bar = Bar.zero
-          GymPlates = []
-          ColorMap = Map.empty   }
+          GymPlates = [] }
 
 type BoringButBig =
     | UpDown
@@ -63,7 +60,13 @@ let view (state: State) dispatch =
                     Typography.body2 $"Set {set}"
                     Typography.body2 $"Weight: {weight}{state.MeasurementSystem}"
                     Typography.body2 "Reps: 10"
-                    PlatePairs.control (state.MeasurementSystem, state.ColorMap, platePairs)
+
+                    WrapPanel.create [
+                        WrapPanel.orientation Orientation.Horizontal
+                        WrapPanel.children (
+                            PlatePairs.control (state.MeasurementSystem, platePairs)
+                        )
+                    ]
                 ]
             ]
 
@@ -104,8 +107,8 @@ let view (state: State) dispatch =
 
         let completeWave =
             MaterialButton.create [
-                Button.content ($"Complete Wave {wave}", MaterialIconKind.Barbell)
-                Button.onClick (onCompleteWaveClick, SubPatchOptions.OnChangeOf(wave))
+                MaterialButton.content ($"Complete Wave {wave}", MaterialIconKind.Barbell)
+                MaterialButton.onClick (onCompleteWaveClick, SubPatchOptions.OnChangeOf(wave))
             ]
 
         StackPanel.create [
@@ -127,8 +130,7 @@ let update handler msg (state: State) =
             { state with
                 Bar = e.Bar
                 MeasurementSystem = e.MeasurementSystem
-                GymPlates = e.Plates
-                ColorMap = e.Plates |> PlatePairs.colorMap },
+                GymPlates = e.Plates },
             List.empty |> Ok
         | MesocycleStarted e ->
             { state with
@@ -137,7 +139,9 @@ let update handler msg (state: State) =
                     |> Map.add e.WorkoutPlan.Exercise (e.MesocycleId, Wave.One, e.TrainingOneRepMax, e.StartedAt) },
             List.empty |> Ok
         | RepSetCompleted e ->
-            { state with CurrentExercise = e.Exercise }, List.empty |> Ok
+            { state with
+                CurrentExercise = e.Exercise },
+            List.empty |> Ok
         | WaveCompleted e ->
             let _, _, trainingMax, date = state.Mesocycles[e.Exercise]
 

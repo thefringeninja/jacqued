@@ -10,10 +10,6 @@ open Avalonia.Input
 open Avalonia.Layout
 open Avalonia.Media
 open Jacqued
-open LiveChartsCore
-open LiveChartsCore.Kernel.Sketches
-open LiveChartsCore.Measure
-open LiveChartsCore.SkiaSharpView.Avalonia
 open Material.Icons
 open Material.Icons.Avalonia
 open Material.Styles.Assists
@@ -99,15 +95,25 @@ let private buttonContent (text: string option) (iconKind: MaterialIconKind opti
 
 [<AutoOpen>]
 module MaterialButton =
-    let create (attrs: IAttr<Button> list) : IView<Button> =
-        ViewBuilder.Create<Button>([ attrs; [ Button.padding 0; Button.cornerRadius 20 ] ] |> List.concat)
+    open Jacqued.Controls
 
-    type Button with
-        static member content<'t when 't :> Button>(text: string, ?iconKind: MaterialIconKind) : IAttr<'t> =
-            Button.content (buttonContent (text |> Some) iconKind Orientation.Horizontal)
+    let create (attrs: IAttr<MaterialButton> list) : IView<MaterialButton> =
 
-        static member content<'t when 't :> Button>(iconKind: MaterialIconKind) : IAttr<'t> =
-            Button.content (buttonContent None (iconKind |> Some) Orientation.Horizontal)
+        ViewBuilder.Create<MaterialButton>(
+            [ attrs
+              [ MaterialButton.padding 0
+                MaterialButton.cornerRadius 20
+
+                ] ]
+            |> List.concat
+        )
+
+    type MaterialButton with
+        static member content<'t when 't :> MaterialButton>(text: string, ?iconKind: MaterialIconKind) : IAttr<'t> =
+            MaterialButton.content (buttonContent (text |> Some) iconKind Orientation.Horizontal)
+
+        static member content<'t when 't :> MaterialButton>(iconKind: MaterialIconKind) : IAttr<'t> =
+            MaterialButton.content (buttonContent None (iconKind |> Some) Orientation.Horizontal)
 
 [<AutoOpen>]
 module NavigationButton =
@@ -139,16 +145,38 @@ module FloatingButton =
 module Separator =
     let create (attrs: IAttr<Separator> list) : IView<Separator> = ViewBuilder.Create<Separator>(attrs)
 
-    type Separator with
-        end
+    type Separator with end
+
 
 [<AutoOpen>]
 module CartesianChart =
+    open LiveChartsCore
+    open LiveChartsCore.Kernel.Events
+    open LiveChartsCore.Kernel.Sketches
+    open LiveChartsCore.Measure
+    open LiveChartsCore.Painting
+    open LiveChartsCore.SkiaSharpView.Avalonia
 
     let create (attrs: IAttr<CartesianChart> list) : IView<CartesianChart> =
         ViewBuilder.Create<CartesianChart>(attrs)
 
     type CartesianChart with
+        static member onVisualElementsPointerDown<'t when 't :> CartesianChart>(func: VisualElementsEventArgs -> unit, ?subPatchOptions) =
+            let name = nameof Unchecked.defaultof<'t>.add_VisualElementsPointerDown
+
+            let factory: SubscriptionFactory<VisualElementsEventArgs> =
+                fun (control, func, token) ->
+                    let control = control :?> 't
+                    let handler = VisualElementsHandler(fun _ -> func)
+
+                    control.add_VisualElementsPointerDown (handler)
+
+                    token.Register(fun _ -> control.remove_VisualElementsPointerDown (handler))
+                    |> ignore
+
+            AttrBuilder<'t>
+                .CreateSubscription<VisualElementsEventArgs>(name, factory, func, ?subPatchOptions = subPatchOptions)
+
         static member xaxes<'t when 't :> CartesianChart>(value: seq<ICartesianAxis>) : IAttr<'t> =
             AttrBuilder<'t>
                 .CreateProperty<seq<ICartesianAxis>>(property = CartesianChart.XAxesProperty, value = value, comparer = ValueNone)
@@ -174,11 +202,36 @@ module CartesianChart =
 
             AttrBuilder<'t>
                 .CreateProperty<IChartLegend>(name, value, ValueSome getter, ValueSome setter, ValueNone)
-                
+
+        static member tooltip<'t when 't :> CartesianChart>(value: IChartTooltip) : IAttr<'t> =
+            let name = nameof Unchecked.defaultof<'t>.Tooltip
+            let getter: 't -> IChartTooltip = (_.Tooltip)
+
+            let setter: 't * IChartTooltip -> unit =
+                (fun (control, value) -> control.Tooltip <- value)
+
+            AttrBuilder<'t>
+                .CreateProperty<IChartTooltip>(name, value, ValueSome getter, ValueSome setter, ValueNone)
+
         static member zoomMode<'t when 't :> CartesianChart>(value: ZoomAndPanMode) : IAttr<'t> =
             AttrBuilder<'t>
                 .CreateProperty<ZoomAndPanMode>(property = CartesianChart.ZoomModeProperty, value = value, comparer = ValueNone)
-            
+
+        static member legendTextPaint<'t when 't :> CartesianChart>(value: Paint) : IAttr<'t> =
+            AttrBuilder<'t>
+                .CreateProperty<Paint>(property = CartesianChart.LegendTextPaintProperty, value = value, comparer = ValueNone)
+
+        static member legendBackgroundPaint<'t when 't :> CartesianChart>(value: Paint) : IAttr<'t> =
+            AttrBuilder<'t>
+                .CreateProperty<Paint>(property = CartesianChart.LegendBackgroundPaintProperty, value = value, comparer = ValueNone)
+
+        static member tooltipTextPaint<'t when 't :> CartesianChart>(value: Paint) : IAttr<'t> =
+            AttrBuilder<'t>
+                .CreateProperty<Paint>(property = CartesianChart.TooltipTextPaintProperty, value = value, comparer = ValueNone)
+
+        static member tooltipBackgroundPaint<'t when 't :> CartesianChart>(value: Paint) : IAttr<'t> =
+            AttrBuilder<'t>
+                .CreateProperty<Paint>(property = CartesianChart.TooltipBackgroundPaintProperty, value = value, comparer = ValueNone)
 
 [<AutoOpen>]
 module ReactiveDialogHost =
@@ -215,6 +268,7 @@ module TwofoldDialog =
 [<AutoOpen>]
 module SingleActionDialog =
     open AvaloniaDialogs.Views
+
     let create (attrs: IAttr<SingleActionDialog> list) : IView<SingleActionDialog> =
         ViewBuilder.Create<SingleActionDialog>(attrs)
 
@@ -226,4 +280,3 @@ module SingleActionDialog =
         static member buttonText<'t when 't :> SingleActionDialog>(value: string) : IAttr<'t> =
             AttrBuilder<'t>
                 .CreateProperty<string>(property = SingleActionDialog.ButtonTextProperty, value = value, comparer = ValueNone)
-        

@@ -1,7 +1,6 @@
 ﻿namespace Jacqued
 
 open System
-open System.IO
 open Avalonia.Controls
 open Avalonia.FuncUI.DSL
 open AvaloniaDialogs.Views
@@ -9,7 +8,7 @@ open Elmish
 open Jacqued.CommandHandlers
 open Jacqued.Controls
 open Jacqued.DSL
-open Jacqued.Resources
+open Jacqued.Design
 open Jacqued.Util
 open Material.Icons
 open SqlStreamStore
@@ -71,10 +70,10 @@ module Shell =
 
                       let workout, result =
                           Workout.update (fun () -> DateOnly.today) mesocycle msg state.Workout
+
                       yield result |> Results.Cmd
-                      
-                      let settings, result =
-                          Configuration.update msg state.Settings
+
+                      let settings, result = Configuration.update msg state.Settings
 
                       yield
                           { state with
@@ -141,15 +140,19 @@ module Shell =
             ReactiveDialogHost.content (Panel.create [ Panel.margin 16; Panel.children [ tabs ] ])
         ]
 
-    let init store (settings: Settings) settingsPath () =
+    let init store (settings: Settings) () =
         let events =
             seq {
-                yield Msg.ConfigurationSettingsLoaded settings
+                yield settings |> Msg.ConfigurationSettingsLoaded
+                
+                yield Theme.get() |> Msg.ActualThemeSelected 
+                
                 yield! (EventStorage.readAll store) |> Seq.map Msg.Event
             }
 
         Seq.fold
             (fun (state, _) event -> update store event state)
-            ({ State.zero with State.Settings.SettingsPath = settingsPath |> Some },
+            ({ State.zero with
+                State.Settings = settings },
              Cmd.none)
             events

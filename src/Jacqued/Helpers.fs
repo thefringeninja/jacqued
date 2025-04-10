@@ -4,9 +4,10 @@ open System
 open Avalonia.Controls
 open Avalonia.Controls.Primitives
 open Avalonia.FuncUI.DSL
-open Avalonia.FuncUI.Helpers
 open Avalonia.FuncUI.Types
 open Avalonia.Layout
+open Jacqued.Controls
+open Jacqued.Design
 
 let private scrollbarVisibility =
     if OperatingSystem.IsAndroid() || OperatingSystem.IsIOS() then
@@ -14,21 +15,22 @@ let private scrollbarVisibility =
     else
         ScrollBarVisibility.Auto
 
-let layout content =
+let layout (content:IView) =
     ScrollViewer.create [
         ScrollViewer.horizontalScrollBarVisibility ScrollBarVisibility.Disabled
         ScrollViewer.verticalScrollBarVisibility scrollbarVisibility
-        ScrollViewer.content (content |> generalize)
+        ScrollViewer.content content
     ]
 
-let buttonBar (buttons: IView<Button> list) : IView =
+let buttonBar (buttons: IView<MaterialButton> list) : IView =
     let mapButton i button : IView =
-        let attrs: IAttr<Button> list =
-            [ yield Button.dock (if i = 0 then Dock.Right else Dock.Left)
+        let attrs: IAttr<MaterialButton> list =
+            [ yield MaterialButton.dock (if i = 0 then Dock.Right else Dock.Left)
 
               if i > 0 then
-                  let controlTheme = Resources.Theme.materialOutlineButton.Value
-                  yield Button.theme controlTheme ]
+                  yield MaterialButton.theme Theme.Controls.outlineButton
+              else
+                  yield MaterialButton.theme Theme.Controls.button ]
 
         View.withAttrs attrs button
 
@@ -37,19 +39,19 @@ let buttonBar (buttons: IView<Button> list) : IView =
         DockPanel.children (buttons |> List.mapi mapButton)
     ]
 
-let segmentedButtonBar (buttons: IView<Button> list) =
+let segmentedButtonBar (buttons: IView<MaterialButton> list) =
     let mapButton i button : IView =
-        let attrs: IAttr<Button> list =
-            [ yield Button.theme Resources.Theme.materialOutlineButton.Value
+        let attrs: IAttr<MaterialButton> list =
+            [ yield MaterialButton.theme Theme.Controls.outlineButton
 
               if i = 0 then
-                  yield Button.cornerRadius (16, 0, 0, 16)
+                  yield MaterialButton.cornerRadius (16, 0, 0, 16)
 
               if i = buttons.Length - 1 then
-                  yield Button.cornerRadius (0, 16, 16, 0) ]
+                  yield MaterialButton.cornerRadius (0, 16, 16, 0) ]
 
         View.withAttrs attrs button
-
+        
     StackPanel.create [
         StackPanel.orientation Orientation.Horizontal
         StackPanel.children (buttons |> List.mapi mapButton)

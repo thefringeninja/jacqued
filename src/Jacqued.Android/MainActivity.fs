@@ -4,6 +4,7 @@ open System
 open System.IO
 open Android.App
 open Android.Content.PM
+open Android.Views
 open Avalonia
 open Avalonia.Android
 open Microsoft.Data.Sqlite
@@ -14,6 +15,7 @@ open SqlStreamStore
 [<Activity(Label = "Jacqued.Android",
            Theme = "@style/MyTheme.NoActionBar",
            // Icon = "@drawable/icon",
+           WindowSoftInputMode = SoftInput.AdjustResize,
            MainLauncher = true,
            ConfigurationChanges = (ConfigChanges.Orientation ||| ConfigChanges.ScreenSize ||| ConfigChanges.UiMode))>]
 type MainActivity() as this =

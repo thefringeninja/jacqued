@@ -6,6 +6,7 @@ open Avalonia.FuncUI.DSL
 open Avalonia.Input.TextInput
 open Avalonia.Layout
 open Jacqued
+open Jacqued.Controls
 open Jacqued.DSL
 open Jacqued.Helpers
 open Jacqued.Util
@@ -33,7 +34,7 @@ type State =
 
 let private currentDate state =
     match state.StartingAt with
-    | Some startingAt -> startingAt |> toDateTime
+    | Some startingAt -> startingAt.DateTime
     | _ -> DateTime.Today
 
 let view (state: State) dispatch =
@@ -66,8 +67,8 @@ let view (state: State) dispatch =
 
     let startMesocycle =
         MaterialButton.create [
-            Button.content ("Start Mesocycle", MaterialIconKind.Check)
-            Button.onClick (onStartMesocycle oneRepMax, SubPatchOptions.OnChangeOf oneRepMax)
+            MaterialButton.content ("Start Mesocycle", MaterialIconKind.Check)
+            MaterialButton.onClick (onStartMesocycle oneRepMax, SubPatchOptions.OnChangeOf oneRepMax)
         ]
 
     let content =
@@ -80,7 +81,7 @@ let view (state: State) dispatch =
                 DatePicker.create [
                     DatePicker.selectedDate (
                         match state.StartingAt with
-                        | Some startingAt -> startingAt |> toDateTime
+                        | Some startingAt -> startingAt.DateTime
                         | _ -> DateTime.Today
                     )
                     DatePicker.horizontalAlignment HorizontalAlignment.Stretch

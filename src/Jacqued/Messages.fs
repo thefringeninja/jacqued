@@ -29,6 +29,9 @@ type Msg =
     | ContinueExercise of Exercise
     | SelectedAssistanceWorkIndexChanged of int
     | SelectedProgressChartExerciseChanged of Exercise option
-    | SelectedThemeChanged of ThemeVariant
+    | ExerciseSummaryClicked of MesocycleId * Exercise * uint
+    | ExerciseDetailDismissed
+    | SelectTheme of ThemeVariant
+    | ActualThemeSelected of ThemeVariant
     | ConfigurationSettingsLoaded of Settings
     | ApplicationError of ApplicationError

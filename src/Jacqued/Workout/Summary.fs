@@ -6,6 +6,7 @@ open Avalonia.FuncUI.DSL
 open Avalonia.FuncUI.Helpers
 open Avalonia.Layout
 open Jacqued
+open Jacqued.Controls
 open Jacqued.DSL
 open Jacqued.Helpers
 open Material.Icons
@@ -65,8 +66,8 @@ let view (state: State) dispatch =
 
                 let completeWave =
                     MaterialButton.create [
-                        Button.content ("Next Exercise", MaterialIconKind.ArrowRight)
-                        Button.onClick onNextExerciseClick
+                        MaterialButton.content ("Next Exercise", MaterialIconKind.ArrowRight)
+                        MaterialButton.onClick onNextExerciseClick
                     ]
 
                 yield buttonBar [ completeWave ]

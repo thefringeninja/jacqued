@@ -29,7 +29,7 @@
 
 	<ItemGroup>
 		<Compile Include="Util.fs" />
-		<Compile Include="Resources.fs" />
+		<Compile Include="Design.fs" />
 		<Compile Include="CommandHandlers.fs"/>
 		<Compile Include="EventStorage.fs"/>
 		<Compile Include="Controls.fs" />
