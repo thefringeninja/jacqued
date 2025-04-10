@@ -1,16 +1,14 @@
 ﻿namespace Jacqued
 
 open System
-open Avalonia
 open Avalonia.Controls
 open Avalonia.FuncUI.DSL
-open Avalonia.Platform
-open Avalonia.Styling
 open AvaloniaDialogs.Views
 open Elmish
 open Jacqued.CommandHandlers
 open Jacqued.Controls
 open Jacqued.DSL
+open Jacqued.Design
 open Jacqued.Util
 open Material.Icons
 open SqlStreamStore
@@ -145,16 +143,10 @@ module Shell =
     let init store (settings: Settings) () =
         let events =
             seq {
-                yield Msg.ConfigurationSettingsLoaded settings
-                let app = Application.Current
-
-                if app.PlatformSettings <> null then
-                    yield
-                        match app.PlatformSettings.GetColorValues().ThemeVariant with
-                         | PlatformThemeVariant.Light -> ThemeVariant.Light
-                         | _ -> ThemeVariant.Dark
-                        |> Msg.ActualThemeSelected
-
+                yield settings |> Msg.ConfigurationSettingsLoaded
+                
+                yield Theme.get() |> Msg.ActualThemeSelected 
+                
                 yield! (EventStorage.readAll store) |> Seq.map Msg.Event
             }
 

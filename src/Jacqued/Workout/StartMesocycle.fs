@@ -6,6 +6,7 @@ open Avalonia.FuncUI.DSL
 open Avalonia.Input.TextInput
 open Avalonia.Layout
 open Jacqued
+open Jacqued.Controls
 open Jacqued.DSL
 open Jacqued.Helpers
 open Jacqued.Util
@@ -66,8 +67,8 @@ let view (state: State) dispatch =
 
     let startMesocycle =
         MaterialButton.create [
-            Button.content ("Start Mesocycle", MaterialIconKind.Check)
-            Button.onClick (onStartMesocycle oneRepMax, SubPatchOptions.OnChangeOf oneRepMax)
+            MaterialButton.content ("Start Mesocycle", MaterialIconKind.Check)
+            MaterialButton.onClick (onStartMesocycle oneRepMax, SubPatchOptions.OnChangeOf oneRepMax)
         ]
 
     let content =

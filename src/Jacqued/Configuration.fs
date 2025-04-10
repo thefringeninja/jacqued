@@ -2,7 +2,7 @@ module Jacqued.Configuration
 
 open System.IO
 open Jacqued
-open Jacqued.Resources
+open Jacqued.Design
 
 let load path =
     let fileInfo = FileInfo(path)

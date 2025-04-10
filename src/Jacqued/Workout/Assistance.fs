@@ -6,8 +6,9 @@ open Avalonia.FuncUI.DSL
 open Avalonia.FuncUI.Helpers
 open Avalonia.Layout
 open Avalonia.Media
+open Avalonia.Styling
 open Jacqued
-
+open Jacqued.Controls
 open Jacqued.DSL
 open Jacqued.Helpers
 open Material.Icons
@@ -21,7 +22,8 @@ type State =
       MeasurementSystem: MeasurementSystem
       Bar: Bar
       GymPlates: PlatePair list
-      ColorMap: Map<Weight, Color> }
+      PlatePairColorIndex: PlatePair list
+      ActualTheme: ThemeVariant }
 
     static member zero =
         { CurrentExercise = Squats
@@ -33,7 +35,8 @@ type State =
           MeasurementSystem = Metric
           Bar = Bar.zero
           GymPlates = []
-          ColorMap = Map.empty   }
+          PlatePairColorIndex = List.empty
+          ActualTheme = ThemeVariant.Default }
 
 type BoringButBig =
     | UpDown
@@ -63,7 +66,13 @@ let view (state: State) dispatch =
                     Typography.body2 $"Set {set}"
                     Typography.body2 $"Weight: {weight}{state.MeasurementSystem}"
                     Typography.body2 "Reps: 10"
-                    PlatePairs.control (state.MeasurementSystem, state.ColorMap, platePairs)
+
+                    WrapPanel.create [
+                        WrapPanel.orientation Orientation.Horizontal
+                        WrapPanel.children (
+                            PlatePairs.control (state.MeasurementSystem, state.ActualTheme, state.PlatePairColorIndex, platePairs)
+                        )
+                    ]
                 ]
             ]
 
@@ -104,8 +113,8 @@ let view (state: State) dispatch =
 
         let completeWave =
             MaterialButton.create [
-                Button.content ($"Complete Wave {wave}", MaterialIconKind.Barbell)
-                Button.onClick (onCompleteWaveClick, SubPatchOptions.OnChangeOf(wave))
+                MaterialButton.content ($"Complete Wave {wave}", MaterialIconKind.Barbell)
+                MaterialButton.onClick (onCompleteWaveClick, SubPatchOptions.OnChangeOf(wave))
             ]
 
         StackPanel.create [
@@ -128,7 +137,7 @@ let update handler msg (state: State) =
                 Bar = e.Bar
                 MeasurementSystem = e.MeasurementSystem
                 GymPlates = e.Plates
-                ColorMap = e.Plates |> PlatePairs.colorMap },
+                PlatePairColorIndex = e.Plates |> PlatePairs.index },
             List.empty |> Ok
         | MesocycleStarted e ->
             { state with
@@ -137,7 +146,9 @@ let update handler msg (state: State) =
                     |> Map.add e.WorkoutPlan.Exercise (e.MesocycleId, Wave.One, e.TrainingOneRepMax, e.StartedAt) },
             List.empty |> Ok
         | RepSetCompleted e ->
-            { state with CurrentExercise = e.Exercise }, List.empty |> Ok
+            { state with
+                CurrentExercise = e.Exercise },
+            List.empty |> Ok
         | WaveCompleted e ->
             let _, _, trainingMax, date = state.Mesocycles[e.Exercise]
 
@@ -154,4 +165,5 @@ let update handler msg (state: State) =
                 { MesocycleId = mesocycleId
                   CompletedAt = date }
         )
+    | ActualThemeSelected theme -> { state with ActualTheme = theme }, List.empty |> Ok
     | _ -> state, List.empty |> Ok

@@ -5,10 +5,13 @@ open Avalonia.Controls
 open Avalonia.FuncUI.DSL
 open Avalonia.Layout
 open Avalonia.Media
+open Avalonia.Styling
 open Avalonia.Threading
 open AvaloniaDialogs.Views
 open Jacqued
+open Jacqued.Controls
 open Jacqued.DSL
+open Jacqued.Design
 open Jacqued.Helpers
 open Jacqued.Util
 open Material.Icons
@@ -26,7 +29,8 @@ type State =
       ExerciseDaysPerWeek: ExerciseDaysPerWeek
       Bar: Bar
       GymPlates: PlatePair list
-      ColorMap: Map<Weight, Color> }
+      PlatePairColorIndex: PlatePair list
+      ActualTheme: ThemeVariant }
 
     static member zero =
         { MeasurementSystem = Metric
@@ -47,9 +51,10 @@ type State =
             |> Map.ofList
           Bar = Bar.zero
           GymPlates = []
-          ColorMap = Map.empty
+          PlatePairColorIndex = List.empty
           StartingAt = None
-          Reps = 0u }
+          Reps = 0u
+          ActualTheme = ThemeVariant.Default }
 
 let view (state: State) dispatch =
     let mesocycleNumber, mesocycleId, wave, repSet =
@@ -89,9 +94,9 @@ let view (state: State) dispatch =
 
     let increaseReps =
         MaterialButton.create [
-            Button.content MaterialIconKind.ArrowUpward
-            Button.onClick onIncreaseRepsClick
-            Button.isEnabled (
+            MaterialButton.content MaterialIconKind.ArrowUpward
+            MaterialButton.onClick onIncreaseRepsClick
+            MaterialButton.isEnabled (
                 match lift.RepSet, state.Reps < lift.Reps with
                 | RepSet.Three, _ -> true
                 | _, true -> true
@@ -101,25 +106,27 @@ let view (state: State) dispatch =
 
     let decreaseReps =
         MaterialButton.create [
-            Button.content MaterialIconKind.ArrowDownward
-            Button.onClick onDecreaseRepsClick
-            Button.isEnabled (state.Reps > 0u)
+            MaterialButton.content MaterialIconKind.ArrowDownward
+            MaterialButton.onClick onDecreaseRepsClick
+            MaterialButton.isEnabled (state.Reps > 0u)
         ]
 
     let completeRepSet =
         MaterialButton.create [
-            Button.dock Dock.Right
-            Button.content ("Complete Set", MaterialIconKind.Barbell)
-            Button.onClick (onCompleteRepSetClick, SubPatchOptions.OnChangeOf(state))
-            Button.isEnabled (state.Reps >= lift.Reps)
+            MaterialButton.dock Dock.Right
+            MaterialButton.theme Theme.materialButton
+            MaterialButton.content ("Complete Set", MaterialIconKind.Barbell)
+            MaterialButton.onClick (onCompleteRepSetClick, SubPatchOptions.OnChangeOf(state))
+            MaterialButton.isEnabled (state.Reps >= lift.Reps)
         ]
 
     let failRepSet =
         MaterialButton.create [
-            Button.dock Dock.Left
-            Button.content ("Fail Set", MaterialIconKind.CancelCircle)
-            Button.onClick (onFailRepSetClick, SubPatchOptions.OnChangeOf(state))
-            Button.isEnabled (state.Reps < lift.Reps)
+            MaterialButton.dock Dock.Left
+            MaterialButton.theme Theme.materialOutlineButton
+            MaterialButton.content ("Fail Set", MaterialIconKind.CancelCircle)
+            MaterialButton.onClick (onFailRepSetClick, SubPatchOptions.OnChangeOf(state))
+            MaterialButton.isEnabled (state.Reps < lift.Reps)
         ]
 
     let plus = if lift.RepSet = RepSet.Three then "+" else ""
@@ -150,7 +157,13 @@ let view (state: State) dispatch =
                     ]
                 ]
 
-                PlatePairs.control (state.MeasurementSystem, state.ColorMap, lift.Plates)
+                WrapPanel.create [
+                    WrapPanel.orientation Orientation.Horizontal
+                    WrapPanel.children (
+                        PlatePairs.control (state.MeasurementSystem, state.ActualTheme, state.PlatePairColorIndex, lift.Plates)
+                    )
+                ]
+
                 buttonBar [ completeRepSet; failRepSet ]
             ]
         ]
@@ -168,7 +181,7 @@ let update (now: _ -> DateOnly) handler msg state =
                 Bar = e.Bar
                 GymPlates = e.Plates
                 MeasurementSystem = e.MeasurementSystem
-                ColorMap = e.Plates |> PlatePairs.colorMap },
+                PlatePairColorIndex = e.Plates |> PlatePairs.index },
             List.empty |> Ok
         | MesocycleStarted e ->
             let mesocycleNumber, _, _, _ = state.Exercises[e.WorkoutPlan.Exercise]
@@ -208,12 +221,12 @@ let update (now: _ -> DateOnly) handler msg state =
             List.empty |> Ok
         | WaveCompleted e ->
             let mesocycleNumber, mesocycleId, wave, _ = state.Exercises[e.Exercise]
-            
+
             { state with
                 Reps = 0u
                 CurrentExercise = e.Exercise |> nextExercise
                 StartingAt = Calculate.nextExerciseDate state.ExerciseDaysPerWeek e.CompletedAt |> Some
-                
+
                 Exercises =
                     state.Exercises
                     |> Map.add e.Exercise (mesocycleNumber, mesocycleId, wave |> Wave.next, RepSet.One) },
@@ -269,4 +282,5 @@ let update (now: _ -> DateOnly) handler msg state =
                     | Some date -> date
                     | _ -> now () }
         )
+    | ActualThemeSelected theme -> { state with ActualTheme = theme }, List.empty |> Ok
     | _ -> state, List.empty |> Ok

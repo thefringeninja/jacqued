@@ -7,6 +7,7 @@ open Avalonia.FuncUI.DSL
 open Avalonia.Layout
 open Avalonia.Styling
 open Jacqued.DSL
+open Jacqued.Design
 open Jacqued.Helpers
 open Jacqued.Util
 open LiveChartsCore
@@ -26,7 +27,11 @@ open Microsoft.FSharp.Core
 open SkiaSharp
 
 let colors =
-    Resources.swatches |> List.take 4 |> List.map _.ToUInt32() |> List.map SKColor
+    palette
+    |> List.take 4
+    |> List.map (fun swatch -> swatch[Shade.``200``])
+    |> List.map _.ToUInt32()
+    |> List.map SKColor
 
 type private ChartTheme =
     { LegendTextPaint: Paint
@@ -409,7 +414,7 @@ let view (state: State) dispatch =
                             MaterialButton.create [
                                 Button.dock Dock.Left
                                 Button.content MaterialIconKind.ArrowBack
-                                Button.theme Resources.Theme.materialFlatButton
+                                Button.theme Design.Theme.materialFlatButton
                                 Button.onClick onDismissExerciseDetailClick
                             ]
                         ]

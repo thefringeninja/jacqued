@@ -8,7 +8,7 @@ open Avalonia.Input
 open Avalonia.Styling
 open DialogHostAvalonia
 open Elmish
-open Material.Colors
+open Material.Colors.Recommended
 open Material.Icons.Avalonia
 open Material.Styles.Themes
 open SqlStreamStore
@@ -26,23 +26,34 @@ type MainWindow() =
 
 #nowarn "3261"
 
+type private JacqedTheme() as this =
+    inherit CustomMaterialTheme(null)
+    do
+        this.Palettes.Add(
+            ThemeVariant.Light,
+            CustomMaterialThemeResources(PrimaryColor = RedSwatch.Red500, SecondaryColor = AmberSwatch.Amber500)
+        )
+
+        this.Palettes.Add(
+            ThemeVariant.Dark,
+            CustomMaterialThemeResources(PrimaryColor = RedSwatch.Red200, SecondaryColor = AmberSwatch.Amber200)
+        )
+    
+
 type App(store: IStreamStore, settingsPath) =
     inherit Application()
 
     override this.Initialize() =
-        let theme = new MaterialTheme(null)        
-        theme.PrimaryColor <- PrimaryColor.Red
-        theme.SecondaryColor <- SecondaryColor.Red
-        this.Styles.Add(theme)
+        this.Styles.Add(new JacqedTheme())
         this.Styles.Add(MaterialIconStyles(null))
-        this.Styles.Add(DialogHostStyles())        
+        this.Styles.Add(DialogHostStyles())
 
     override this.OnFrameworkInitializationCompleted() =
         let host =
             match this.ApplicationLifetime with
             | :? ISingleViewApplicationLifetime as lifetime ->
                 let control = HostControl()
-                
+
                 lifetime.MainView <- control
                 (control :> IViewHost) |> Some
             | :? IClassicDesktopStyleApplicationLifetime as lifetime ->
@@ -53,6 +64,7 @@ type App(store: IStreamStore, settingsPath) =
             | _ -> None
 
         let settings = Configuration.load settingsPath
+
         match host with
         | Some hostControl ->
             let subscription _ : Sub<Msg> =
@@ -60,12 +72,16 @@ type App(store: IStreamStore, settingsPath) =
                     this.PropertyChanged.Subscribe(fun e ->
                         if e.Property = Application.ActualThemeVariantProperty then
                             e.GetNewValue<ThemeVariant>() |> (Msg.ActualThemeSelected >> dispatch))
-                [
-                    [ nameof onActualThemeChanged ], onActualThemeChanged
-                ]                
-                    
-            this.RequestedThemeVariant <- ThemeVariant.Default
-            Program.mkProgram (Shell.init store settings) (Shell.update store) Shell.view
+
+                [ [ nameof onActualThemeChanged ], onActualThemeChanged ]
+
+            this.RequestedThemeVariant <- settings.ThemeVariant
+
+            let init = Shell.init store settings
+            let update = Shell.update store
+            let view = Shell.view
+
+            Program.mkProgram init update view
             |> Program.withHost hostControl
             |> Program.withSubscription subscription
 #if DEBUG
