@@ -1,13 +1,16 @@
 ﻿namespace Jacqued
 
 open System
+open System.Threading.Tasks
 open Avalonia.Controls
 open Avalonia.FuncUI.DSL
+open Avalonia.FuncUI.Helpers
 open AvaloniaDialogs.Views
 open Elmish
 open Jacqued.CommandHandlers
 open Jacqued.Controls
 open Jacqued.DSL
+open Jacqued.Data
 open Jacqued.Design
 open Jacqued.Util
 open Material.Icons
@@ -26,6 +29,7 @@ module Shell =
           Screen: Screen
           Dialog: string option
           SetupComplete: bool
+          RestoringBackup: bool
           Settings: Settings }
 
         static member zero =
@@ -35,13 +39,15 @@ module Shell =
               Screen = Setup
               Dialog = None
               SetupComplete = false
+              RestoringBackup = false
               Settings = Settings.zero }
 
-    type Results =
+    type private Update =
         | State of State
-        | Cmd of Result<Event list, exn>
+        | Events of Result<Event list, exn>
+        | Cmd of Cmd<Msg>
 
-    let update (store: IStreamStore) msg state =
+    let rec update (store: IStreamStore) (backupManager: IBackupManager) msg state =
         let read = EventStorage.readStream store
         let append = EventStorage.appendToStream store
 
@@ -60,18 +66,36 @@ module Shell =
             match msg with
             | Msg.ApplicationError error ->
                 [ let dialog, result = "", Cmd.none
-                  yield { state with Dialog = dialog |> Some } |> Results.State ]
+                  yield { state with Dialog = dialog |> Some } |> Update.State ]
+            | Backup ->
+                backupManager.backup () |> Async.RunSynchronously
+                [ state |> Update.State ]
+            | BeginRestore ->
+                [ Cmd.OfAsync.either backupManager.restore () (fun _ -> CompleteRestore) (fun ex ->
+                      eprintfn $"%s{ex.ToString()}"
+                      CompleteRestore)
+                  |> Update.Cmd
+                  { state with RestoringBackup = true } |> Update.State ]
+            | CompleteRestore ->
+                let state' =
+                    Seq.fold
+                        (fun state event -> (update store backupManager event state) |> fst)
+                        { State.zero with
+                            State.Settings = state.Settings }
+                        ((EventStorage.readAll store) |> Seq.map Msg.Event)
+
+                [ { state' with RestoringBackup = false } |> Update.State ]
             | _ ->
                 try
                     [ let setup, result = Setup.update gym msg state.Setup
-                      yield result |> Results.Cmd
+                      yield result |> Update.Events
 
                       let progress = Progress.update msg state.Progress
 
                       let workout, result =
                           Workout.update (fun () -> DateOnly.today) mesocycle msg state.Workout
 
-                      yield result |> Results.Cmd
+                      yield result |> Update.Events
 
                       let settings, result = Configuration.update msg state.Settings
 
@@ -81,21 +105,22 @@ module Shell =
                               Progress = progress
                               Workout = workout
                               Settings = settings }
-                          |> Results.State ]
+                          |> Update.State ]
                 with exn ->
-                    [ exn |> Result.Error |> Results.Cmd ]
+                    [ exn |> Result.Error |> Update.Events ]
 
         let cmd =
             results
             |> Seq.map (fun result ->
                 match result with
                 | State _ -> Seq.empty
-                | Cmd results ->
-                    match results with
-                    | Result.Ok events -> events |> Seq.map Msg.Event
-                    | Result.Error err -> [ err.Message |> ApplicationError.Message |> Msg.ApplicationError ]) // TODO make dialog message
+                | Cmd cmd -> seq { cmd }
+                | Events results ->
+                    (match results with
+                     | Result.Ok events -> events |> Seq.map Msg.Event
+                     | Result.Error err -> [ err.Message |> ApplicationError.Message |> Msg.ApplicationError ])
+                    |> Seq.map (fun msg -> msg |> Cmd.ofMsg))
             |> Seq.concat
-            |> Seq.map (fun msg -> msg |> Cmd.ofMsg)
             |> Cmd.batch
 
         let state' =
@@ -103,16 +128,46 @@ module Shell =
             | None -> state
             | Some item ->
                 match item with
-                | Results.Cmd _ -> state
-                | Results.State state -> state
+                | Update.State state -> state
+                | _ -> state
 
         { state' with
             SetupComplete = setupComplete },
         cmd
 
     let view state dispatch =
+        let backupClick _ = Msg.Backup |> dispatch
+        let restoreClick _ = Msg.BeginRestore |> dispatch
+
+        let appBar =
+            TopAppBar.create [
+                TopAppBar.title "Jacqued"
+                TopAppBar.trailing [
+                    FlatButton.create [
+                        DockPanel.dock Dock.Right
+                        FlatButton.content MaterialIconKind.BackupRestore
+                        FlatButton.onClick backupClick
+                    ]
+                    FlatButton.create [
+                        DockPanel.dock Dock.Right
+                        FlatButton.content MaterialIconKind.Restore
+                        FlatButton.onClick restoreClick
+                    ]
+                ]
+                DockPanel.dock Dock.Top
+            ]
+
+        let progress =
+            if state.RestoringBackup then
+                ProgressBar.create [ ProgressBar.isIndeterminate true; DockPanel.dock Dock.Top ]
+                |> generalize
+            else
+                StackPanel.create [ StackPanel.margin (0, 4, 0, 0); DockPanel.dock Dock.Top ]
+
         let tabs =
             TabControl.create [
+                DockPanel.dock Dock.Bottom
+                TabControl.isEnabled (state.RestoringBackup |> not)
                 TabControl.tabStripPlacement Dock.Bottom
                 TabControl.viewItems [
                     if state.SetupComplete then
@@ -137,22 +192,31 @@ module Shell =
             ]
 
         ReactiveDialogHost.create [
-            ReactiveDialogHost.content (Panel.create [ Panel.margin 16; Panel.children [ tabs ] ])
+            ReactiveDialogHost.content (DockPanel.create [ DockPanel.margin 16; DockPanel.children [ appBar; progress; tabs ] ])
         ]
 
     let init store (settings: Settings) () =
         let events =
             seq {
                 yield settings |> Msg.ConfigurationSettingsLoaded
-                
-                yield Theme.get() |> Msg.ActualThemeSelected 
-                
+
+                yield Theme.get () |> Msg.ActualThemeSelected
+
                 yield! (EventStorage.readAll store) |> Seq.map Msg.Event
             }
 
-        Seq.fold
-            (fun (state, _) event -> update store event state)
-            ({ State.zero with
-                State.Settings = settings },
-             Cmd.none)
-            events
+        let noopBackupManager =
+            { new IBackupManager with
+                member this.backup() = Task.CompletedTask |> Async.AwaitTask
+                member this.restore() = Task.CompletedTask |> Async.AwaitTask }
+
+        let update = update store noopBackupManager
+
+        let state =
+            Seq.fold
+                (fun state event -> update event state |> fst)
+                { State.zero with
+                    State.Settings = settings }
+                events
+
+        state, Cmd.none

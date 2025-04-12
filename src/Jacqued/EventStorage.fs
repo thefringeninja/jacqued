@@ -15,6 +15,7 @@ type WeightConverter() =
 
 type BarConverter() =
     inherit JsonConverter<Bar>()
+
     override this.Read(reader, _, _) =
         match (reader.GetDecimal() |> Weight) with
         | weight when weight <= Weight.zero -> Bar.zero
@@ -34,13 +35,13 @@ type PlatePairConverter() =
 
 type DateOnlyConverter() =
     inherit JsonConverter<DateOnly>()
-    
+
     override this.Read(reader, _, _) =
         reader.GetDateTime() |> DateOnly.FromDateTime
 
-    override this.Write(writer, value, _) =        
-        "O" |> value.ToString |> writer.WriteStringValue 
-    
+    override this.Write(writer, value, _) =
+        "O" |> value.ToString |> writer.WriteStringValue
+
 let options =
     JsonFSharpOptions()
         .WithUnionAdjacentTag()
@@ -105,13 +106,21 @@ let private serialize (event: Event) =
 
     NewStreamMessage(Guid.NewGuid(), eventType, data)
 
+let excludeSystemEvents (message: StreamMessage) = message.Type.StartsWith("$") |> not
+
 let readStream (store: IReadonlyStreamStore) streamName =
     let stream = store.ReadStreamForwards streamName
-    stream.ToBlockingEnumerable() |> Seq.map deserialize
+
+    stream.ToBlockingEnumerable()
+    |> Seq.filter excludeSystemEvents
+    |> Seq.map deserialize
 
 let readAll (store: IReadonlyStreamStore) =
     let stream = store.ReadAllForwards()
-    stream.ToBlockingEnumerable() |> Seq.map deserialize
+
+    stream.ToBlockingEnumerable()
+    |> Seq.filter excludeSystemEvents
+    |> Seq.map deserialize
 
 let appendToStream (store: IStreamStore) (streamName: string) version events =
     let streamStoreVersion = if version = -1 then -3 else version

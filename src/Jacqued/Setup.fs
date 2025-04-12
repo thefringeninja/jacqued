@@ -9,8 +9,10 @@ open Avalonia.Layout
 open Avalonia.Styling
 open Jacqued.Controls
 open Jacqued.DSL
+open Jacqued.Data
 open Jacqued.Helpers
 open Material.Icons
+open Material.Icons.Avalonia
 
 type State =
     { Bar: Bar
@@ -28,7 +30,7 @@ type State =
           ExerciseDaysPerWeek = ExerciseDaysPerWeek.Four
           SelectedTheme = ThemeVariant.Default }
 
-let update handler msg (state:State) =
+let update handler msg (state: State) =
     match msg with
     | Event e ->
         match e with
@@ -156,68 +158,64 @@ let private gymSetup (state: State) (dispatch: Msg -> unit) =
             MaterialButton.onClick (onSetupGym, SubPatchOptions.OnChangeOf state)
         ]
 
-    let content =
-        StackPanel.create [
-            StackPanel.orientation Orientation.Vertical
-            StackPanel.children [
-                let format item = $"{item}"
+    StackPanel.create [
+        StackPanel.orientation Orientation.Vertical
+        StackPanel.children [
+            let format item = $"{item}"
 
-                radioButtonGroup
-                    format
-                    ExerciseDaysPerWeek.all
-                    state.ExerciseDaysPerWeek
-                    "Exercise days"
-                    (nameof ExerciseDaysPerWeek)
-                    (ExerciseDaysPerWeekChanged >> dispatch)
+            radioButtonGroup
+                format
+                ExerciseDaysPerWeek.all
+                state.ExerciseDaysPerWeek
+                "Exercise days"
+                (nameof ExerciseDaysPerWeek)
+                (ExerciseDaysPerWeekChanged >> dispatch)
 
-                radioButtonGroup
-                    format
-                    MeasurementSystem.all
-                    state.MeasurementSystem
-                    "Units"
-                    (nameof MeasurementSystem)
-                    (MeasurementSystemChanged >> dispatch)
+            radioButtonGroup
+                format
+                MeasurementSystem.all
+                state.MeasurementSystem
+                "Units"
+                (nameof MeasurementSystem)
+                (MeasurementSystemChanged >> dispatch)
 
-                TextBox.create [
-                    TextBox.label "Barbell"
-                    TextBox.contentType TextInputContentType.Number
-                    TextBox.text $"{state.Bar.Weight}"
-                    TextBox.onTextChanged onBarbellWeightChange
-                    TextBox.margin (0, 0, 0, 16)
-                ]
-
-                WrapPanel.create [
-                    WrapPanel.children [
-                        yield!
-                            PlatePairs.control (
-                                state.MeasurementSystem,
-                                state.Plates,
-                                onPlateRemove,
-                                SubPatchOptions.OnChangeOf state.Plates
-                            )
-
-                        yield
-                            TextBox.create [
-                                TextBox.minWidth 50
-                                TextBox.contentType TextInputContentType.Number
-                                TextBox.text $"{state.PlateToAdd}"
-                                TextBox.onTextChanged onPlateWeightChange
-                                TextBox.onKeyDown ((onPlateKeyDown state.PlateToAdd), SubPatchOptions.OnChangeOf state.PlateToAdd)
-                                TextBox.margin (0, 0, 0, 16)
-                            ]
-                    ]
-                ]
-
-                buttonBar [ setupGym ]
+            TextBox.create [
+                TextBox.label "Barbell"
+                TextBox.contentType TextInputContentType.Number
+                TextBox.text $"{state.Bar.Weight}"
+                TextBox.onTextChanged onBarbellWeightChange
+                TextBox.margin (0, 0, 0, 16)
             ]
-        ]
 
-    content
+            WrapPanel.create [
+                WrapPanel.children [
+                    yield!
+                        PlatePairs.control (state.MeasurementSystem, state.Plates, onPlateRemove, SubPatchOptions.OnChangeOf state.Plates)
+
+                    yield
+                        TextBox.create [
+                            TextBox.minWidth 50
+                            TextBox.contentType TextInputContentType.Number
+                            TextBox.text $"{state.PlateToAdd}"
+                            TextBox.onTextChanged onPlateWeightChange
+                            TextBox.onKeyDown ((onPlateKeyDown state.PlateToAdd), SubPatchOptions.OnChangeOf state.PlateToAdd)
+                            TextBox.margin (0, 0, 0, 16)
+                        ]
+                ]
+            ]
+
+            buttonBar [ setupGym ]
+        ]
+    ]
 
 let view state dispatch =
     let content =
         StackPanel.create [
-            StackPanel.children [ themeSelector state dispatch; Separator.create []; gymSetup state dispatch ]
+            StackPanel.children [
+                themeSelector state dispatch
+                Separator.create []
+                gymSetup state dispatch
+            ]
         ]
 
     layout content

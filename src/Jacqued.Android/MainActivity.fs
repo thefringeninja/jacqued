@@ -33,7 +33,13 @@ type MainActivity() =
         Android.App.Application.Context.GetExternalFilesDir(null).Path
 
     let streamStore = MainActivity.createStreamStore dataSourceDirectory
-    let settingsPath = Path.Combine(dataSourceDirectory, "settings.json")
+    let settingsFile = FileInfo(Path.Combine(dataSourceDirectory, "settings.json"))
+    let backupsDirectory =
+        DirectoryInfo(
+                Android.App.Application.Context
+                    .GetExternalFilesDir(Android.OS.Environment.DirectoryDocuments)
+                    .Path
+            )
 
     static member createStreamStore(dataSourceDirectory) =
         let store =
@@ -49,7 +55,7 @@ type MainActivity() =
         store
 
     override _.CreateAppBuilder() =
-        AppBuilder.Configure<App>(fun () -> App(streamStore, settingsPath)).UseAndroid()
+        AppBuilder.Configure<App>(fun () -> App(streamStore, settingsFile, backupsDirectory)).UseAndroid()
 
     override this.Dispose(disposing) =
         streamStore.Dispose()

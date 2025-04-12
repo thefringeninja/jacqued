@@ -2,14 +2,15 @@ module Jacqued.DSL
 
 open Avalonia
 open Avalonia.Controls
+open Avalonia.FuncUI
 open Avalonia.FuncUI.Builder
 open Avalonia.FuncUI.DSL
-open Avalonia.FuncUI.Helpers
 open Avalonia.FuncUI.Types
 open Avalonia.Input
 open Avalonia.Layout
 open Avalonia.Media
 open Jacqued
+open Jacqued.Design
 open Material.Icons
 open Material.Icons.Avalonia
 open Material.Styles.Assists
@@ -142,11 +143,106 @@ module FloatingButton =
             FloatingButton.content (buttonContent text (iconKind |> Some) Orientation.Horizontal)
 
 [<AutoOpen>]
+module FlatButton =
+    open Jacqued.Controls
+
+    let create (attrs: IAttr<FlatButton> list) : IView<FlatButton> =
+        ViewBuilder.Create<FlatButton>(
+            [ attrs; [ FlatButton.padding 0; FlatButton.theme Theme.Controls.flatButton ] ]
+            |> List.concat
+        )
+
+    type FlatButton with
+        static member content<'t when 't :> FlatButton>(text: string, ?iconKind: MaterialIconKind) : IAttr<'t> =
+            FlatButton.content (buttonContent (text |> Some) iconKind Orientation.Horizontal)
+
+        static member content<'t when 't :> FlatButton>(iconKind: MaterialIconKind) : IAttr<'t> =
+            FlatButton.content (buttonContent None (iconKind |> Some) Orientation.Horizontal)
+
+[<AutoOpen>]
+module TopAppBar =
+    open Jacqued.Controls
+
+    let create (attrs: IAttr<TopAppBar> list) : IView<TopAppBar> =
+        let title =
+            attrs
+            |> List.tryPick (fun attr ->
+                match attr.Property with
+                | ValueSome property ->
+                    match property.Accessor with
+                    | Accessor.AvaloniaProperty avaloniaProperty when avaloniaProperty = TopAppBar.TitleProperty ->
+                        (property.Value |> string) |> Some
+                    | _ -> None
+                | ValueNone -> None)
+
+        let trailing =
+            attrs
+            |> List.choose (fun attr ->
+                match attr.Content with
+                | ValueSome property ->
+                    match property.Accessor with
+                    | Accessor.InstanceProperty ip when ip.Name = nameof Unchecked.defaultof<TopAppBar>.Trailing ->
+                        property.Content |> Some
+                    | _ -> None
+                | _ -> None)
+
+        ViewBuilder.Create<TopAppBar>(
+            [ [ TopAppBar.horizontalAlignment HorizontalAlignment.Stretch
+                TopAppBar.verticalAlignment VerticalAlignment.Top
+                TopAppBar.focusable false
+
+                TopAppBar.content (
+                    DockPanel.create [
+                        DockPanel.children [
+                            yield!
+                                trailing
+                                |> List.map (fun content ->
+                                    match content with
+                                    | ViewContent.Single s ->
+                                        seq {
+                                            if s.IsSome then
+                                                yield s.Value
+                                        }
+                                    | ViewContent.Multiple m -> m)
+                                |> Seq.concat
+
+                            yield
+                                TextBlock.create [
+                                    DockPanel.dock Dock.Left
+                                    TextBlock.verticalAlignment VerticalAlignment.Center
+                                    TextBlock.fontSize 20
+                                    match title with
+                                    | Some title -> TextBlock.text title
+                                    | None -> ()
+                                ]
+                        ]
+                    ]
+
+                ) ]
+              attrs ]
+            |> List.concat
+        )
+
+    type TopAppBar with
+        static member title<'t when 't :> TopAppBar>(text: string) : IAttr<'t> =
+            AttrBuilder.CreateProperty<string>(TopAppBar.TitleProperty, text, ValueNone)
+
+        static member trailing<'t, 'tbutton when 't :> TopAppBar and 'tbutton :> Button>(views: IView<'tbutton> list) : IAttr<'t> =
+            let getter: ('t -> obj) = (fun control -> control.Trailing :> obj)
+
+            AttrBuilder.CreateContentMultiple(
+                nameof Unchecked.defaultof<'t>.Trailing,
+                ValueSome getter,
+                ValueNone,
+                (views
+                 |> List.map (fun view -> ViewBuilder.Create<'tbutton>([ view.Attrs; [ 'tbutton.margin (0, 12) ] ] |> List.concat) :> IView))
+            )
+
+[<AutoOpen>]
 module Separator =
     let create (attrs: IAttr<Separator> list) : IView<Separator> = ViewBuilder.Create<Separator>(attrs)
 
-    type Separator with end
-
+    type Separator() = class end
 
 [<AutoOpen>]
 module CartesianChart =
