@@ -1,6 +1,8 @@
 ﻿namespace Jacqued
 
+open System
 open Avalonia
+open Avalonia.Controls
 open Avalonia.Controls.ApplicationLifetimes
 open Avalonia.FuncUI.Elmish
 open Avalonia.FuncUI.Hosts
@@ -8,6 +10,7 @@ open Avalonia.Input
 open Avalonia.Styling
 open DialogHostAvalonia
 open Elmish
+open Jacqued.Data
 open Material.Colors.Recommended
 open Material.Icons.Avalonia
 open Material.Styles.Themes
@@ -36,7 +39,7 @@ type private JacqedTheme() as this =
             CustomMaterialThemeResources(PrimaryColor = RedSwatch.Red200, SecondaryColor = AmberSwatch.Amber200)
         )
 
-type App(store: IStreamStore, settingsPath) =
+type App(store: IStreamStore, settingsFile, backupsDirectory) =
     inherit Application()
 
     override this.Initialize() =
@@ -51,18 +54,18 @@ type App(store: IStreamStore, settingsPath) =
                 let control = HostControl()
 
                 lifetime.MainView <- control
-                (control :> IViewHost) |> Some
+                ((control :> IViewHost), TopLevel.GetTopLevel(control).StorageProvider) |> Some
             | :? IClassicDesktopStyleApplicationLifetime as lifetime ->
                 let main = MainWindow()
 
                 lifetime.MainWindow <- main
-                (main :> IViewHost) |> Some
+                ((main :> IViewHost), main.StorageProvider) |> Some
             | _ -> None
 
-        let settings = Configuration.load settingsPath
+        let settings = Configuration.load settingsFile
 
         match host with
-        | Some hostControl ->
+        | Some(hostControl, storageProvider) ->
             let subscription _ : Sub<Msg> =
                 let onActualThemeChanged dispatch =
                     this.PropertyChanged.Subscribe(fun e ->
@@ -73,8 +76,11 @@ type App(store: IStreamStore, settingsPath) =
 
             this.RequestedThemeVariant <- settings.ThemeVariant
 
+            let backupManager =
+                BackupManager(store, storageProvider, backupsDirectory, (fun () -> DateTime.Now))
+
             let init = Shell.init store settings
-            let update = Shell.update store
+            let update = Shell.update store backupManager
             let view = Shell.view
 
             Program.mkProgram init update view
