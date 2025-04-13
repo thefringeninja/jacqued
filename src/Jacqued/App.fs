@@ -14,20 +14,17 @@ open Material.Styles.Themes
 open SqlStreamStore
 
 type MainWindow() =
-    inherit HostWindow()
+    inherit HostWindow(Title = nameof Jacqued, Height = 915.0, Width = 412.0)
 
-    do
-        base.Title <- nameof Jacqued
-        base.Height <- 915.0
-        base.Width <- 412.0
 #if DEBUG
-        base.AttachDevTools(KeyGesture(Key.F12))
+    do base.AttachDevTools(KeyGesture(Key.F12))
 #endif
 
 #nowarn "3261"
 
 type private JacqedTheme() as this =
     inherit CustomMaterialTheme(null)
+
     do
         this.Palettes.Add(
             ThemeVariant.Light,
@@ -38,7 +35,6 @@ type private JacqedTheme() as this =
             ThemeVariant.Dark,
             CustomMaterialThemeResources(PrimaryColor = RedSwatch.Red200, SecondaryColor = AmberSwatch.Amber200)
         )
-    
 
 type App(store: IStreamStore, settingsPath) =
     inherit Application()

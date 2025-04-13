@@ -12,21 +12,21 @@ module Program =
     let main (args: string[]) =
         let dataSourceDirectory =
             DirectoryInfo(Path.Combine((Environment.GetFolderPath Environment.SpecialFolder.LocalApplicationData), "Jacqued"))
+
+        dataSourceDirectory.Create()
+
         let settingsPath = Path.Combine(dataSourceDirectory.FullName, "settings.json")
 
-        use store = 
-            dataSourceDirectory.Create()
+        use store =
+            new SqliteStreamStore(
+                SqliteStreamStoreSettings(
+                    SqliteConnectionStringBuilder(DataSource = Path.Combine(dataSourceDirectory.FullName, "Jacqued.db"))
+                        .ToString(),
+                    GetUtcNow = (fun () -> DateTime.UtcNow)
+                )
+            )
 
-            let dataSource = Path.Combine(dataSourceDirectory.FullName, "Jacqued.db")
-
-            let cs = SqliteConnectionStringBuilder()
-            cs.DataSource <- dataSource
-
-            let settings = SqliteStreamStoreSettings(cs.ToString())
-            settings.GetUtcNow <- (fun () -> DateTime.UtcNow)
-            let store = new SqliteStreamStore(settings)
-            store.CreateSchemaIfNotExists()
-            store
+        store.CreateSchemaIfNotExists()
 
         AppBuilder
             .Configure<App>(fun () -> App(store, settingsPath))

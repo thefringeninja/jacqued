@@ -1,16 +1,9 @@
 ﻿module Jacqued.CommandHandlers
 
 let private fold state evolve events =
-    let mutable expectedVersion = -1
+    let acc (ev, s) e = ev + 1, evolve s e
 
-    let acc s e =
-        let s' = evolve s e
-        expectedVersion <- expectedVersion + 1
-        s'
-
-    let state' = Seq.fold acc state events
-
-    expectedVersion, state'
+    Seq.fold acc (-1, state) events
 
 module Gym =
     open Gym

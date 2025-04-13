@@ -18,36 +18,31 @@ open SqlStreamStore
            WindowSoftInputMode = SoftInput.AdjustResize,
            MainLauncher = true,
            ConfigurationChanges = (ConfigChanges.Orientation ||| ConfigChanges.ScreenSize ||| ConfigChanges.UiMode))>]
-type MainActivity() as this =
+type MainActivity() =
     inherit AvaloniaMainActivity()
 
-    [<DefaultValue(false)>]
-    val mutable streamStore: IStreamStore
+    let dataSourceDirectory =
+        Android.App.Application.Context.GetExternalFilesDir(null).Path
 
-    [<DefaultValue(false)>]
-    val mutable settingsPath: string
+    let streamStore = MainActivity.createStreamStore dataSourceDirectory
+    let settingsPath = Path.Combine(dataSourceDirectory, "settings.json")
 
-    do
-        let dataSourceDirectory = Android.App.Application.Context.GetExternalFilesDir(null).Path
-        this.streamStore <- MainActivity.createStreamStore dataSourceDirectory
-        this.settingsPath <- Path.Combine(dataSourceDirectory, "settings.json")
+    static member createStreamStore(dataSourceDirectory) =
+        let store =
+            new SqliteStreamStore(
+                SqliteStreamStoreSettings(
+                    SqliteConnectionStringBuilder(DataSource = Path.Combine(dataSourceDirectory, "jacqued.db"))
+                        .ToString(),
+                    GetUtcNow = (fun () -> DateTime.UtcNow)
+                )
+            )
 
-    static member createStreamStore(dataSourceDirectory) =        
-        let dataSource = Path.Combine(dataSourceDirectory, "jacqued.db")
-
-        let cs = SqliteConnectionStringBuilder()
-        cs.DataSource <- dataSource
-
-        let settings = SqliteStreamStoreSettings(cs.ToString())
-        settings.GetUtcNow <- (fun () -> DateTime.UtcNow)
-
-        let store = new SqliteStreamStore(settings)
         store.CreateSchemaIfNotExists()
         store
 
     override _.CreateAppBuilder() =
-        AppBuilder.Configure<App>(fun () -> App(this.streamStore, this.settingsPath)).UseAndroid()
+        AppBuilder.Configure<App>(fun () -> App(streamStore, settingsPath)).UseAndroid()
 
     override this.Dispose(disposing) =
-        this.streamStore.Dispose()
+        streamStore.Dispose()
         base.Dispose(disposing)
