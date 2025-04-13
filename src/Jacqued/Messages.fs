@@ -19,6 +19,7 @@ type Msg =
     | Backup
     | BeginRestore
     | CompleteRestore
+    | CompleteRestoreFailed of string
     | StartMesocycle of MesocycleId * Exercise * Weight * DateOnly * Bar * PlatePair list
     | OneRepMaxChanged of Weight
     | StartDateChanged of DateOnly
