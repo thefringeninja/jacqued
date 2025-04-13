@@ -340,39 +340,3 @@ module ReactiveDialogHost =
         static member closeKey<'t when 't :> ReactiveDialogHost>(value: Key) : IAttr<'t> =
             AttrBuilder<'t>
                 .CreateProperty<Key>(property = ReactiveDialogHost.CloseKeyProperty, value = value, comparer = ValueNone)
-
-[<AutoOpen>]
-module TwofoldDialog =
-    open AvaloniaDialogs.Views
-
-    let create (attrs: IAttr<TwofoldDialog> list) : IView<TwofoldDialog> =
-        ViewBuilder.Create<TwofoldDialog>(attrs)
-
-    type TwofoldDialog with
-        static member message<'t when 't :> TwofoldDialog>(value: string) : IAttr<'t> =
-            AttrBuilder<'t>
-                .CreateProperty<string>(property = TwofoldDialog.MessageProperty, value = value, comparer = ValueNone)
-
-        static member positiveText<'t when 't :> TwofoldDialog>(value: string) : IAttr<'t> =
-            AttrBuilder<'t>
-                .CreateProperty<string>(property = TwofoldDialog.PositiveTextProperty, value = value, comparer = ValueNone)
-
-        static member negativeText<'t when 't :> TwofoldDialog>(value: string) : IAttr<'t> =
-            AttrBuilder<'t>
-                .CreateProperty<string>(property = TwofoldDialog.NegativeTextProperty, value = value, comparer = ValueNone)
-
-[<AutoOpen>]
-module SingleActionDialog =
-    open AvaloniaDialogs.Views
-
-    let create (attrs: IAttr<SingleActionDialog> list) : IView<SingleActionDialog> =
-        ViewBuilder.Create<SingleActionDialog>(attrs)
-
-    type SingleActionDialog with
-        static member message<'t when 't :> SingleActionDialog>(value: string) : IAttr<'t> =
-            AttrBuilder<'t>
-                .CreateProperty<string>(property = SingleActionDialog.MessageProperty, value = value, comparer = ValueNone)
-
-        static member buttonText<'t when 't :> SingleActionDialog>(value: string) : IAttr<'t> =
-            AttrBuilder<'t>
-                .CreateProperty<string>(property = SingleActionDialog.ButtonTextProperty, value = value, comparer = ValueNone)

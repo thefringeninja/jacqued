@@ -3,8 +3,10 @@
 open System
 open System.Threading.Tasks
 open Avalonia.Controls
+open Avalonia.Data
 open Avalonia.FuncUI.DSL
 open Avalonia.FuncUI.Helpers
+open Avalonia.Threading
 open AvaloniaDialogs.Views
 open Elmish
 open Jacqued.CommandHandlers
@@ -27,7 +29,6 @@ module Shell =
           Workout: Workout.State
           Progress: Progress.State
           Screen: Screen
-          Dialog: string option
           SetupComplete: bool
           RestoringBackup: bool
           Settings: Settings }
@@ -37,7 +38,6 @@ module Shell =
               Workout = Workout.State.zero
               Progress = Progress.State.zero
               Screen = Setup
-              Dialog = None
               SetupComplete = false
               RestoringBackup = false
               Settings = Settings.zero }
@@ -65,15 +65,28 @@ module Shell =
         let results =
             match msg with
             | Msg.ApplicationError error ->
-                [ let dialog, result = "", Cmd.none
-                  yield { state with Dialog = dialog |> Some } |> Update.State ]
+                let message =
+                    match error with
+                    | Exception ex -> ex.Message
+                    | Message message -> message
+
+                do
+                    Dispatcher.UIThread.InvokeAsync<Optional<EventArgs>>(fun _ ->
+                        SingleActionDialog(Message = message, ButtonText = "OK").ShowAsync())
+                    |> Async.AwaitTask
+                    |> Async.Ignore
+                    |> ignore
+
+                []
             | Backup ->
                 backupManager.backup () |> Async.RunSynchronously
                 [ state |> Update.State ]
             | BeginRestore ->
                 [ Cmd.OfAsync.either backupManager.restore () (fun _ -> CompleteRestore) (fun ex ->
-                      eprintfn $"%s{ex.ToString()}"
-                      CompleteRestore)
+                      (match ex with
+                       | :? AggregateException as ex -> ex.Flatten().Message
+                       | _ -> ex.Message)
+                      |> CompleteRestoreFailed)
                   |> Update.Cmd
                   { state with RestoringBackup = true } |> Update.State ]
             | CompleteRestore ->
@@ -85,6 +98,9 @@ module Shell =
                         ((EventStorage.readAll store) |> Seq.map Msg.Event)
 
                 [ { state' with RestoringBackup = false } |> Update.State ]
+            | CompleteRestoreFailed message ->
+                [ message |> Message |> Msg.ApplicationError |> Cmd.ofMsg |> Update.Cmd
+                  { state with RestoringBackup = false } |> Update.State ]
             | _ ->
                 try
                     [ let setup, result = Setup.update gym msg state.Setup
