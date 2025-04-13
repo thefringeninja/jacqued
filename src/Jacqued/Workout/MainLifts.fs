@@ -72,10 +72,8 @@ let view (state: State) dispatch =
     let onFailRepSetClick _ =
         Dispatcher.UIThread.Post(fun _ ->
             async {
-                let dialog = TwofoldDialog()
-                dialog.Message <- "Are you sure?"
-                dialog.PositiveText <- "yes"
-                dialog.NegativeText <- "no"
+                let dialog =
+                    TwofoldDialog(Message = "Are you sure?", PositiveText = "yes", NegativeText = "no")
 
                 let! result = dialog.ShowAsync() |> Async.AwaitTask
 
@@ -156,9 +154,7 @@ let view (state: State) dispatch =
 
                 WrapPanel.create [
                     WrapPanel.orientation Orientation.Horizontal
-                    WrapPanel.children (
-                        PlatePairs.control (state.MeasurementSystem, lift.Plates)
-                    )
+                    WrapPanel.children (PlatePairs.control (state.MeasurementSystem, lift.Plates))
                 ]
 
                 buttonBar [ completeRepSet; failRepSet ]

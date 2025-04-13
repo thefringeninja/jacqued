@@ -7,13 +7,15 @@ open Jacqued.EventStorage
 open Microsoft.Data.Sqlite
 open SqlStreamStore
 
-let handler (count, output:FileInfo) =
-    let cs = SqliteConnectionStringBuilder()
-    cs.DataSource <- output.FullName
+let handler (count, output: FileInfo) =
+    use streamStore =
+        new SqliteStreamStore(
+            SqliteStreamStoreSettings(
+                SqliteConnectionStringBuilder(DataSource = output.FullName).ToString(),
+                GetUtcNow = (fun () -> DateTime.UtcNow)
+            )
+        )
 
-    let settings = SqliteStreamStoreSettings(cs.ToString())
-    settings.GetUtcNow <- (fun () -> DateTime.UtcNow)
-    use streamStore = new SqliteStreamStore(settings)
     streamStore.CreateSchemaIfNotExists()
 
     let events = Generator.generate count
