@@ -1,4 +1,4 @@
-module Summary
+module Jacqued.Workout.Summary
 
 open System
 open Avalonia.Controls

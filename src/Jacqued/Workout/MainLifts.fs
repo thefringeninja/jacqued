@@ -1,4 +1,4 @@
-module MainLifts
+module Jacqued.Workout.MainLifts
 
 open System
 open Avalonia.Controls
@@ -12,6 +12,7 @@ open Jacqued.Controls
 open Jacqued.DSL
 open Jacqued.Design
 open Jacqued.Helpers
+open Jacqued.Workout.Types
 open Jacqued.Util
 open Material.Icons
 

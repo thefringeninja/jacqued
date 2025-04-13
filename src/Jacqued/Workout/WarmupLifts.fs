@@ -1,4 +1,4 @@
-module WarmupLifts
+module Jacqued.Workout.WarmupLifts
 
 open System
 open Avalonia.Controls
@@ -9,6 +9,7 @@ open Jacqued
 open Jacqued.Controls
 open Jacqued.DSL
 open Jacqued.Helpers
+open Jacqued.Workout.Types
 open Material.Icons
 
 type Exercises = Map<Exercise, uint * Wave * Lift list>

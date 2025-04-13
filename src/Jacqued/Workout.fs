@@ -1,7 +1,9 @@
-﻿module Workout
+﻿[<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
+module Jacqued.Workout
 
 open System
 open Jacqued
+open Jacqued.Workout
 
 type Screen =
     | StartMesocycle
