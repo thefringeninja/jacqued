@@ -1,4 +1,4 @@
-module StartMesocycle
+module Jacqued.Workout.StartMesocycle
 
 open System
 open Avalonia.Controls

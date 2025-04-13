@@ -1,4 +1,4 @@
-module Assistance
+module Jacqued.Workout.Assistance
 
 open System
 open Avalonia.Controls
