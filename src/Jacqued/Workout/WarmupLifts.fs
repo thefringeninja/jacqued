@@ -46,22 +46,22 @@ let view (state: State) dispatch =
 
                 yield!
                     set
-                    |> List.map (fun set ->
-                        StackPanel.create [
-                            StackPanel.orientation Orientation.Vertical
-                            StackPanel.children [
-                                Typography.body2 $"Set {set.RepSet}"
-                                Typography.body2 $"Weight: {set.Weight}{state.MeasurementSystem}"
-                                Typography.body2 $"Reps: {set.Reps}"
-                                WrapPanel.create [
-                                    WrapPanel.orientation Orientation.Horizontal
-                                    WrapPanel.children (
-                                        PlatePairs.control (state.MeasurementSystem, set.Plates)
-                                    )
+                    |> List.map (
+                        (fun set ->
+                            StackPanel.create [
+                                StackPanel.orientation Orientation.Vertical
+                                StackPanel.children [
+                                    Typography.body2 $"Set {set.RepSet}"
+                                    Typography.body2 $"Weight: {set.Weight}{state.MeasurementSystem}"
+                                    Typography.body2 $"Reps: {set.Reps}"
+                                    WrapPanel.create [
+                                        WrapPanel.orientation Orientation.Horizontal
+                                        WrapPanel.children (PlatePairs.control (state.MeasurementSystem, set.Plates))
+                                    ]
                                 ]
-                            ]
-                        ])
-                    |> List.map generalize
+                            ])
+                        >> generalize
+                    )
                     |> divide
 
                 let onCompleteWarmupClick _ = Msg.CompleteWarmup |> dispatch

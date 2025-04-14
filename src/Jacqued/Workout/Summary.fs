@@ -46,23 +46,25 @@ let view (state: State) dispatch =
 
                 yield!
                     RepSet.all
-                    |> List.map (fun repSet ->
-
-                        match (completedReps |> Map.tryFind repSet) with
-                        | Some(weight, reps) ->
-                            StackPanel.create [
-                                StackPanel.orientation Orientation.Vertical
-                                StackPanel.children [
-                                    Typography.body2 $"Set {repSet}"
-                                    Typography.body2 $"Weight: {weight}{state.MeasurementSystem}"
-                                    Typography.body2 $"Reps: {reps}"
+                    |> List.map (
+                        (fun repSet ->
+                            match (completedReps |> Map.tryFind repSet) with
+                            | Some(weight, reps) ->
+                                StackPanel.create [
+                                    StackPanel.orientation Orientation.Vertical
+                                    StackPanel.children [
+                                        Typography.body2 $"Set {repSet}"
+                                        Typography.body2 $"Weight: {weight}{state.MeasurementSystem}"
+                                        Typography.body2 $"Reps: {reps}"
+                                    ]
                                 ]
-                            ]
-                        | _ -> StackPanel.create [])
-                    |> List.map generalize
+                            | _ -> StackPanel.create [])
+                        >> generalize
+                    )
                     |> divide
 
-                let onNextExerciseClick _ = exercise |> Msg.ContinueExercise |> dispatch
+                let onNextExerciseClick _ =
+                    exercise |> Msg.ContinueExercise |> dispatch
 
                 let completeWave =
                     MaterialButton.create [

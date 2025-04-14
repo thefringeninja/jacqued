@@ -190,18 +190,11 @@ let update (now: _ -> DateOnly) handler msg state =
                     |> Map.add
                         e.WorkoutPlan.Exercise
                         (e.WorkoutPlan.Sets
-                         |> Map.toSeq
-                         |> Seq.map (fun ((wave, repSet), (weight, reps)) ->
-                             let plates = Calculate.plates state.Bar state.GymPlates weight
-
-                             let lift =
-                                 { Plates = plates
-                                   Weight = weight
-                                   Reps = reps
-                                   RepSet = repSet }
-
-                             ((wave, repSet), lift))
-                         |> Map.ofSeq) },
+                         |> Map.map (fun (_, repSet) (weight, reps) ->
+                             { Plates = Calculate.plates state.Bar state.GymPlates weight
+                               Weight = weight
+                               Reps = reps
+                               RepSet = repSet })) },
             List.empty |> Ok
         | RepSetCompleted e ->
             let mesocycleNumber, mesocycleId, wave, _ = state.Exercises[e.Exercise]

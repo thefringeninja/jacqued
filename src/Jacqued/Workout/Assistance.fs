@@ -74,8 +74,7 @@ let view (state: State) dispatch =
             StackPanel.orientation Orientation.Vertical
             StackPanel.children (
                 [ 0..1..4 ]
-                |> List.map calculateWeight
-                |> List.map calculatePlates
+                |> List.map (calculateWeight >> calculatePlates)
                 |> List.mapi control
                 |> List.map generalize
                 |> divide
@@ -98,7 +97,7 @@ let view (state: State) dispatch =
 
         let comboBox =
             ComboBox.create [
-                ComboBox.viewItems (assistance |> List.map fst |> List.map (Typography.body2 >> generalize))
+                ComboBox.viewItems (assistance |> List.map (fst >> Typography.body2 >> generalize))
                 ComboBox.onSelectedIndexChanged onSelectedAssistanceWorkChange
                 ComboBox.selectedIndex state.SelectedIndex
             ]

@@ -83,7 +83,7 @@ let private radioButtonGroup (format: 't -> string) items selected label groupNa
 
     let radioButtons =
         items
-        |> List.map (fun item ->
+        |> List.map ((fun item ->
             let isChecked = selected = item
 
             RadioButton.create [
@@ -91,8 +91,7 @@ let private radioButtonGroup (format: 't -> string) items selected label groupNa
                 RadioButton.groupName groupName
                 RadioButton.isChecked isChecked
                 RadioButton.onChecked (fun _ -> item |> action)
-            ])
-        |> List.map generalize
+            ]) >> generalize)
 
     StackPanel.create [
         StackPanel.orientation Orientation.Vertical
