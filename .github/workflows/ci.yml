@@ -35,6 +35,7 @@ jobs:
           submodules: true
       - name: restore workloads
         run: dotnet workload restore
+        if: ${{ matrix.runs-on != 'windows' }}
       - name: restore packages
         run: dotnet restore
       - name: build

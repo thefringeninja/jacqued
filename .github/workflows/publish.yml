@@ -32,7 +32,6 @@ jobs:
         run: |
           mkdir -p .keystore
           echo -n "${{ secrets.KEYSTORE }}" | base64 --decode >> .keystore/jacqued.jks
-
       - name: restore workloads
         run: dotnet workload restore src/Jacqued.Android/Jacqued.Android.fsproj
       - name: restore packages
