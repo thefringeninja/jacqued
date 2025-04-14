@@ -15,7 +15,7 @@ module Program =
 
         dataSourceDirectory.Create()
 
-        let settingsPath = Path.Combine(dataSourceDirectory.FullName, "settings.json")
+        let settingsFile = FileInfo(Path.Combine(dataSourceDirectory.FullName, "settings.json"))
 
         use store =
             new SqliteStreamStore(
@@ -29,7 +29,7 @@ module Program =
         store.CreateSchemaIfNotExists()
 
         AppBuilder
-            .Configure<App>(fun () -> App(store, settingsPath))
+            .Configure<App>(fun () -> App(store, settingsFile, dataSourceDirectory))
             .UsePlatformDetect()
             .UseSkia()
             .StartWithClassicDesktopLifetime(args)
