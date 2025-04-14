@@ -23,6 +23,15 @@ type Shade =
     | ``A400`` = 12
     | ``A700`` = 13
 
+let private mapShade (index, color) =
+    let shade =
+        if index < MaterialColor.Brown50 then
+            ((index |> int32) % 14) |> enum<Shade>
+        else
+            (((index - MaterialColor.Brown50) |> int32) % 10) |> enum<Shade>
+
+    shade, color
+
 let palette =
     [ PurpleSwatch() :> ISwatch
       IndigoSwatch()
@@ -33,15 +42,7 @@ let palette =
       CyanSwatch() ]
     |> List.map (fun swatch ->
         swatch.Lookup
-        |> Seq.map (|KeyValue|)
-        |> Seq.map (fun (index, color) ->
-            let shade =
-                if index < MaterialColor.Brown50 then
-                    ((index |> int32) % 14) |> enum<Shade>
-                else
-                    (((index - MaterialColor.Brown50) |> int32) % 10) |> enum<Shade>
-
-            shade, color)
+        |> Seq.map ((|KeyValue|) >> mapShade)
         |> Map.ofSeq)
 
 module Theme =

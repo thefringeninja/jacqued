@@ -22,35 +22,39 @@ type PlatePairs() =
                     | Some count -> Some(count + 1)))
             Map.empty
         |> Map.toList
-        |> List.map (fun (platePair, count) ->
-            let children =
-                [ let rightMargin =
-                      function
-                      | Some _ -> 0
-                      | _ -> 16
+        |> List.map (
+            (fun (platePair, count) ->
+                let children =
+                    [ let rightMargin =
+                          function
+                          | Some _ -> 0
+                          | _ -> 16
 
-                  yield
-                      View.withAttrs
-                          [ TextBlock.margin (12, 0, rightMargin func, 0)
-                            TextBlock.verticalAlignment VerticalAlignment.Center ]
-                          (Typography.body2 $"{platePair.WeightOfEach} {units} (x{count})")
-                      |> generalize
-
-                  if func.IsSome then
                       yield
-                          ContentControl.create [
-                              ContentControl.content (MaterialIcon.create [ MaterialIcon.kind MaterialIconKind.Close ])
-                              ContentControl.margin (8, 0)
-                              ContentControl.onTapped ((fun _ -> func.Value platePair.WeightOfEach), ?subPatchOptions = subPatchOptions)
-                          ] ]
+                          View.withAttrs
+                              [ TextBlock.margin (12, 0, rightMargin func, 0)
+                                TextBlock.verticalAlignment VerticalAlignment.Center ]
+                              (Typography.body2 $"{platePair.WeightOfEach} {units} (x{count})")
+                          |> generalize
 
-            Border.create [
-                Border.cornerRadius 8
-                Border.height 32
-                Border.margin 8
-                Border.borderBrush plateBrush
-                Border.borderThickness 1
-                Border.child (StackPanel.create [ StackPanel.orientation Orientation.Horizontal; StackPanel.children children ])
-            ])
+                      if func.IsSome then
+                          yield
+                              ContentControl.create [
+                                  ContentControl.content (MaterialIcon.create [ MaterialIcon.kind MaterialIconKind.Close ])
+                                  ContentControl.margin (8, 0)
+                                  ContentControl.onTapped (
+                                      (fun _ -> func.Value platePair.WeightOfEach),
+                                      ?subPatchOptions = subPatchOptions
+                                  )
+                              ] ]
 
-        |> List.map generalize
+                Border.create [
+                    Border.cornerRadius 8
+                    Border.height 32
+                    Border.margin 8
+                    Border.borderBrush plateBrush
+                    Border.borderThickness 1
+                    Border.child (StackPanel.create [ StackPanel.orientation Orientation.Horizontal; StackPanel.children children ])
+                ])
+            >> generalize
+        )

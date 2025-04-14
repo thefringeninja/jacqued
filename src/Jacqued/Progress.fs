@@ -29,9 +29,7 @@ open SkiaSharp
 let colors =
     palette
     |> List.take 4
-    |> List.map (fun swatch -> swatch[Shade.``200``])
-    |> List.map _.ToUInt32()
-    |> List.map SKColor
+    |> List.map ((fun swatch -> swatch[Shade.``200``]) >> _.ToUInt32() >> SKColor)
 
 type private ChartTheme =
     { LegendTextPaint: Paint
