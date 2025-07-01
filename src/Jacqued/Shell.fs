@@ -30,7 +30,7 @@ module Shell =
           Progress: Progress.State
           Screen: Screen
           SetupComplete: bool
-          RestoringBackup: bool
+          AsyncOperationInProgress: bool
           Settings: Settings }
 
         static member zero =
@@ -39,13 +39,19 @@ module Shell =
               Progress = Progress.State.zero
               Screen = Setup
               SetupComplete = false
-              RestoringBackup = false
+              AsyncOperationInProgress = false
               Settings = Settings.zero }
 
     type private Update =
         | State of State
         | Events of Result<Event list, exn>
         | Cmd of Cmd<Msg>
+
+    let private exnToError (ex: Exception) =
+        (match ex with
+         | :? AggregateException as ex -> ex.Flatten().Message
+         | _ -> ex.Message)
+        |> Result.Error
 
     let rec update (store: IStreamStore) (backupManager: IBackupManager) msg state =
         let read = EventStorage.readStream store
@@ -78,29 +84,43 @@ module Shell =
                     |> ignore
 
                 []
-            | Backup ->
-                backupManager.backup () |> Async.RunSynchronously
-                [ state |> Update.State ]
-            | BeginRestore ->
-                [ Cmd.OfAsync.either backupManager.restore () (fun _ -> CompleteRestore) (fun ex ->
-                      (match ex with
-                       | :? AggregateException as ex -> ex.Flatten().Message
-                       | _ -> ex.Message)
-                      |> CompleteRestoreFailed)
+            | BeginBackup ->
+                [ Cmd.OfAsync.either backupManager.backup () (Ok >> CompleteBackup) (exnToError >> CompleteBackup)
                   |> Update.Cmd
-                  { state with RestoringBackup = true } |> Update.State ]
-            | CompleteRestore ->
-                let state' =
-                    Seq.fold
-                        (fun state event -> (update store backupManager event state) |> fst)
-                        { State.zero with
-                            State.Settings = state.Settings }
-                        ((EventStorage.readAll store) |> Seq.map Msg.Event)
+                  { state with
+                      AsyncOperationInProgress = true }
+                  |> Update.State ]
+            | CompleteBackup msg ->
+                [ match msg with
+                  | Ok _ -> ()
+                  | Error error -> yield error |> Message |> Msg.ApplicationError |> Cmd.ofMsg |> Update.Cmd
+                  yield
+                      { state with
+                          AsyncOperationInProgress = false }
+                      |> Update.State ]
+            | BeginRestore ->
+                [ Cmd.OfAsync.either backupManager.restore () (Ok >> CompleteRestore) (exnToError >> CompleteRestore)
+                  |> Update.Cmd
+                  { state with
+                      AsyncOperationInProgress = true }
+                  |> Update.State ]
+            | CompleteRestore msg ->
+                let state', cmd =
+                    match msg with
+                    | Ok _ ->
+                        Seq.fold
+                            (fun state event -> (update store backupManager event state) |> fst)
+                            { State.zero with
+                                State.Settings = state.Settings }
+                            ((EventStorage.readAll store) |> Seq.map Msg.Event),
+                        Cmd.none
+                    | Error error -> state, error |> Message |> Msg.ApplicationError |> Cmd.ofMsg
 
-                [ { state' with RestoringBackup = false } |> Update.State ]
-            | CompleteRestoreFailed message ->
-                [ message |> Message |> Msg.ApplicationError |> Cmd.ofMsg |> Update.Cmd
-                  { state with RestoringBackup = false } |> Update.State ]
+                [ yield cmd |> Update.Cmd
+                  yield
+                      { state' with
+                          AsyncOperationInProgress = false }
+                      |> Update.State ]
             | _ ->
                 try
                     [ let setup, result = Setup.update gym msg state.Setup
@@ -152,7 +172,7 @@ module Shell =
         cmd
 
     let view state dispatch =
-        let backupClick _ = Msg.Backup |> dispatch
+        let backupClick _ = Msg.BeginBackup |> dispatch
         let restoreClick _ = Msg.BeginRestore |> dispatch
 
         let appBar =
@@ -174,7 +194,7 @@ module Shell =
             ]
 
         let progress =
-            if state.RestoringBackup then
+            if state.AsyncOperationInProgress then
                 ProgressBar.create [ ProgressBar.isIndeterminate true; DockPanel.dock Dock.Top ]
                 |> generalize
             else
@@ -183,7 +203,7 @@ module Shell =
         let tabs =
             TabControl.create [
                 DockPanel.dock Dock.Bottom
-                TabControl.isEnabled (state.RestoringBackup |> not)
+                TabControl.isEnabled (state.AsyncOperationInProgress |> not)
                 TabControl.tabStripPlacement Dock.Bottom
                 TabControl.viewItems [
                     if state.SetupComplete then

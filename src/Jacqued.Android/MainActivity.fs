@@ -3,6 +3,7 @@
 open System
 open System.IO
 open Android.App
+open Android.Content
 open Android.Content.PM
 open Android.Views
 open Avalonia
@@ -26,6 +27,19 @@ open SqlStreamStore
            RoundIcon = "@mipmap/ic_launcher_round"
 #endif
   )>]
+[<IntentFilter([| Intent.ActionView |],
+               Categories = [| Intent.CategoryDefault; Intent.CategoryOpenable |],
+               DataScheme = "file",
+               DataMimeType = "text/csv",
+               DataHost = "*",
+               DataPathPattern = ".*\\csv")>]
+[<IntentFilter([| Intent.ActionCreateDocument |],
+               Categories = [| Intent.CategoryDefault |],
+               DataScheme = "file",
+               DataMimeType = "text/csv",
+               DataHost = "*",
+               DataPathPattern = ".*\\csv")>]
+
 type MainActivity() =
     inherit AvaloniaMainActivity()
 
@@ -34,12 +48,6 @@ type MainActivity() =
 
     let streamStore = MainActivity.createStreamStore dataSourceDirectory
     let settingsFile = FileInfo(Path.Combine(dataSourceDirectory, "settings.json"))
-    let backupsDirectory =
-        DirectoryInfo(
-                Android.App.Application.Context
-                    .GetExternalFilesDir(Android.OS.Environment.DirectoryDocuments)
-                    .Path
-            )
 
     static member createStreamStore(dataSourceDirectory) =
         let store =
@@ -55,7 +63,9 @@ type MainActivity() =
         store
 
     override _.CreateAppBuilder() =
-        AppBuilder.Configure<App>(fun () -> App(streamStore, settingsFile, backupsDirectory)).UseAndroid()
+        AppBuilder
+            .Configure<App>(fun () -> App(streamStore, settingsFile))
+            .UseAndroid()
 
     override this.Dispose(disposing) =
         streamStore.Dispose()

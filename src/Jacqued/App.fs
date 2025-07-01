@@ -39,7 +39,7 @@ type private JacqedTheme() as this =
             CustomMaterialThemeResources(PrimaryColor = RedSwatch.Red200, SecondaryColor = AmberSwatch.Amber200)
         )
 
-type App(store: IStreamStore, settingsFile, backupsDirectory) =
+type App(store: IStreamStore, settingsFile) =
     inherit Application()
 
     override this.Initialize() =
@@ -75,9 +75,9 @@ type App(store: IStreamStore, settingsFile, backupsDirectory) =
                 [ [ nameof onActualThemeChanged ], onActualThemeChanged ]
 
             this.RequestedThemeVariant <- settings.ThemeVariant
-
+            
             let backupManager =
-                BackupManager(store, storageProvider, backupsDirectory, (fun () -> DateTime.Now))
+                BackupManager(store, storageProvider, (fun () -> DateTime.Now))
 
             let init = Shell.init store settings
             let update = Shell.update store backupManager

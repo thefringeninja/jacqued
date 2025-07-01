@@ -7,7 +7,7 @@ open Avalonia.Platform.Storage
 open CsvHelper
 open CsvHelper.Configuration
 open FSharp.Control
-open Jacqued.Util
+
 open SqlStreamStore
 open SqlStreamStore.Streams
 
@@ -36,59 +36,71 @@ type IBackupManager =
     abstract member backup: unit -> Async<unit>
     abstract member restore: unit -> Async<unit>
 
-type BackupManager(store: IStreamStore, storageProvider: IStorageProvider, folder: DirectoryInfo, now: unit -> DateTime) =
+type BackupManager(store: IStreamStore, storageProvider: IStorageProvider, now: unit -> DateTime) =
     interface IBackupManager with
         member this.backup() =
             task {
-                
-                use! folder = storageProvider.TryGetFolderFromPathAsync(folder.FullName)
+                use! folder = storageProvider.TryGetWellKnownFolderAsync(WellKnownFolder.Documents)
 
-                let filename = $"backup_{now ():yyyyMMddThhmmss}.bak"
+                let filename = $"jacqued_backup_{now ():yyyyMMddThhmmss}.csv"
 
-                use! file = folder.CreateFileAsync(filename)
-                use! stream = file.OpenWriteAsync()
-                use writer = new CsvWriter(new StreamWriter(stream), csvConfiguration)
+                let! file =
+                    storageProvider.SaveFilePickerAsync(
+                        FilePickerSaveOptions(
+                            Title = "Save Backup",
+                            SuggestedFileName = filename,
+                            SuggestedStartLocation = folder,
+                            DefaultExtension = "csv",
+                            ShowOverwritePrompt = true
+                        )
+                    )
 
-                let header = Unchecked.defaultof<EventRecord>
+                match file with
+                | null -> ()
+                | file ->
+                    use! stream = file.OpenWriteAsync()
+                    use writer = new CsvWriter(new StreamWriter(stream), csvConfiguration)
 
-                writer.WriteField(nameof header.streamId)
-                writer.WriteField(nameof header.streamVersion)
-                writer.WriteField(nameof header.messageId)
-                writer.WriteField(nameof header.``type``)
-                writer.WriteField(nameof header.data)
-                do! writer.NextRecordAsync()
+                    let header = Unchecked.defaultof<EventRecord>
 
-                let writeRecordAsync (record: EventRecord) =
-                    task {
-                        writer.WriteField(record.streamId)
-                        writer.WriteField<int32>(record.streamVersion)
-                        writer.WriteField<Guid>(record.messageId)
-                        writer.WriteField(record.``type``)
-                        writer.WriteField(record.data)
-                        do! writer.NextRecordAsync()
-                    }
+                    writer.WriteField(nameof header.streamId)
+                    writer.WriteField(nameof header.streamVersion)
+                    writer.WriteField(nameof header.messageId)
+                    writer.WriteField(nameof header.``type``)
+                    writer.WriteField(nameof header.data)
+                    do! writer.NextRecordAsync()
 
-                do!
-                    store.ReadAllForwards()
-                    |> TaskSeq.mapAsync (fun message ->
+                    let writeRecordAsync (record: EventRecord) =
                         task {
-                            let! data = message.GetJsonData()
+                            writer.WriteField(record.streamId)
+                            writer.WriteField<int32>(record.streamVersion)
+                            writer.WriteField<Guid>(record.messageId)
+                            writer.WriteField(record.``type``)
+                            writer.WriteField(record.data)
+                            do! writer.NextRecordAsync()
+                        }
 
-                            return
-                                { messageId = message.MessageId
-                                  streamId = message.StreamId
-                                  streamVersion = message.StreamVersion
-                                  ``type`` = message.Type
-                                  data = data }
+                    do!
+                        store.ReadAllForwards()
+                        |> TaskSeq.mapAsync (fun message ->
+                            task {
+                                let! data = message.GetJsonData()
 
-                        })
-                    |> TaskSeq.iterAsync writeRecordAsync
+                                return
+                                    { messageId = message.MessageId
+                                      streamId = message.StreamId
+                                      streamVersion = message.StreamVersion
+                                      ``type`` = message.Type
+                                      data = data }
+
+                            })
+                        |> TaskSeq.iterAsync writeRecordAsync
             }
             |> Async.AwaitTask
 
         member this.restore() =
             task {
-                let! folder = storageProvider.TryGetFolderFromPathAsync(folder.FullName)
+                let! folder = storageProvider.TryGetWellKnownFolderAsync(WellKnownFolder.Documents)
 
                 let! files =
                     storageProvider.OpenFilePickerAsync(FilePickerOpenOptions(AllowMultiple = false, SuggestedStartLocation = folder))
@@ -105,32 +117,24 @@ type BackupManager(store: IStreamStore, storageProvider: IStorageProvider, folde
                     do! store.clear ()
 
                     do!
-                        taskSeq {
+                        task {
                             while! reader.ReadAsync() do
-                                yield
-                                    { streamId = reader.Item 0
-                                      streamVersion = ((reader.Item 1) |> Int32.Parse) - 1
-                                      messageId = (reader.Item 2) |> Guid.Parse
-                                      ``type`` = reader.Item 3
-                                      data = reader.Item 4 }
-                        }
-                        |> TaskSeq.iterAsync (fun message ->
-                            task {
+                                let streamId = reader.Item 0
+
                                 let expectedVersion =
-                                    if message.streamVersion = -1 then
-                                        -3
-                                    else
-                                        message.streamVersion
+                                    match ((reader.Item 1) |> Int32.Parse) - 1 with
+                                    | -1 -> -3
+                                    | v -> v
+
+                                let messageId = (reader.Item 2) |> Guid.Parse
+                                let messageType = reader.Item 3
+                                let data = reader.Item 4
 
                                 let! appendResult =
-                                    store.AppendToStream(
-                                        message.streamId,
-                                        expectedVersion,
-                                        NewStreamMessage(message.messageId, message.``type``, message.data)
-                                    )
+                                    store.AppendToStream(streamId, expectedVersion, NewStreamMessage(messageId, messageType, data))
 
                                 ()
-                            })
+                        }
                 | _ -> ()
             }
             |> Async.AwaitTask

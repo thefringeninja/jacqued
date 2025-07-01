@@ -29,7 +29,7 @@ module Program =
         store.CreateSchemaIfNotExists()
 
         AppBuilder
-            .Configure<App>(fun () -> App(store, settingsFile, dataSourceDirectory))
+            .Configure<App>(fun () -> App(store, settingsFile))
             .UsePlatformDetect()
             .UseSkia()
             .StartWithClassicDesktopLifetime(args)

@@ -33,10 +33,10 @@
 		<Compile Include="Design.fs" />
 		<Compile Include="CommandHandlers.fs"/>
 		<Compile Include="EventStorage.fs"/>
-		<Compile Include="Data.fs" />
 		<Compile Include="Controls.fs" />
 		<Compile Include="Typography.fs" />
 		<Compile Include="DSL.fs" />
+		<Compile Include="Data.fs" />
 		<Compile Include="Helpers.fs" />
 		<Compile Include="Settings.fs" />
 		<Compile Include="Messages.fs"/>
