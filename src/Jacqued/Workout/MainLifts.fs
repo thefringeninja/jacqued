@@ -23,7 +23,7 @@ type State =
     { CurrentExercise: Exercise
       Exercises: Exercises
       WorkoutPlans: WorkoutPlans
-      StartingAt: DateOnly option
+      StartingAt: DateOnly
       Reps: uint
       MeasurementSystem: MeasurementSystem
       ExerciseDaysPerWeek: ExerciseDaysPerWeek
@@ -50,7 +50,7 @@ type State =
             |> Map.ofList
           Bar = Bar.zero
           GymPlates = []
-          StartingAt = None
+          StartingAt = DateOnly.MinValue
           Reps = 0u
           ActualTheme = ThemeVariant.Default }
 
@@ -62,13 +62,6 @@ let view (state: State) dispatch =
 
     let onCompleteRepSetClick _ =
         (mesocycleId, state.Reps, lift.Weight) |> Msg.CompleteRepSet |> dispatch
-
-    let onExcerciseDateChange (d: Nullable<DateTimeOffset>) =
-        (if d.HasValue then
-             d.Value.Date |> (DateOnly.FromDateTime >> ExerciseDateChanged)
-         else
-             "No date selected" |> Message |> ApplicationError)
-        |> dispatch
 
     let onFailRepSetClick _ =
         Dispatcher.UIThread.Post(fun _ ->
@@ -134,18 +127,10 @@ let view (state: State) dispatch =
                 Typography.headline4 "Workout"
                 Typography.headline5 $"Mesocycle {mesocycleNumber}"
                 Typography.headline6 $"{state.CurrentExercise}, Wave {wave}"
+                Typography.subtitle1 $"{state.StartingAt:d}"
                 Typography.body2 $"Set {lift.RepSet}"
                 Typography.body2 $"Weight: {lift.Weight}{state.MeasurementSystem}"
                 Typography.body2 $"Reps: {lift.Reps}{plus}"
-                DatePicker.create [
-                    DatePicker.selectedDate (
-                        match state.StartingAt with
-                        | Some startingAt -> startingAt.DateTime
-                        | _ -> DateTime.Today
-                    )
-                    DatePicker.horizontalAlignment HorizontalAlignment.Stretch
-                    DatePicker.onSelectedDateChanged onExcerciseDateChange
-                ]
                 DockPanel.create [
                     DockPanel.children [
                         View.withAttrs [ Control.dock Dock.Right ] (segmentedButtonBar [ decreaseReps; increaseReps ])
@@ -164,7 +149,7 @@ let view (state: State) dispatch =
 
     layout content
 
-let update (now: _ -> DateOnly) handler msg state =
+let update handler msg state =
     let nextExercise exercise = exercise |> Exercise.next
 
     match msg with
@@ -180,7 +165,7 @@ let update (now: _ -> DateOnly) handler msg state =
             let mesocycleNumber, _, _, _ = state.Exercises[e.WorkoutPlan.Exercise]
 
             { state with
-                StartingAt = e.StartedAt |> Some
+                StartingAt = e.StartedAt
                 CurrentExercise = e.WorkoutPlan.Exercise
                 Exercises =
                     state.Exercises
@@ -211,7 +196,7 @@ let update (now: _ -> DateOnly) handler msg state =
             { state with
                 Reps = 0u
                 CurrentExercise = e.Exercise |> nextExercise
-                StartingAt = Calculate.nextExerciseDate state.ExerciseDaysPerWeek e.CompletedAt |> Some
+                StartingAt = Calculate.nextExerciseDate state.ExerciseDaysPerWeek e.CompletedAt
 
                 Exercises =
                     state.Exercises
@@ -221,7 +206,7 @@ let update (now: _ -> DateOnly) handler msg state =
             { state with
                 Reps = 0u
                 CurrentExercise = e.Exercise |> nextExercise
-                StartingAt = Calculate.nextExerciseDate state.ExerciseDaysPerWeek e.FailedAt |> Some },
+                StartingAt = Calculate.nextExerciseDate state.ExerciseDaysPerWeek e.FailedAt },
             List.empty |> Ok
         | MesocycleCompleted e ->
             { state with
@@ -230,11 +215,11 @@ let update (now: _ -> DateOnly) handler msg state =
             List.empty |> Ok
     | ExerciseDateChanged date ->
         { state with
-            State.StartingAt = date |> Some },
+            State.StartingAt = date },
         List.empty |> Ok
     | StartDateChanged startingAt ->
         { state with
-            StartingAt = startingAt |> Some },
+            StartingAt = startingAt },
         List.empty |> Ok
     | IncreaseReps ->
         { state with
@@ -251,10 +236,7 @@ let update (now: _ -> DateOnly) handler msg state =
                 { MesocycleId = mesocycleId
                   Reps = reps
                   Weight = weight
-                  CompletedAt =
-                    match state.StartingAt with
-                    | Some date -> date
-                    | _ -> now () }
+                  CompletedAt = state.StartingAt }
         )
     | Msg.FailRepSet(mesocycleId, reps, weight) ->
         state,
@@ -263,10 +245,7 @@ let update (now: _ -> DateOnly) handler msg state =
                 { MesocycleId = mesocycleId
                   Reps = reps
                   Weight = weight
-                  FailedAt =
-                    match state.StartingAt with
-                    | Some date -> date
-                    | _ -> now () }
+                  FailedAt = state.StartingAt }
         )
     | ActualThemeSelected theme -> { state with ActualTheme = theme }, List.empty |> Ok
     | _ -> state, List.empty |> Ok

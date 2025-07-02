@@ -9,6 +9,7 @@ open Jacqued
 open Jacqued.Controls
 open Jacqued.DSL
 open Jacqued.Helpers
+open Jacqued.Util
 open Jacqued.Workout.Types
 open Material.Icons
 
@@ -35,6 +36,13 @@ type State =
 let view (state: State) dispatch =
     let mesocycleNumber, wave, set = state.Exercises[state.CurrentExercise]
 
+    let onExerciseDateChange (d: Nullable<DateTimeOffset>) =
+        (if d.HasValue then
+             d.Value.Date |> (DateOnly.FromDateTime >> ExerciseDateChanged)
+         else
+             "No date selected" |> Message |> ApplicationError)
+        |> dispatch
+
     let content =
         StackPanel.create [
             StackPanel.orientation Orientation.Vertical
@@ -42,7 +50,12 @@ let view (state: State) dispatch =
                 yield Typography.headline4 "Warmup"
                 yield Typography.headline5 $"Mesocycle {mesocycleNumber}"
                 yield Typography.headline6 $"{state.CurrentExercise}, Wave {wave}"
-                yield Typography.subtitle1 $"{state.Date:d}"
+                yield
+                    DatePicker.create [
+                        DatePicker.selectedDate state.Date.DateTime
+                        DatePicker.horizontalAlignment HorizontalAlignment.Stretch
+                        DatePicker.onSelectedDateChanged onExerciseDateChange
+                    ]
 
                 yield!
                     set
@@ -124,4 +137,7 @@ let update msg (state: State) =
                 CurrentExercise = e.Exercise |> Exercise.next
                 Date = e.FailedAt |> Calculate.nextExerciseDate state.ExerciseDaysPerWeek }
         | _ -> state
+    | ExerciseDateChanged date ->
+        { state with
+            State.Date = date }
     | _ -> state
