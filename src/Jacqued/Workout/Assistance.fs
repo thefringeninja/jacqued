@@ -6,6 +6,7 @@ open Avalonia.FuncUI.DSL
 open Avalonia.FuncUI.Helpers
 open Avalonia.Layout
 open Jacqued
+open Jacqued.Calculate
 open Jacqued.Controls
 open Jacqued.DSL
 open Jacqued.Helpers
@@ -19,7 +20,8 @@ type State =
       Mesocycles: Map<Exercise, MesocycleId * Wave * Weight * DateOnly>
       MeasurementSystem: MeasurementSystem
       Bar: Bar
-      GymPlates: PlatePair list }
+      GymPlates: PlatePair list
+      ExerciseDaysPerWeek: ExerciseDaysPerWeek }
 
     static member zero =
         { CurrentExercise = Squats
@@ -30,7 +32,8 @@ type State =
             |> Map.ofList
           MeasurementSystem = Metric
           Bar = Bar.zero
-          GymPlates = [] }
+          GymPlates = []
+          ExerciseDaysPerWeek = ExerciseDaysPerWeek.Four }
 
 type BoringButBig =
     | UpDown
@@ -63,9 +66,7 @@ let view (state: State) dispatch =
 
                     WrapPanel.create [
                         WrapPanel.orientation Orientation.Horizontal
-                        WrapPanel.children (
-                            PlatePairs.control (state.MeasurementSystem, platePairs)
-                        )
+                        WrapPanel.children (PlatePairs.control (state.MeasurementSystem, platePairs))
                     ]
                 ]
             ]
@@ -129,27 +130,48 @@ let update handler msg (state: State) =
             { state with
                 Bar = e.Bar
                 MeasurementSystem = e.MeasurementSystem
+                ExerciseDaysPerWeek = e.ExercisesDaysPerWeek
                 GymPlates = e.Plates },
             List.empty |> Ok
         | MesocycleStarted e ->
             { state with
+                CurrentExercise = e.WorkoutPlan.Exercise
                 Mesocycles =
                     state.Mesocycles
                     |> Map.add e.WorkoutPlan.Exercise (e.MesocycleId, Wave.One, e.TrainingOneRepMax, e.StartedAt) },
             List.empty |> Ok
-        | RepSetCompleted e ->
-            { state with
-                CurrentExercise = e.Exercise },
-            List.empty |> Ok
         | WaveCompleted e ->
             let _, _, trainingMax, date = state.Mesocycles[e.Exercise]
 
+            let date = date |> nextExerciseWaveDate state.ExerciseDaysPerWeek
+
             { state with
+                CurrentExercise = e.Exercise |> Exercise.next
                 Mesocycles =
                     state.Mesocycles
                     |> Map.add e.Exercise (e.MesocycleId, e.Wave |> Wave.next, trainingMax, date) },
             List.empty |> Ok
+        | MesocycleFailed e ->
+            let _, _, trainingMax, date = state.Mesocycles[e.Exercise]
+
+            let date = date |> nextExerciseWaveDate state.ExerciseDaysPerWeek
+
+            { state with
+                CurrentExercise = e.Exercise |> Exercise.next
+                Mesocycles =
+                    state.Mesocycles
+                    |> Map.add e.Exercise (e.MesocycleId, e.Wave |> Wave.next, trainingMax, date) },
+            List.empty |> Ok
+            
         | _ -> state, List.empty |> Ok
+    | ExerciseDateChanged date ->
+        { state with
+            Mesocycles =
+                state.Mesocycles
+                |> Map.change state.CurrentExercise (function
+                    | Some(mesocycleId, wave, weight, _) -> Some(mesocycleId, wave, weight, date)
+                    | _ -> None) },
+        List.empty |> Ok
     | Msg.CompleteWave(mesocycleId, date) ->
         state,
         handler (
