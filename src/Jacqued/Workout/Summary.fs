@@ -102,20 +102,20 @@ let update msg (state: State) =
             { state with
                 CompletedReps = state.CompletedReps |> Map.add state.CurrentExercise completedReps }
         | WaveCompleted e ->
-            let mesocycleNumber, wave, startedAt = state.Exercises[e.Exercise]
+            let mesocycleNumber, wave, _ = state.Exercises[e.Exercise]
 
             { state with
                 CurrentExercise = e.Exercise |> Exercise.next
                 Exercises =
                     state.Exercises
-                    |> Map.add state.CurrentExercise (mesocycleNumber, wave |> Wave.next, startedAt) }
+                    |> Map.add state.CurrentExercise (mesocycleNumber, wave |> Wave.next, e.CompletedAt) }
         | MesocycleFailed e ->
-            let mesocycleNumber, _, startedAt = state.Exercises[e.Exercise]
+            let mesocycleNumber, _, _ = state.Exercises[e.Exercise]
 
             { state with
                 CurrentExercise = e.Exercise |> Exercise.next
                 Exercises =
                     state.Exercises
-                    |> Map.add state.CurrentExercise (mesocycleNumber, Wave.One, startedAt) }
+                    |> Map.add state.CurrentExercise (mesocycleNumber, Wave.One, e.FailedAt) }
         | _ -> state
     | _ -> state

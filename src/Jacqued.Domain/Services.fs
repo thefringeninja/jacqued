@@ -91,3 +91,6 @@ module Calculate =
             | _ -> 3
 
         |> date.AddDays
+
+    let nextExerciseWaveDate (exerciseDaysPerWeek: ExerciseDaysPerWeek) (date: DateOnly) =
+        { 1..4 } |> Seq.fold (fun d _ -> nextExerciseDate exerciseDaysPerWeek d) date

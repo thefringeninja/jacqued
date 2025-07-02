@@ -36,7 +36,7 @@ let update (now: _ -> DateOnly) handler msg (state: State) =
         StartMesocycle.update now handler msg state.StartMesocycle
 
     let warmupLifts = WarmupLifts.update msg state.WarmupLifts
-    let mainLifts, mainLiftsResult = MainLifts.update now handler msg state.MainLifts
+    let mainLifts, mainLiftsResult = MainLifts.update handler msg state.MainLifts
     let assistance, assistanceResult = Assistance.update handler msg state.Assistance
     let summary = Summary.update msg state.Summary
 
