@@ -12,12 +12,20 @@ open SqlStreamStore
 
 #nowarn "3261"
 
-[<Activity(Label = "Jacqued.Android",
-           Theme = "@style/MyTheme.NoActionBar",
-           // Icon = "@drawable/icon",
+[<Activity(Theme = "@style/MyTheme.NoActionBar",
            WindowSoftInputMode = SoftInput.AdjustResize,
            MainLauncher = true,
-           ConfigurationChanges = (ConfigChanges.Orientation ||| ConfigChanges.ScreenSize ||| ConfigChanges.UiMode))>]
+           ConfigurationChanges = (ConfigChanges.Orientation ||| ConfigChanges.ScreenSize ||| ConfigChanges.UiMode),
+#if JACQUED_DEV
+           Label = "Jacqued (dev)",
+           Icon = "@mipmap/ic_launcher",
+           RoundIcon = "@mipmap/ic_launcher_round"
+#else
+           Label = "Jacqued",
+           Icon = "@mipmap/ic_launcher",
+           RoundIcon = "@mipmap/ic_launcher_round"
+#endif
+  )>]
 type MainActivity() =
     inherit AvaloniaMainActivity()
 
