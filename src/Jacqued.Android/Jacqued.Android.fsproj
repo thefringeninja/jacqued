@@ -17,6 +17,10 @@
 		<EnableLLVM>False</EnableLLVM>
 		<AndroidLinkTool>r8</AndroidLinkTool>
 	</PropertyGroup>
+	
+	<PropertyGroup>
+		<DefineConstants Condition="'$(ApplicationId)'=='com.jacquedfivethreeone.dev'">$(DefineConstants);JACQUED_DEV</DefineConstants>
+	</PropertyGroup>
 
 	<ItemGroup>
 		<None Include="Properties/**"/>
