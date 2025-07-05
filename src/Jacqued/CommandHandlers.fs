@@ -36,7 +36,7 @@ module Mesocycle =
         | unknown -> invalidOp $"{unknown} was not recognized"
 
     let create read append =
-        let streamName mesocycleId = $"mesocycle-{mesocycleId}"
+        let streamName mesocycleId = $"mesocycle-{mesocycleId:n}"
 
         let load mesocycleId state =
             fold state evolve (read (streamName mesocycleId))

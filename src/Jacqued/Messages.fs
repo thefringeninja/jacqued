@@ -16,6 +16,10 @@ type Msg =
     | ExerciseDaysPerWeekChanged of ExerciseDaysPerWeek
     | AddPlate of Weight
     | RemovePlate of Weight
+    | BeginBackup
+    | CompleteBackup of Result<unit, string>
+    | BeginRestore
+    | CompleteRestore of Result<unit, string>
     | StartMesocycle of MesocycleId * Exercise * Weight * DateOnly * Bar * PlatePair list
     | OneRepMaxChanged of Weight
     | StartDateChanged of DateOnly

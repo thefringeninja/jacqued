@@ -25,7 +25,7 @@ public static class ReadonlyStreamStoreExtensions {
 
 	public static async IAsyncEnumerable<StreamMessage> ReadAllForwards(this IReadonlyStreamStore store,
 		[EnumeratorCancellation] CancellationToken ct = default) {
-		long from = 0;
+		long from = Position.Start;
 
 		Loop:
 		var page = await store.ReadAllForwards(from, 32, true, ct);
