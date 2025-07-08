@@ -4,13 +4,11 @@ open System.IO
 open Jacqued
 open Jacqued.Design
 
-let load path =
-    let fileInfo = FileInfo(path)
-
+let load (settingsFile:FileInfo) =   
     let settings =
-        if fileInfo.Exists then
+        if settingsFile.Exists then
             try
-                use reader = fileInfo.OpenText()
+                use reader = settingsFile.OpenText()
                 Settings.load reader
             with _ ->
                 Settings.zero
@@ -18,7 +16,7 @@ let load path =
             Settings.zero
 
     { settings with
-        SettingsPath = path |> Some }
+        SettingsPath = settingsFile.FullName |> Some }
 
 let save (settings: Settings) =
     match settings.SettingsPath with
