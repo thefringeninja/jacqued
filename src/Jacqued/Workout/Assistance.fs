@@ -6,7 +6,6 @@ open Avalonia.FuncUI.DSL
 open Avalonia.FuncUI.Helpers
 open Avalonia.Layout
 open Jacqued
-open Jacqued.Calculate
 open Jacqued.Controls
 open Jacqued.DSL
 open Jacqued.Helpers
@@ -143,7 +142,7 @@ let update handler msg (state: State) =
         | WaveCompleted e ->
             let _, _, trainingMax, date = state.Mesocycles[e.Exercise]
 
-            let date = date |> nextExerciseWaveDate state.ExerciseDaysPerWeek
+            let date = date |> Calculate.nextExerciseWaveDate state.ExerciseDaysPerWeek
 
             { state with
                 CurrentExercise = e.Exercise |> Exercise.next
@@ -154,7 +153,7 @@ let update handler msg (state: State) =
         | MesocycleFailed e ->
             let _, _, trainingMax, date = state.Mesocycles[e.Exercise]
 
-            let date = date |> nextExerciseWaveDate state.ExerciseDaysPerWeek
+            let date = date |> Calculate.nextExerciseWaveDate state.ExerciseDaysPerWeek
 
             { state with
                 CurrentExercise = e.Exercise |> Exercise.next
@@ -172,6 +171,8 @@ let update handler msg (state: State) =
                     | Some(mesocycleId, wave, weight, _) -> Some(mesocycleId, wave, weight, date)
                     | _ -> None) },
         List.empty |> Ok
+    | Msg.SelectedAssistanceWorkIndexChanged(selectedIndex) ->
+      { state with SelectedIndex = selectedIndex }, List.empty |> Ok  
     | Msg.CompleteWave(mesocycleId, date) ->
         state,
         handler (
