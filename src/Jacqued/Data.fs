@@ -42,7 +42,7 @@ type BackupManager(store: IStreamStore, storageProvider: IStorageProvider, now: 
             task {
                 use! folder = storageProvider.TryGetWellKnownFolderAsync(WellKnownFolder.Documents)
 
-                let filename = $"jacqued_backup_{now ():yyyyMMddThhmmss}.csv"
+                let filename = $"jacqued_backup_{now ():yyyyMMddThhmmss}"
 
                 let! file =
                     storageProvider.SaveFilePickerAsync(
@@ -51,7 +51,14 @@ type BackupManager(store: IStreamStore, storageProvider: IStorageProvider, now: 
                             SuggestedFileName = filename,
                             SuggestedStartLocation = folder,
                             DefaultExtension = "csv",
-                            ShowOverwritePrompt = true
+                            ShowOverwritePrompt = true,
+                            FileTypeChoices =
+                                [ FilePickerFileType(
+                                      "CSV",
+                                      Patterns = [ "*.csv" ],
+                                      MimeTypes = [ "text/comma-separated-values" ],
+                                      AppleUniformTypeIdentifiers = [ "public.comma-separated-values-text" ]
+                                  ) ]
                         )
                     )
 
