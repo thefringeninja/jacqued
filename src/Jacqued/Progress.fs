@@ -6,8 +6,9 @@ open Avalonia.FuncUI
 open Avalonia.FuncUI.DSL
 open Avalonia.Layout
 open Avalonia.Styling
-open Jacqued.DSL
+open Jacqued.Controls
 open Jacqued.Design
+open Jacqued.DSL
 open Jacqued.Helpers
 open Jacqued.Util
 open LiveChartsCore
@@ -410,10 +411,10 @@ let view (state: State) dispatch =
                         DockPanel.lastChildFill false
                         DockPanel.children [
                             MaterialButton.create [
-                                Button.dock Dock.Left
-                                Button.content MaterialIconKind.ArrowBack
-                                Button.theme Theme.Controls.flatButton
-                                Button.onClick onDismissExerciseDetailClick
+                                MaterialButton.dock Dock.Left
+                                MaterialButton.content MaterialIconKind.ArrowBack
+                                MaterialButton.theme Theme.Controls.flatButton
+                                MaterialButton.onClick onDismissExerciseDetailClick
                             ]
                         ]
                     ]
