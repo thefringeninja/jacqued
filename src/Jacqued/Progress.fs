@@ -238,6 +238,8 @@ let private errorPaint = SKColor(255uy, 0uy, 0uy) |> SolidColorPaint
 
 type SummaryChartPoint = ChartPoint<SummaryPoint, CircleGeometry, LabelGeometry>
 
+let private waveLabels = Wave.all |> List.take 3
+
 type private MesocycleAxis() =
     inherit
         Axis(
@@ -246,10 +248,10 @@ type private MesocycleAxis() =
                 (fun value ->
                     let value = value |> int32
 
-                    if value < 0 || value >= (Wave.all |> List.length) then
+                    if value < 0 || value >= (waveLabels |> List.length) then
                         ""
                     else
-                        Wave.all |> List.item value |> string),
+                        waveLabels |> List.item value |> string),
             MinStep = 1,
             MinLimit = -1,
             MaxLimit = 2
