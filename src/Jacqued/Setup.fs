@@ -9,10 +9,9 @@ open Avalonia.Layout
 open Avalonia.Styling
 open Jacqued.Controls
 open Jacqued.DSL
-open Jacqued.Data
 open Jacqued.Helpers
+open Jacqued.Util
 open Material.Icons
-open Material.Icons.Avalonia
 
 type State =
     { Bar: Bar
@@ -39,9 +38,9 @@ let update handler msg (state: State) =
                 Bar = e.Bar
                 ExerciseDaysPerWeek = e.ExercisesDaysPerWeek
                 Plates = e.Plates
-                MeasurementSystem = e.MeasurementSystem },
-            List.empty |> Ok
-        | _ -> state, List.empty |> Ok
+                MeasurementSystem = e.MeasurementSystem }
+            |> pass
+        | _ -> state |> pass
     | SetupGym(bar, plates, units, days) ->
         state,
         handler (
@@ -55,30 +54,30 @@ let update handler msg (state: State) =
         )
     | ExerciseDaysPerWeekChanged daysPerWeek ->
         { state with
-            ExerciseDaysPerWeek = daysPerWeek },
-        List.empty |> Ok
+            ExerciseDaysPerWeek = daysPerWeek }
+        |> pass
     | MeasurementSystemChanged system ->
         { state with
-            MeasurementSystem = system },
-        List.empty |> Ok
-    | BarbellWeightChanged weight -> { state with Bar = Bar.Of(weight) }, List.empty |> Ok
-    | PlateWeightChanged weight -> { state with PlateToAdd = weight }, List.empty |> Ok
+            MeasurementSystem = system }
+        |> pass
+    | BarbellWeightChanged weight -> { state with Bar = Bar.Of(weight) } |> pass
+    | PlateWeightChanged weight -> { state with PlateToAdd = weight } |> pass
     | AddPlate weight ->
         let platePairs = state.Plates |> List.append [ PlatePair(weight) ]
 
         { state with
             Plates = platePairs
-            PlateToAdd = Weight.zero },
-        List.empty |> Ok
+            PlateToAdd = Weight.zero }
+        |> pass
     | RemovePlate weight ->
         { state with
             Plates =
                 state.Plates
-                |> List.removeAt (state.Plates |> List.findIndex (fun plate -> plate.WeightOfEach = weight)) },
-        List.empty |> Ok
-    | SelectTheme theme -> { state with SelectedTheme = theme }, List.empty |> Ok
-    | ConfigurationSettingsLoaded { ThemeVariant = theme } -> { state with SelectedTheme = theme }, List.empty |> Ok
-    | _ -> state, List.empty |> Ok
+                |> List.removeAt (state.Plates |> List.findIndex (fun plate -> plate.WeightOfEach = weight)) }
+        |> pass
+    | SelectTheme theme -> { state with SelectedTheme = theme } |> pass
+    | ConfigurationSettingsLoaded { ThemeVariant = theme } -> { state with SelectedTheme = theme } |> pass
+    | _ -> state |> pass
 
 let private radioButtonGroup (format: 't -> string) items selected label groupName action =
     let label = Typography.body2 label |> generalize

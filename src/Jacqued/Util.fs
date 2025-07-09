@@ -12,6 +12,9 @@ let pascalize (s: string) =
     |> Seq.map string
     |> String.concat ""
 
+let pass state =
+    state, List.empty |> Ok
+
 module TimeOnly =
     let zero = TimeOnly.FromTimeSpan(TimeSpan.Zero)
 
