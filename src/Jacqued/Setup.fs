@@ -84,15 +84,18 @@ let private radioButtonGroup (format: 't -> string) items selected label groupNa
 
     let radioButtons =
         items
-        |> List.map ((fun item ->
-            let isChecked = selected = item
+        |> List.map (
+            (fun item ->
+                let isChecked = selected = item
 
-            RadioButton.create [
-                RadioButton.content (format item)
-                RadioButton.groupName groupName
-                RadioButton.isChecked isChecked
-                RadioButton.onChecked (fun _ -> item |> action)
-            ]) >> generalize)
+                RadioButton.create [
+                    RadioButton.content (format item)
+                    RadioButton.groupName groupName
+                    RadioButton.isChecked isChecked
+                    RadioButton.onChecked (fun _ -> item |> action)
+                ])
+            >> generalize
+        )
 
     StackPanel.create [
         StackPanel.orientation Orientation.Vertical
@@ -210,11 +213,7 @@ let private gymSetup (state: State) (dispatch: Msg -> unit) =
 let view state dispatch =
     let content =
         StackPanel.create [
-            StackPanel.children [
-                themeSelector state dispatch
-                Separator.create []
-                gymSetup state dispatch
-            ]
+            StackPanel.children [ themeSelector state dispatch; Separator.create []; gymSetup state dispatch ]
         ]
 
     layout content

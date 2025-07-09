@@ -5,7 +5,7 @@ open Jacqued
 open Jacqued.Design
 open Jacqued.Util
 
-let load (settingsFile:FileInfo) =   
+let load (settingsFile: FileInfo) =
     let settings =
         if settingsFile.Exists then
             try
