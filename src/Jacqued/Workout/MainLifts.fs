@@ -159,8 +159,8 @@ let update handler msg state =
             { state with
                 Bar = e.Bar
                 GymPlates = e.Plates
-                MeasurementSystem = e.MeasurementSystem },
-            List.empty |> Ok
+                MeasurementSystem = e.MeasurementSystem }
+            |> pass
         | MesocycleStarted e ->
             let mesocycleNumber, _, _, _ = state.Exercises[e.WorkoutPlan.Exercise]
 
@@ -179,8 +179,8 @@ let update handler msg state =
                              { Plates = Calculate.plates state.Bar state.GymPlates weight
                                Weight = weight
                                Reps = reps
-                               RepSet = repSet })) },
-            List.empty |> Ok
+                               RepSet = repSet })) }
+            |> pass
         | RepSetCompleted e ->
             let mesocycleNumber, mesocycleId, wave, _ = state.Exercises[e.Exercise]
 
@@ -188,8 +188,8 @@ let update handler msg state =
                 Reps = 0u
                 Exercises =
                     state.Exercises
-                    |> Map.add e.Exercise (mesocycleNumber, mesocycleId, wave, e.RepSet |> RepSet.next) },
-            List.empty |> Ok
+                    |> Map.add e.Exercise (mesocycleNumber, mesocycleId, wave, e.RepSet |> RepSet.next) }
+            |> pass
         | WaveCompleted e ->
             let mesocycleNumber, mesocycleId, wave, _ = state.Exercises[e.Exercise]
 
@@ -200,35 +200,29 @@ let update handler msg state =
 
                 Exercises =
                     state.Exercises
-                    |> Map.add e.Exercise (mesocycleNumber, mesocycleId, wave |> Wave.next, RepSet.One) },
-            List.empty |> Ok
+                    |> Map.add e.Exercise (mesocycleNumber, mesocycleId, wave |> Wave.next, RepSet.One) }
+            |> pass
         | MesocycleFailed e ->
             { state with
                 Reps = 0u
                 CurrentExercise = e.Exercise |> nextExercise
-                StartingAt = Calculate.nextExerciseDate state.ExerciseDaysPerWeek e.FailedAt },
-            List.empty |> Ok
+                StartingAt = Calculate.nextExerciseDate state.ExerciseDaysPerWeek e.FailedAt }
+            |> pass
         | MesocycleCompleted e ->
             { state with
                 Reps = 0u
-                CurrentExercise = e.Exercise |> nextExercise },
-            List.empty |> Ok
-    | ExerciseDateChanged date ->
-        { state with
-            State.StartingAt = date },
-        List.empty |> Ok
-    | StartDateChanged startingAt ->
-        { state with
-            StartingAt = startingAt },
-        List.empty |> Ok
+                CurrentExercise = e.Exercise |> nextExercise }
+            |> pass
+    | ExerciseDateChanged date -> { state with State.StartingAt = date } |> pass
+    | StartDateChanged startingAt -> { state with StartingAt = startingAt } |> pass
     | IncreaseReps ->
         { state with
-            State.Reps = state.Reps + 1u },
-        List.empty |> Ok
+            State.Reps = state.Reps + 1u }
+        |> pass
     | DecreaseReps ->
         { state with
-            State.Reps = state.Reps - 1u },
-        List.empty |> Ok
+            State.Reps = state.Reps - 1u }
+        |> pass
     | Msg.CompleteRepSet(mesocycleId, reps, weight) ->
         state,
         handler (
@@ -247,5 +241,5 @@ let update handler msg state =
                   Weight = weight
                   FailedAt = state.StartingAt }
         )
-    | ActualThemeSelected theme -> { state with ActualTheme = theme }, List.empty |> Ok
-    | _ -> state, List.empty |> Ok
+    | ActualThemeSelected theme -> { state with ActualTheme = theme } |> pass
+    | _ -> state |> pass

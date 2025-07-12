@@ -9,6 +9,7 @@ open Jacqued
 open Jacqued.Controls
 open Jacqued.DSL
 open Jacqued.Helpers
+open Jacqued.Util
 open Material.Icons
 
 type OneRepMaxes = Map<Exercise, Weight>
@@ -130,15 +131,15 @@ let update handler msg (state: State) =
                 Bar = e.Bar
                 MeasurementSystem = e.MeasurementSystem
                 ExerciseDaysPerWeek = e.ExercisesDaysPerWeek
-                GymPlates = e.Plates },
-            List.empty |> Ok
+                GymPlates = e.Plates }
+            |> pass
         | MesocycleStarted e ->
             { state with
                 CurrentExercise = e.WorkoutPlan.Exercise
                 Mesocycles =
                     state.Mesocycles
-                    |> Map.add e.WorkoutPlan.Exercise (e.MesocycleId, Wave.One, e.TrainingOneRepMax, e.StartedAt) },
-            List.empty |> Ok
+                    |> Map.add e.WorkoutPlan.Exercise (e.MesocycleId, Wave.One, e.TrainingOneRepMax, e.StartedAt) }
+            |> pass
         | WaveCompleted e ->
             let _, _, trainingMax, date = state.Mesocycles[e.Exercise]
 
@@ -148,8 +149,8 @@ let update handler msg (state: State) =
                 CurrentExercise = e.Exercise |> Exercise.next
                 Mesocycles =
                     state.Mesocycles
-                    |> Map.add e.Exercise (e.MesocycleId, e.Wave |> Wave.next, trainingMax, date) },
-            List.empty |> Ok
+                    |> Map.add e.Exercise (e.MesocycleId, e.Wave |> Wave.next, trainingMax, date) }
+            |> pass
         | MesocycleFailed e ->
             let _, _, trainingMax, date = state.Mesocycles[e.Exercise]
 
@@ -159,20 +160,22 @@ let update handler msg (state: State) =
                 CurrentExercise = e.Exercise |> Exercise.next
                 Mesocycles =
                     state.Mesocycles
-                    |> Map.add e.Exercise (e.MesocycleId, e.Wave |> Wave.next, trainingMax, date) },
-            List.empty |> Ok
-            
-        | _ -> state, List.empty |> Ok
+                    |> Map.add e.Exercise (e.MesocycleId, e.Wave |> Wave.next, trainingMax, date) }
+            |> pass
+
+        | _ -> state |> pass
     | ExerciseDateChanged date ->
         { state with
             Mesocycles =
                 state.Mesocycles
                 |> Map.change state.CurrentExercise (function
                     | Some(mesocycleId, wave, weight, _) -> Some(mesocycleId, wave, weight, date)
-                    | _ -> None) },
-        List.empty |> Ok
+                    | _ -> None) }
+        |> pass
     | Msg.SelectedAssistanceWorkIndexChanged(selectedIndex) ->
-      { state with SelectedIndex = selectedIndex }, List.empty |> Ok  
+        { state with
+            SelectedIndex = selectedIndex }
+        |> pass
     | Msg.CompleteWave(mesocycleId, date) ->
         state,
         handler (
@@ -180,4 +183,4 @@ let update handler msg (state: State) =
                 { MesocycleId = mesocycleId
                   CompletedAt = date }
         )
-    | _ -> state, List.empty |> Ok
+    | _ -> state |> pass

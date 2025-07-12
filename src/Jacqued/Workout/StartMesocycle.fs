@@ -108,38 +108,38 @@ let update now handler msg (state: State) =
                 Bar = e.Bar
                 GymPlates = e.Plates
                 MeasurementSystem = e.MeasurementSystem
-                ExerciseDaysPerWeek = e.ExercisesDaysPerWeek },
-            List.empty |> Ok
+                ExerciseDaysPerWeek = e.ExercisesDaysPerWeek }
+            |> pass
         | MesocycleCompleted e ->
             { state with
                 Mesocycles =
                     state.Mesocycles
-                    |> Map.add e.Exercise ((state.Mesocycles[e.Exercise] |> fst) + 1u, e.SuggestedOneRepMax) },
-            List.empty |> Ok
+                    |> Map.add e.Exercise ((state.Mesocycles[e.Exercise] |> fst) + 1u, e.SuggestedOneRepMax) }
+            |> pass
         | WaveCompleted e ->
             { state with
                 StartingAt = Calculate.nextExerciseDate state.ExerciseDaysPerWeek e.CompletedAt |> Some
-                CurrentExercise = e.Exercise |> Exercise.next },
-            List.empty |> Ok
+                CurrentExercise = e.Exercise |> Exercise.next }
+            |> pass
         | MesocycleFailed e ->
             { state with
                 StartingAt = Calculate.nextExerciseDate state.ExerciseDaysPerWeek e.FailedAt |> Some
                 Mesocycles =
                     state.Mesocycles
                     |> Map.add e.Exercise ((state.Mesocycles[e.Exercise] |> fst) + 1u, e.SuggestedOneRepMax)
-                CurrentExercise = e.Exercise |> Exercise.next },
-            List.empty |> Ok
-        | _ -> state, List.empty |> Ok
+                CurrentExercise = e.Exercise |> Exercise.next }
+            |> pass
+        | _ -> state |> pass
     | OneRepMaxChanged oneRepMax ->
         { state with
             Mesocycles =
                 state.Mesocycles
-                |> Map.add state.CurrentExercise ((state.Mesocycles[state.CurrentExercise] |> fst), oneRepMax) },
-        List.empty |> Ok
+                |> Map.add state.CurrentExercise ((state.Mesocycles[state.CurrentExercise] |> fst), oneRepMax) }
+        |> pass
     | StartDateChanged startingAt ->
         { state with
-            StartingAt = startingAt |> Some },
-        List.empty |> Ok
+            StartingAt = startingAt |> Some }
+        |> pass
     | Msg.StartMesocycle(mesocycleId, exercise, oneRepMax, startedAt, bar, platePairs) ->
         if oneRepMax > Weight.zero then
             state,
@@ -154,6 +154,6 @@ let update now handler msg (state: State) =
                       MeasurementSystem = state.MeasurementSystem }
             )
         else
-            state, List.empty |> Ok
+            state |> pass
 
-    | _ -> state, List.empty |> Ok
+    | _ -> state |> pass

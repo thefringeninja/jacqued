@@ -3,8 +3,9 @@ module Jacqued.Configuration
 open System.IO
 open Jacqued
 open Jacqued.Design
+open Jacqued.Util
 
-let load (settingsFile:FileInfo) =   
+let load (settingsFile: FileInfo) =
     let settings =
         if settingsFile.Exists then
             try
@@ -39,9 +40,9 @@ let update msg (state: Settings) =
 
         save settings
 
-        settings, List.empty |> Ok
+        settings |> pass
     | Msg.ConfigurationSettingsLoaded settings ->
         Theme.set settings.ThemeVariant
 
-        settings, List.empty |> Ok
-    | _ -> state, List.empty |> Ok
+        settings |> pass
+    | _ -> state |> pass
