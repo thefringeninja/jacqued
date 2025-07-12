@@ -31,7 +31,7 @@ type Msg =
     | CompleteWave of MesocycleId * DateOnly
     | FailRepSet of MesocycleId * uint * Weight
     | ContinueExercise of Exercise
-    | SelectedAssistanceWorkIndexChanged of int
+    | SelectedSupplementaryLiftsIndexChanged of int
     | SelectedProgressChartExerciseChanged of Exercise option
     | ExerciseSummaryClicked of MesocycleId * Exercise * uint
     | ExerciseDetailDismissed

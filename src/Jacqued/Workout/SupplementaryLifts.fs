@@ -1,4 +1,4 @@
-module Jacqued.Workout.Assistance
+module Jacqued.Workout.SupplementaryLifts
 
 open System
 open Avalonia.Controls
@@ -35,34 +35,69 @@ type State =
           GymPlates = []
           ExerciseDaysPerWeek = ExerciseDaysPerWeek.Four }
 
-type BoringButBig =
-    | UpDown
-    | Ascending
-    | Descending
+type private Supplement =
+    | ``First Set Last``
+    | ``Second Set Last``
+    | ``Last Set Last``
+    | ``Boring But Big (Up Down)``
+    | ``Boring But Big (Ascending)``
+    | ``Boring But Big (Descending)``
+    | ``Boring But Strong``
+    | Widowmaker
 
-let private subTypes =
-    [ (UpDown, [ 0.5; 0.6; 0.7; 0.6; 0.5 ])
-      (Ascending, [ 0.3; 0.4; 0.5; 0.6; 0.7 ])
-      (Descending, [ 0.7; 0.6; 0.5; 0.4; 0.3 ]) ]
+    static member all =
+        [ ``First Set Last``
+          ``Second Set Last``
+          ``Last Set Last``
+          ``Boring But Big (Up Down)``
+          ``Boring But Big (Ascending)``
+          ``Boring But Big (Descending)``
+          ``Boring But Strong``
+          Widowmaker ]
+
+let private repify reps percentage = (percentage, reps)
+let private fifteenReps p = p |> List.map (repify 15)
+let private tenReps p = p |> List.map (repify 10)
+let private fiveReps p = p |> List.map (repify 5)
+
+let private bbb =
+    [ (``Boring But Big (Up Down)``, [ 0.5; 0.6; 0.7; 0.6; 0.5 ] |> tenReps)
+      (``Boring But Big (Ascending)``, [ 0.3; 0.4; 0.5; 0.6; 0.7 ] |> tenReps)
+      (``Boring But Big (Descending)``, [ 0.7; 0.6; 0.5; 0.4; 0.3 ] |> tenReps) ]
     |> Map.ofList
 
+let private thing supplement wave =
+    match supplement with
+    | ``First Set Last`` -> (Calculate.percentage wave RepSet.One) |> List.replicate 5 |> fiveReps
+    | ``Second Set Last`` -> (Calculate.percentage wave RepSet.Two) |> List.replicate 5 |> fiveReps
+    | ``Last Set Last`` -> (Calculate.percentage wave RepSet.Three) |> List.replicate 5 |> fiveReps
+    | ``Boring But Strong`` -> (Calculate.percentage wave RepSet.One) |> List.replicate 5 |> tenReps
+    | Widowmaker -> (Calculate.percentage wave RepSet.One) |> List.replicate 1 |> fifteenReps
+    | s -> bbb[s]
+
 let view (state: State) dispatch =
-    let boringButBig subType (trainingMax: Weight) =
+    let supplementary (trainingMax: Weight) supplement =
+        let _, wave, _, _ = state.Mesocycles[state.CurrentExercise]
+        let lifts = thing supplement wave
+
         let calculateWeight (repSet: int) =
-            trainingMax * (subTypes |> Map.find subType |> List.item repSet)
+            trainingMax * (lifts |> List.item repSet |> fst)
+
+        let calculateReps (repSet: int) = (lifts |> List.item repSet |> snd)
 
         let calculatePlates = Calculate.plates state.Bar state.GymPlates
 
-        let control i (platePairs: PlatePair list) =
-            let set = i + 1
+        let control repSetIndex (platePairs: PlatePair list) =
+            let repSet = repSetIndex + 1
+            let reps = calculateReps repSetIndex
             let weight = state.Bar.Weight + (platePairs |> List.map _.Weight |> List.sum)
 
             StackPanel.create [
                 StackPanel.children [
                     Typography.headline6 $"{state.CurrentExercise}"
-                    Typography.body2 $"Set {set}"
+                    Typography.body2 $"Set {repSet}"
                     Typography.body2 $"Weight: {weight}{state.MeasurementSystem}"
-                    Typography.body2 "Reps: 10"
+                    Typography.body2 $"Reps: {reps}"
 
                     WrapPanel.create [
                         WrapPanel.orientation Orientation.Horizontal
@@ -74,7 +109,8 @@ let view (state: State) dispatch =
         StackPanel.create [
             StackPanel.orientation Orientation.Vertical
             StackPanel.children (
-                [ 0..1..4 ]
+                lifts
+                |> List.mapi (fun i _ -> i)
                 |> List.map (calculateWeight >> calculatePlates)
                 |> List.mapi control
                 |> List.map generalize
@@ -85,25 +121,26 @@ let view (state: State) dispatch =
     let content =
         let mesocycleId, wave, oneRepMax, date = state.Mesocycles[state.CurrentExercise]
 
-        let onSelectedAssistanceWorkChange index =
-            index |> Msg.SelectedAssistanceWorkIndexChanged |> dispatch
+        let supplementary = supplementary oneRepMax
+
+        let onSelectedSupplementaryLiftsIndexChanged index =
+            index |> Msg.SelectedSupplementaryLiftsIndexChanged |> dispatch
 
         let onCompleteWaveClick _ =
             (mesocycleId, date) |> Msg.CompleteWave |> dispatch
 
-        let assistance =
-            [ ("Boring But Big (Up Down)", (fun () -> boringButBig BoringButBig.UpDown oneRepMax))
-              ("Boring But Big (Descending)", (fun () -> boringButBig BoringButBig.Descending oneRepMax))
-              ("Boring But Big (Ascending)", (fun () -> boringButBig BoringButBig.Ascending oneRepMax)) ]
+        let supplement =
+            (Supplement.all, (Supplement.all |> List.map supplementary))
+            ||> List.map2 (fun x y -> (x, y))
 
         let comboBox =
             ComboBox.create [
-                ComboBox.viewItems (assistance |> List.map (fst >> Typography.body2 >> generalize))
-                ComboBox.onSelectedIndexChanged onSelectedAssistanceWorkChange
+                ComboBox.viewItems (supplement |> List.map (fst >> string >> Typography.body2 >> generalize))
+                ComboBox.onSelectedIndexChanged onSelectedSupplementaryLiftsIndexChanged
                 ComboBox.selectedIndex state.SelectedIndex
             ]
 
-        let assistance = assistance[state.SelectedIndex] |> snd
+        let supplement = supplement[state.SelectedIndex] |> snd
 
         let completeWave =
             MaterialButton.create [
@@ -113,9 +150,9 @@ let view (state: State) dispatch =
 
         StackPanel.create [
             StackPanel.children [
-                Typography.headline4 "Assistance"
+                Typography.headline4 "Supplements"
                 comboBox
-                assistance ()
+                supplement
                 buttonBar [ completeWave ]
             ]
         ]
@@ -172,7 +209,7 @@ let update handler msg (state: State) =
                     | Some(mesocycleId, wave, weight, _) -> Some(mesocycleId, wave, weight, date)
                     | _ -> None) }
         |> pass
-    | Msg.SelectedAssistanceWorkIndexChanged(selectedIndex) ->
+    | Msg.SelectedSupplementaryLiftsIndexChanged(selectedIndex) ->
         { state with
             SelectedIndex = selectedIndex }
         |> pass

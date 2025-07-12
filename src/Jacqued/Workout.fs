@@ -9,7 +9,7 @@ type Screen =
     | StartMesocycle
     | Warmup
     | WorkingOut
-    | Assistance
+    | Supplements
     | Summary
 
 type Mesocycles = Map<Exercise, MesocycleId>
@@ -18,7 +18,7 @@ type State =
     { StartMesocycle: StartMesocycle.State
       WarmupLifts: WarmupLifts.State
       MainLifts: MainLifts.State
-      Assistance: Assistance.State
+      SupplementaryLifts: SupplementaryLifts.State
       Summary: Summary.State
       Screen: Screen
       Mesocycles: Mesocycles }
@@ -26,7 +26,7 @@ type State =
         { StartMesocycle = StartMesocycle.State.zero
           WarmupLifts = WarmupLifts.State.zero
           MainLifts = MainLifts.State.zero
-          Assistance = Assistance.State.zero
+          SupplementaryLifts = SupplementaryLifts.State.zero
           Summary = Summary.State.zero
           Screen = Screen.StartMesocycle
           Mesocycles = Map.empty }
@@ -37,11 +37,11 @@ let update (now: _ -> DateOnly) handler msg (state: State) =
 
     let warmupLifts = WarmupLifts.update msg state.WarmupLifts
     let mainLifts, mainLiftsResult = MainLifts.update handler msg state.MainLifts
-    let assistance, assistanceResult = Assistance.update handler msg state.Assistance
+    let supplementaryLifts, supplementaryLiftsResult = SupplementaryLifts.update handler msg state.SupplementaryLifts
     let summary = Summary.update msg state.Summary
 
     let results =
-        [ startMesocycleResult; mainLiftsResult; assistanceResult ]
+        [ startMesocycleResult; mainLiftsResult; supplementaryLiftsResult ]
         |> List.fold
             (fun acc elem ->
                 match acc with
@@ -75,7 +75,7 @@ let update (now: _ -> DateOnly) handler msg (state: State) =
             | MesocycleStarted _ -> Screen.Warmup
             | RepSetCompleted e ->
                 match e.RepSet |> RepSet.next with
-                | RepSet.Complete -> Assistance
+                | RepSet.Complete -> Supplements
                 | _ -> WorkingOut
             | WaveCompleted _ -> Screen.Summary
             | MesocycleFailed e -> nextScreen e.Exercise
@@ -88,7 +88,7 @@ let update (now: _ -> DateOnly) handler msg (state: State) =
         StartMesocycle = startMesocycle
         WarmupLifts = warmupLifts
         MainLifts = mainLifts
-        Assistance = assistance
+        SupplementaryLifts = supplementaryLifts
         Summary = summary
         Mesocycles = mesocycles
         Screen = screen },
@@ -99,7 +99,7 @@ let view (state: State) dispatch =
     | StartMesocycle -> StartMesocycle.view state.StartMesocycle
     | Warmup -> WarmupLifts.view state.WarmupLifts
     | WorkingOut -> MainLifts.view state.MainLifts
-    | Assistance -> Assistance.view state.Assistance
+    | Supplements -> SupplementaryLifts.view state.SupplementaryLifts
     | Summary -> Summary.view state.Summary)
         state.Screen
         dispatch

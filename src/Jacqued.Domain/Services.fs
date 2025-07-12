@@ -56,8 +56,10 @@ module Calculate =
           ((Wave.Four, RepSet.Three), 0.60) ]
         |> Map.ofList
 
+    let percentage wave repSet = weightTable[wave, repSet]
+    
     let weight wave repSet bar platePairs (weight: Weight) =
-        let weight = weight * weightTable[wave, repSet]
+        let weight = weight * (percentage wave repSet)
 
         let platePairs = plates bar platePairs weight
 

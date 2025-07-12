@@ -48,7 +48,7 @@
 		<Compile Include="Workout\StartMesocycle.fs" />
 		<Compile Include="Workout\WarmupLifts.fs" />
 		<Compile Include="Workout\MainLifts.fs" />
-		<Compile Include="Workout\Assistance.fs" />
+		<Compile Include="Workout\SupplementaryLifts.fs" />
 		<Compile Include="Workout\Summary.fs" />
 		<Compile Include="Workout.fs"/>
 		<Compile Include="Shell.fs"/>
