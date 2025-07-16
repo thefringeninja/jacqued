@@ -5,54 +5,54 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Avalonia.Fonts.Inter" Version="$(AvaloniaVersion)"/>
-		<PackageReference Include="Avalonia.FuncUI.Elmish" Version="1.5.1"/>
-		<PackageReference Include="AvaloniaDialogs" Version="3.6.1"/>
-		<PackageReference Include="CsvHelper" Version="33.0.1"/>
-		<PackageReference Include="FSharp.Control.TaskSeq" Version="0.4.0"/>
-		<PackageReference Include="FSharp.SystemTextJson" Version="1.4.36"/>
-		<PackageReference Include="LiveChartsCore.SkiaSharpView.Avalonia" Version="2.0.0-rc5.4"/>
-		<PackageReference Include="Material.Avalonia" Version="3.12.0"/>
-		<PackageReference Include="Material.Icons.Avalonia" Version="2.4.1"/>
-		<PackageReference Include="System.Text.Json" Version="9.0.6"/>
-		<PackageReference Include="SqlStreamStore" Version="1.2.0"/>
+		<PackageReference Include="Avalonia.Fonts.Inter" Version="$(AvaloniaVersion)" />
+		<PackageReference Include="Avalonia.FuncUI.Elmish" Version="1.5.1" />
+		<PackageReference Include="AvaloniaDialogs" Version="3.6.1" />
+		<PackageReference Include="CsvHelper" Version="33.1.0" />
+		<PackageReference Include="FSharp.Control.TaskSeq" Version="0.4.0" />
+		<PackageReference Include="FSharp.SystemTextJson" Version="1.4.36" />
+		<PackageReference Include="LiveChartsCore.SkiaSharpView.Avalonia" Version="2.0.0-rc5.4" />
+		<PackageReference Include="Material.Avalonia" Version="3.12.0" />
+		<PackageReference Include="Material.Icons.Avalonia" Version="2.4.1" />
+		<PackageReference Include="System.Text.Json" Version="9.0.7" />
+		<PackageReference Include="SqlStreamStore" Version="1.2.0" />
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Condition="'$(Configuration)' == 'Debug'" Include="Avalonia.Diagnostics" Version="$(AvaloniaVersion)"/>
+		<PackageReference Condition="'$(Configuration)' == 'Debug'" Include="Avalonia.Diagnostics" Version="$(AvaloniaVersion)" />
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="../Jacqued.Domain/Jacqued.Domain.fsproj"/>
-		<ProjectReference Include="../SqlStreamStore.Extensions/SqlStreamStore.Extensions.csproj"/>
+		<ProjectReference Include="../Jacqued.Domain/Jacqued.Domain.fsproj" />
+		<ProjectReference Include="../SqlStreamStore.Extensions/SqlStreamStore.Extensions.csproj" />
 	</ItemGroup>
 
 
 	<ItemGroup>
 		<Compile Include="Util.fs" />
 		<Compile Include="Design.fs" />
-		<Compile Include="CommandHandlers.fs"/>
-		<Compile Include="EventStorage.fs"/>
+		<Compile Include="CommandHandlers.fs" />
+		<Compile Include="EventStorage.fs" />
 		<Compile Include="Controls.fs" />
 		<Compile Include="Typography.fs" />
 		<Compile Include="DSL.fs" />
 		<Compile Include="Data.fs" />
 		<Compile Include="Helpers.fs" />
 		<Compile Include="Settings.fs" />
-		<Compile Include="Messages.fs"/>
+		<Compile Include="Messages.fs" />
 		<Compile Include="Configuration.fs" />
-		<Compile Include="PlatePairs.fs"/>
-		<Compile Include="Setup.fs"/>
-		<Compile Include="Progress.fs"/>
+		<Compile Include="PlatePairs.fs" />
+		<Compile Include="Setup.fs" />
+		<Compile Include="Progress.fs" />
 		<Compile Include="Workout\Types.fs" />
 		<Compile Include="Workout\StartMesocycle.fs" />
 		<Compile Include="Workout\WarmupLifts.fs" />
 		<Compile Include="Workout\MainLifts.fs" />
 		<Compile Include="Workout\SupplementaryLifts.fs" />
 		<Compile Include="Workout\Summary.fs" />
-		<Compile Include="Workout.fs"/>
-		<Compile Include="Shell.fs"/>
-		<Compile Include="App.fs"/>
+		<Compile Include="Workout.fs" />
+		<Compile Include="Shell.fs" />
+		<Compile Include="App.fs" />
 	</ItemGroup>
 
 </Project>
