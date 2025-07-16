@@ -10,6 +10,6 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<Watch Include="**/*.fs"/>
+		<Watch Include="**/*.fs" />
 	</ItemGroup>
 </Project>
