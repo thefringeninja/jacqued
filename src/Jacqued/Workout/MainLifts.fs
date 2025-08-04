@@ -12,6 +12,8 @@ open Jacqued.Controls
 open Jacqued.DSL
 open Jacqued.Design
 open Jacqued.Helpers
+open Jacqued.Msg
+open Jacqued.Msg.Workout
 open Jacqued.Workout.Types
 open Jacqued.Util
 open Material.Icons
@@ -61,7 +63,11 @@ let view (state: State) dispatch =
     let lift = state.WorkoutPlans[state.CurrentExercise][wave, repSet]
 
     let onCompleteRepSetClick _ =
-        (mesocycleId, state.Reps, lift.Weight) |> Msg.CompleteRepSet |> dispatch
+        (mesocycleId, state.Reps, lift.Weight)
+        |> MainLifts.CompleteRepSet
+        |> Workout.MainLifts
+        |> Msg.Workout
+        |> dispatch
 
     let onFailRepSetClick _ =
         Dispatcher.UIThread.Post(fun _ ->
@@ -72,14 +78,20 @@ let view (state: State) dispatch =
                 let! result = dialog.ShowAsync() |> Async.AwaitTask
 
                 if result.GetValueOrDefault() then
-                    (mesocycleId, state.Reps, lift.Weight) |> Msg.FailRepSet |> dispatch
+                    (mesocycleId, state.Reps, lift.Weight)
+                    |> MainLifts.FailRepSet
+                    |> Workout.MainLifts
+                    |> Msg.Workout
+                    |> dispatch
 
             }
             |> Async.StartImmediate)
 
-    let onIncreaseRepsClick _ = Msg.IncreaseReps |> dispatch
+    let onIncreaseRepsClick _ =
+        MainLifts.IncreaseReps |> Workout.MainLifts |> Msg.Workout |> dispatch
 
-    let onDecreaseRepsClick _ = Msg.DecreaseReps |> dispatch
+    let onDecreaseRepsClick _ =
+        MainLifts.DecreaseReps |> Workout.MainLifts |> Msg.Workout |> dispatch
 
     let increaseReps =
         MaterialButton.create [
@@ -213,33 +225,48 @@ let update handler msg state =
                 Reps = 0u
                 CurrentExercise = e.Exercise |> nextExercise }
             |> pass
-    | ExerciseDateChanged date -> { state with State.StartingAt = date } |> pass
-    | StartDateChanged startingAt -> { state with StartingAt = startingAt } |> pass
-    | IncreaseReps ->
-        { state with
-            State.Reps = state.Reps + 1u }
-        |> pass
-    | DecreaseReps ->
-        { state with
-            State.Reps = state.Reps - 1u }
-        |> pass
-    | Msg.CompleteRepSet(mesocycleId, reps, weight) ->
-        state,
-        handler (
-            Command.CompleteRepSet
-                { MesocycleId = mesocycleId
-                  Reps = reps
-                  Weight = weight
-                  CompletedAt = state.StartingAt }
-        )
-    | Msg.FailRepSet(mesocycleId, reps, weight) ->
-        state,
-        handler (
-            Command.FailRepSet
-                { MesocycleId = mesocycleId
-                  Reps = reps
-                  Weight = weight
-                  FailedAt = state.StartingAt }
-        )
-    | ActualThemeSelected theme -> { state with ActualTheme = theme } |> pass
+        | _ -> state |> pass
+    | Workout e ->
+        match e with
+        | Mesocycle e ->
+            match e with
+            | StartDateChanged startingAt -> { state with StartingAt = startingAt } |> pass
+            | _ -> state |> pass
+        | WarmupLifts e ->
+            match e with
+            | WarmupLifts.ExerciseDateChanged date -> { state with State.StartingAt = date } |> pass
+            | _ -> state |> pass
+        | MainLifts e ->
+            match e with
+            | MainLifts.IncreaseReps ->
+                { state with
+                    State.Reps = state.Reps + 1u }
+                |> pass
+            | MainLifts.DecreaseReps ->
+                { state with
+                    State.Reps = state.Reps - 1u }
+                |> pass
+            | MainLifts.CompleteRepSet(mesocycleId, reps, weight) ->
+                state,
+                handler (
+                    Command.CompleteRepSet
+                        { MesocycleId = mesocycleId
+                          Reps = reps
+                          Weight = weight
+                          CompletedAt = state.StartingAt }
+                )
+            | MainLifts.FailRepSet(mesocycleId, reps, weight) ->
+                state,
+                handler (
+                    Command.FailRepSet
+                        { MesocycleId = mesocycleId
+                          Reps = reps
+                          Weight = weight
+                          FailedAt = state.StartingAt }
+                )
+        | _ -> state |> pass
+    | Settings e ->
+        match e with
+        | ActualThemeSelected theme -> { state with ActualTheme = theme } |> pass
+        | _ -> state |> pass
     | _ -> state |> pass

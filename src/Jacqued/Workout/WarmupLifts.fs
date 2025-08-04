@@ -9,6 +9,8 @@ open Jacqued
 open Jacqued.Controls
 open Jacqued.DSL
 open Jacqued.Helpers
+open Jacqued.Msg
+open Jacqued.Msg.Workout
 open Jacqued.Util
 open Jacqued.Workout.Types
 open Material.Icons
@@ -38,7 +40,7 @@ let view (state: State) dispatch =
 
     let onExerciseDateChange (d: Nullable<DateTimeOffset>) =
         (if d.HasValue then
-             d.Value.Date |> (DateOnly.FromDateTime >> ExerciseDateChanged)
+             d.Value.Date |> (DateOnly.FromDateTime >> WarmupLifts.ExerciseDateChanged >> Workout.WarmupLifts >> Msg.Workout)
          else
              "No date selected" |> Message |> ApplicationError)
         |> dispatch
@@ -77,7 +79,7 @@ let view (state: State) dispatch =
                     )
                     |> divide
 
-                let onCompleteWarmupClick _ = Msg.CompleteWarmup |> dispatch
+                let onCompleteWarmupClick _ = WarmupLifts.CompleteWarmup |> Workout.WarmupLifts |> Msg.Workout |> dispatch
 
                 let completeWarmup =
                     MaterialButton.create [
@@ -137,7 +139,13 @@ let update msg (state: State) =
                 CurrentExercise = e.Exercise |> Exercise.next
                 Date = e.FailedAt |> Calculate.nextExerciseDate state.ExerciseDaysPerWeek }
         | _ -> state
-    | ExerciseDateChanged date ->
-        { state with
-            State.Date = date }
+    | Workout e ->
+        match e with
+        | WarmupLifts e ->
+            match e with
+            | WarmupLifts.ExerciseDateChanged date ->
+                { state with
+                    State.Date = date }
+            | _ -> state
+        | _ -> state
     | _ -> state

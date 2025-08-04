@@ -3,39 +3,69 @@
 open System
 open Avalonia.Styling
 
+module Msg =
+    type Setup =
+        | SetupGym of Bar * PlatePair list * MeasurementSystem * ExerciseDaysPerWeek
+        | BarbellWeightChanged of Weight
+        | PlateWeightChanged of Weight
+        | MeasurementSystemChanged of MeasurementSystem
+        | ExerciseDaysPerWeekChanged of ExerciseDaysPerWeek
+        | AddPlate of Weight
+        | RemovePlate of Weight    
+
+    type Data =
+        | BeginBackup
+        | CompleteBackup of Result<unit, string>
+        | BeginRestore
+        | CompleteRestore of Result<unit, string>
+
+    module Workout =
+        type Mesocycle =
+            | StartMesocycle of MesocycleId * Exercise * Weight * DateOnly * Bar * PlatePair list
+            | OneRepMaxChanged of Weight
+            | StartDateChanged of DateOnly
+            
+        type MainLifts =
+            | CompleteRepSet of MesocycleId * uint * Weight
+            | IncreaseReps
+            | DecreaseReps
+            | FailRepSet of MesocycleId * uint * Weight
+
+        type WarmupLifts =
+            | ExerciseDateChanged of DateOnly
+            | CompleteWarmup
+
+        type SupplementaryLifts =
+            | SelectedSupplementaryLiftsIndexChanged of int
+        
+    type Workout =
+        | Mesocycle of Workout.Mesocycle
+        | MainLifts of Workout.MainLifts
+        | WarmupLifts of Workout.WarmupLifts
+        | SupplementaryLifts of Workout.SupplementaryLifts
+        | ContinueExercise of Exercise
+        | CompleteWave of MesocycleId * DateOnly
+
+    type Progress =
+        | SelectedProgressChartExerciseChanged of Exercise option
+        | ExerciseSummaryClicked of MesocycleId * Exercise * uint
+        | ExerciseDetailDismissed
+        
+
+    type Settings =
+        | SelectTheme of ThemeVariant
+        | ActualThemeSelected of ThemeVariant
+        | ConfigurationSettingsLoaded of Jacqued.Settings
+        
 type ApplicationError =
     | Exception of exn
     | Message of string
 
 type Msg =
     | Event of Event
-    | SetupGym of Bar * PlatePair list * MeasurementSystem * ExerciseDaysPerWeek
-    | BarbellWeightChanged of Weight
-    | PlateWeightChanged of Weight
-    | MeasurementSystemChanged of MeasurementSystem
-    | ExerciseDaysPerWeekChanged of ExerciseDaysPerWeek
-    | AddPlate of Weight
-    | RemovePlate of Weight
-    | BeginBackup
-    | CompleteBackup of Result<unit, string>
-    | BeginRestore
-    | CompleteRestore of Result<unit, string>
-    | StartMesocycle of MesocycleId * Exercise * Weight * DateOnly * Bar * PlatePair list
-    | OneRepMaxChanged of Weight
-    | StartDateChanged of DateOnly
-    | CompleteWarmup
-    | CompleteRepSet of MesocycleId * uint * Weight
-    | ExerciseDateChanged of DateOnly
-    | IncreaseReps
-    | DecreaseReps
-    | CompleteWave of MesocycleId * DateOnly
-    | FailRepSet of MesocycleId * uint * Weight
-    | ContinueExercise of Exercise
-    | SelectedSupplementaryLiftsIndexChanged of int
-    | SelectedProgressChartExerciseChanged of Exercise option
-    | ExerciseSummaryClicked of MesocycleId * Exercise * uint
-    | ExerciseDetailDismissed
-    | SelectTheme of ThemeVariant
-    | ActualThemeSelected of ThemeVariant
-    | ConfigurationSettingsLoaded of Settings
+    | Setup of Msg.Setup
+    | Data of Msg.Data
+    | Workout of Msg.Workout
+    | Progress of Msg.Progress
+    | Settings of Msg.Settings
     | ApplicationError of ApplicationError

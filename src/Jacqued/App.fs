@@ -11,6 +11,7 @@ open Avalonia.Styling
 open DialogHostAvalonia
 open Elmish
 open Jacqued.Data
+open Jacqued.Msg
 open Material.Colors.Recommended
 open Material.Icons.Avalonia
 open Material.Styles.Themes
@@ -70,7 +71,7 @@ type App(store: IStreamStore, settingsFile) =
                 let onActualThemeChanged dispatch =
                     this.PropertyChanged.Subscribe(fun e ->
                         if e.Property = Application.ActualThemeVariantProperty then
-                            e.GetNewValue<ThemeVariant>() |> (Msg.ActualThemeSelected >> dispatch))
+                            e.GetNewValue<ThemeVariant>() |> (Settings.ActualThemeSelected >> Msg.Settings >> dispatch))
 
                 [ [ nameof onActualThemeChanged ], onActualThemeChanged ]
 

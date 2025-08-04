@@ -3,6 +3,7 @@ module Jacqued.Configuration
 open System.IO
 open Jacqued
 open Jacqued.Design
+open Jacqued.Msg
 open Jacqued.Util
 
 let load (settingsFile: FileInfo) =
@@ -19,7 +20,7 @@ let load (settingsFile: FileInfo) =
     { settings with
         SettingsPath = settingsFile.FullName |> Some }
 
-let save (settings: Settings) =
+let save (settings: Jacqued.Settings) =
     match settings.SettingsPath with
     | Some path ->
         let fileInfo = FileInfo(path)
@@ -31,18 +32,21 @@ let save (settings: Settings) =
             ()
     | _ -> ()
 
-let update msg (state: Settings) =
+let update msg (state: Jacqued.Settings) =
     match msg with
-    | Msg.SelectTheme theme ->
-        Theme.set theme
+    | Settings e ->
+        match e with
+        | Settings.SelectTheme theme ->
+            Theme.set theme
 
-        let settings = { state with ThemeVariant = theme }
+            let settings = { state with ThemeVariant = theme }
 
-        save settings
+            save settings
 
-        settings |> pass
-    | Msg.ConfigurationSettingsLoaded settings ->
-        Theme.set settings.ThemeVariant
+            settings |> pass
+        | Settings.ConfigurationSettingsLoaded settings ->
+            Theme.set settings.ThemeVariant
 
-        settings |> pass
+            settings |> pass
+        | _ -> state |> pass
     | _ -> state |> pass

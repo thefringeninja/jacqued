@@ -9,6 +9,7 @@ open Jacqued
 open Jacqued.Controls
 open Jacqued.DSL
 open Jacqued.Helpers
+open Jacqued.Msg
 open Material.Icons
 
 type Exercises = Map<Exercise, uint * Wave * DateOnly>
@@ -64,7 +65,7 @@ let view (state: State) dispatch =
                     |> divide
 
                 let onNextExerciseClick _ =
-                    exercise |> Msg.ContinueExercise |> dispatch
+                    exercise |> Workout.ContinueExercise |> Msg.Workout |> dispatch
 
                 let completeWave =
                     MaterialButton.create [

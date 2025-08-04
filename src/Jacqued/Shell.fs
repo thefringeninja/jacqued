@@ -14,6 +14,7 @@ open Jacqued.Controls
 open Jacqued.DSL
 open Jacqued.Data
 open Jacqued.Design
+open Jacqued.Msg
 open Jacqued.Util
 open Material.Icons
 open SqlStreamStore
@@ -31,7 +32,7 @@ module Shell =
           Screen: Screen
           SetupComplete: bool
           AsyncOperationInProgress: bool
-          Settings: Settings }
+          Settings: Jacqued.Settings }
 
         static member zero =
             { Setup = Setup.State.zero
@@ -58,8 +59,9 @@ module Shell =
         let append = EventStorage.appendToStream store
 
         let gym = Gym.create read append
-        let mesocycle = Mesocycle.create read append
 
+        let mesocycle = Mesocycle.create read append
+        
         let setupComplete =
             match msg with
             | Event e ->
@@ -84,43 +86,45 @@ module Shell =
                     |> ignore
 
                 []
-            | BeginBackup ->
-                [ Cmd.OfAsync.either backupManager.backup () (Ok >> CompleteBackup) (exnToError >> CompleteBackup)
-                  |> Update.Cmd
-                  { state with
-                      AsyncOperationInProgress = true }
-                  |> Update.State ]
-            | CompleteBackup msg ->
-                [ match msg with
-                  | Ok _ -> ()
-                  | Error error -> yield error |> Message |> Msg.ApplicationError |> Cmd.ofMsg |> Update.Cmd
-                  yield
+            | Msg.Data msg ->
+                match msg with
+                | Data.BeginBackup ->
+                    [ Cmd.OfAsync.either backupManager.backup () (Ok >> Data.CompleteBackup >> Msg.Data) (exnToError >> Data.CompleteBackup >> Msg.Data)
+                      |> Update.Cmd
                       { state with
-                          AsyncOperationInProgress = false }
+                          AsyncOperationInProgress = true }
                       |> Update.State ]
-            | BeginRestore ->
-                [ Cmd.OfAsync.either backupManager.restore () (Ok >> CompleteRestore) (exnToError >> CompleteRestore)
-                  |> Update.Cmd
-                  { state with
-                      AsyncOperationInProgress = true }
-                  |> Update.State ]
-            | CompleteRestore msg ->
-                let state', cmd =
-                    match msg with
-                    | Ok _ ->
-                        Seq.fold
-                            (fun state event -> (update store backupManager event state) |> fst)
-                            { State.zero with
-                                State.Settings = state.Settings }
-                            ((EventStorage.readAll store) |> Seq.map Msg.Event),
-                        Cmd.none
-                    | Error error -> state, error |> Message |> Msg.ApplicationError |> Cmd.ofMsg
+                | Data.CompleteBackup msg ->
+                    [ match msg with
+                      | Ok _ -> ()
+                      | Error error -> yield error |> Message |> Msg.ApplicationError |> Cmd.ofMsg |> Update.Cmd
+                      yield
+                          { state with
+                              AsyncOperationInProgress = false }
+                          |> Update.State ]
+                | Data.BeginRestore ->
+                    [ Cmd.OfAsync.either backupManager.restore () (Ok >> Data.CompleteRestore >> Msg.Data) (exnToError >> Data.CompleteRestore >> Msg.Data)
+                      |> Update.Cmd
+                      { state with
+                          AsyncOperationInProgress = true }
+                      |> Update.State ]
+                | Data.CompleteRestore msg ->
+                    let state', cmd =
+                        match msg with
+                        | Ok _ ->
+                            Seq.fold
+                                (fun state event -> (update store backupManager event state) |> fst)
+                                { State.zero with
+                                    State.Settings = state.Settings }
+                                ((EventStorage.readAll store) |> Seq.map Msg.Event),
+                            Cmd.none
+                        | Error error -> state, error |> Message |> Msg.ApplicationError |> Cmd.ofMsg
 
-                [ yield cmd |> Update.Cmd
-                  yield
-                      { state' with
-                          AsyncOperationInProgress = false }
-                      |> Update.State ]
+                    [ yield cmd |> Update.Cmd
+                      yield
+                          { state' with
+                              AsyncOperationInProgress = false }
+                          |> Update.State ]
             | _ ->
                 try
                     [ let setup, result = Setup.update gym msg state.Setup
@@ -172,8 +176,8 @@ module Shell =
         cmd
 
     let view state dispatch =
-        let backupClick _ = Msg.BeginBackup |> dispatch
-        let restoreClick _ = Msg.BeginRestore |> dispatch
+        let backupClick _ = Data.BeginBackup |> Msg.Data |> dispatch
+        let restoreClick _ = Data.BeginRestore |> Msg.Data |> dispatch
 
         let appBar =
             TopAppBar.create [
@@ -231,12 +235,12 @@ module Shell =
             ReactiveDialogHost.content (DockPanel.create [ DockPanel.margin 16; DockPanel.children [ appBar; progress; tabs ] ])
         ]
 
-    let init store (settings: Settings) () =
+    let init store (settings: Jacqued.Settings) () =
         let events =
             seq {
-                yield settings |> Msg.ConfigurationSettingsLoaded
+                yield settings |> Settings.ConfigurationSettingsLoaded |> Msg.Settings 
 
-                yield Theme.get () |> Msg.ActualThemeSelected
+                yield Theme.get () |> Settings.ActualThemeSelected |> Msg.Settings
 
                 yield! (EventStorage.readAll store) |> Seq.map Msg.Event
             }

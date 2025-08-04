@@ -3,6 +3,7 @@ module Jacqued.Workout
 
 open System
 open Jacqued
+open Jacqued.Msg
 open Jacqued.Workout
 
 type Screen =
@@ -80,8 +81,14 @@ let update (now: _ -> DateOnly) handler msg (state: State) =
             | WaveCompleted _ -> Screen.Summary
             | MesocycleFailed e -> nextScreen e.Exercise
             | _ -> state.Screen
-        | CompleteWarmup -> Screen.WorkingOut
-        | Msg.ContinueExercise exercise -> nextScreen exercise
+        | Workout e ->
+            match e with
+            | WarmupLifts e ->
+                match e with
+                | CompleteWarmup -> Screen.WorkingOut
+                | _ -> state.Screen
+            | ContinueExercise exercise -> nextScreen exercise
+            | _ -> state.Screen
         | _ -> state.Screen
 
     { state with
