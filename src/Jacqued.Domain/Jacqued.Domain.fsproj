@@ -5,6 +5,7 @@
 		<Compile Include="Messages.fs"/>
 		<Compile Include="Services.fs"/>
 		<Compile Include="Gym.fs"/>
+		<Compile Include="OneRepMaxes.fs" />
 		<Compile Include="Mesocycle.fs"/>
 	</ItemGroup>
 

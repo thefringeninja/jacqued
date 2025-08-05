@@ -32,6 +32,8 @@ type Weight(value: decimal) =
     static member (+)(a: Weight, b: Weight) = Weight(a.Value + b.Value)
     static member (-)(a: Weight, b: Weight) = Weight(a.Value - b.Value)
     static member (%)(a: Weight, b: Weight) = Weight(a.Value % b.Value)
+    
+    static member op_Explicit(value:Weight):float = value.Value |> float
 
 [<Struct>]
 type Bar private(value: Weight) =

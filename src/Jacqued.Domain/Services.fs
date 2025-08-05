@@ -4,25 +4,34 @@ open System
 
 module Calculate =
     let plates (bar: Bar) (platePairs: PlatePair list) (weight: Weight) : PlatePair list =
-        let rec loop (acc: PlatePair list) (platePairs: PlatePair list) (weight: Weight) =
-            match (platePairs, weight) with
-            | _, weight when weight <= Weight.zero -> acc
-            | platePair :: platePairs, _ when platePair.Weight <= weight ->
-                loop (acc |> List.append [ platePair ]) platePairs (weight - platePair.Weight)
-            | _ :: platePairs, _ -> loop acc platePairs weight
-            | _ -> acc
+        match platePairs with
+        | [] -> []
+        | _ ->
+            let rec loop (acc: PlatePair list) (platePairs: PlatePair list) (weight: Weight) =
+                match (platePairs, weight) with
+                | _, weight when weight <= Weight.zero -> acc
+                | platePair :: platePairs, _ when platePair.Weight <= weight ->
+                    loop (acc |> List.append [ platePair ]) platePairs (weight - platePair.Weight)
+                | _ :: platePairs, _ -> loop acc platePairs weight
+                | _ -> acc
 
-        let sortedPlatePairs: PlatePair list = platePairs |> List.sort |> List.rev
-        let smallestPlatePair = sortedPlatePairs |> List.last
-        let remainder = weight % smallestPlatePair.Weight
+            let sortedPlatePairs = platePairs |> List.sort |> List.rev
+            let smallestPlatePair = sortedPlatePairs |> List.last
+            let remainder = weight % smallestPlatePair.Weight
 
-        let weightRoundedUp =
-            if remainder = Weight.zero then
-                weight
-            else
-                weight + smallestPlatePair.Weight - remainder
+            let weightRoundedUp =
+                if remainder = Weight.zero then
+                    weight
+                else
+                    weight + smallestPlatePair.Weight - remainder
 
-        loop [] sortedPlatePairs (weightRoundedUp - bar.Weight) |> List.sort |> List.rev
+            loop [] sortedPlatePairs (weightRoundedUp - bar.Weight) |> List.sort |> List.rev
+
+    let oneRepMax (weight: Weight) (reps: uint32) =
+        (((weight.Value |> float) * 100.0)
+         / (52.2 + 41.9 * Math.Pow(Math.E, -0.055 * (reps |> float))))
+        |> decimal
+        |> Weight
 
     let private repsMap =
         [ (Wave.One, RepSet.One), 5u
@@ -57,19 +66,18 @@ module Calculate =
         |> Map.ofList
 
     let percentage wave repSet = weightTable[wave, repSet]
-    
-    let weight wave repSet bar platePairs (weight: Weight) =
-        let weight = weight * (percentage wave repSet)
 
-        let platePairs = plates bar platePairs weight
+    let equipmentWeight bar platePairs weight =
+        (plates bar platePairs weight |> List.sumBy _.Weight) + bar.Weight
 
-        (platePairs |> List.sumBy _.Weight) + bar.Weight
+    let exerciseWeight wave repSet bar platePairs (weight: Weight) =
+        equipmentWeight bar platePairs (weight * (percentage wave repSet))
 
     let warmupReps =
         let reps = Wave.Four |> reps
         RepSet.all |> List.map (fun repSet -> (repSet, repSet |> reps)) |> Map.ofList
 
-    let warmUpWeight = Wave.Four |> weight
+    let warmUpWeight = Wave.Four |> exerciseWeight
 
     let nextExerciseDate (exerciseDaysPerWeek: ExerciseDaysPerWeek) (date: DateOnly) =
         match exerciseDaysPerWeek with

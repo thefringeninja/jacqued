@@ -9,6 +9,8 @@ open Jacqued
 open Jacqued.Controls
 open Jacqued.DSL
 open Jacqued.Helpers
+open Jacqued.Msg
+open Jacqued.Msg.Workout
 open Jacqued.Util
 open Material.Icons
 
@@ -124,10 +126,14 @@ let view (state: State) dispatch =
         let supplementary = supplementary oneRepMax
 
         let onSelectedSupplementaryLiftsIndexChanged index =
-            index |> Msg.SelectedSupplementaryLiftsIndexChanged |> dispatch
+            index
+            |> SupplementaryLifts.SelectedSupplementaryLiftsIndexChanged
+            |> Workout.SupplementaryLifts
+            |> Msg.Workout
+            |> dispatch
 
         let onCompleteWaveClick _ =
-            (mesocycleId, date) |> Msg.CompleteWave |> dispatch
+            (mesocycleId, date) |> Workout.CompleteWave |> Msg.Workout |> dispatch
 
         let supplement =
             (Supplement.all, (Supplement.all |> List.map supplementary))
@@ -170,6 +176,10 @@ let update handler msg (state: State) =
                 ExerciseDaysPerWeek = e.ExercisesDaysPerWeek
                 GymPlates = e.Plates }
             |> pass
+        | OneRepMaxCalculated e ->
+            { state with
+                CurrentExercise = e.Exercise |> Exercise.next }
+            |> pass
         | MesocycleStarted e ->
             { state with
                 CurrentExercise = e.WorkoutPlan.Exercise
@@ -201,23 +211,32 @@ let update handler msg (state: State) =
             |> pass
 
         | _ -> state |> pass
-    | ExerciseDateChanged date ->
-        { state with
-            Mesocycles =
-                state.Mesocycles
-                |> Map.change state.CurrentExercise (function
-                    | Some(mesocycleId, wave, weight, _) -> Some(mesocycleId, wave, weight, date)
-                    | _ -> None) }
-        |> pass
-    | Msg.SelectedSupplementaryLiftsIndexChanged(selectedIndex) ->
-        { state with
-            SelectedIndex = selectedIndex }
-        |> pass
-    | Msg.CompleteWave(mesocycleId, date) ->
-        state,
-        handler (
-            Command.CompleteWave
-                { MesocycleId = mesocycleId
-                  CompletedAt = date }
-        )
+    | Workout e ->
+        match e with
+        | WarmupLifts e ->
+            match e with
+            | WarmupLifts.ExerciseDateChanged date ->
+                { state with
+                    Mesocycles =
+                        state.Mesocycles
+                        |> Map.change state.CurrentExercise (function
+                            | Some(mesocycleId, wave, weight, _) -> Some(mesocycleId, wave, weight, date)
+                            | _ -> None) }
+                |> pass
+            | _ -> state |> pass
+
+        | SupplementaryLifts e ->
+            match e with
+            | SelectedSupplementaryLiftsIndexChanged(selectedIndex) ->
+                { state with
+                    SelectedIndex = selectedIndex }
+                |> pass
+        | CompleteWave(mesocycleId, date) ->
+            state,
+            handler (
+                Command.CompleteWave
+                    { MesocycleId = mesocycleId
+                      CompletedAt = date }
+            )
+        | _ -> state |> pass
     | _ -> state |> pass

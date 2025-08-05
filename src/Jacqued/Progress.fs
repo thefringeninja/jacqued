@@ -10,6 +10,7 @@ open Jacqued.Controls
 open Jacqued.Design
 open Jacqued.DSL
 open Jacqued.Helpers
+open Jacqued.Msg
 open Jacqued.Util
 open LiveChartsCore
 open LiveChartsCore.Kernel
@@ -210,21 +211,30 @@ let private updateDetails msg (state: Detail) =
             { state with
                 Details = recordReps e.MesocycleId e.Wave e.Reps e.Weight }
         | _ -> state
-    | Msg.ExerciseSummaryClicked(mesocycleId, exercise, mesocycleNumber) ->
-        { state with
-            MesocycleId = mesocycleId |> Some
-            Exercise = exercise
-            MesocycleNumber = mesocycleNumber }
-    | Msg.ExerciseDetailDismissed -> { state with MesocycleId = None }
+    | Progress e ->
+        match e with 
+        | ExerciseSummaryClicked(mesocycleId, exercise, mesocycleNumber) ->
+            { state with
+                MesocycleId = mesocycleId |> Some
+                Exercise = exercise
+                MesocycleNumber = mesocycleNumber }
+        | ExerciseDetailDismissed -> { state with MesocycleId = None }
+        | _ -> state
     | _ -> state
 
 let update msg state =
     let state =
         match msg with
-        | Msg.SelectedProgressChartExerciseChanged exercise -> { state with Exercise = exercise }: State
-        | Msg.ActualThemeSelected theme ->
-            { state with
-                ThemeKey = theme.Key |> string }
+        | Progress e ->
+            match e with
+            | SelectedProgressChartExerciseChanged exercise -> { state with Exercise = exercise }: State
+            | _ -> state
+        | Settings e ->
+            match e with
+            | ActualThemeSelected theme ->
+                    { state with
+                        ThemeKey = theme.Key |> string }
+            | _ -> state
         | _ -> state
 
     { state with
@@ -279,7 +289,7 @@ let view (state: State) dispatch =
 
     let summaryView () =
         let onSelectedExerciseChange (e: obj) =
-            (e :?> Exercise option) |> Msg.SelectedProgressChartExerciseChanged |> dispatch
+            (e :?> Exercise option) |> Progress.SelectedProgressChartExerciseChanged |> Msg.Progress |> dispatch
 
         let itemTemplate item =
             match item with
@@ -327,7 +337,8 @@ let view (state: State) dispatch =
 
                 series.add_ChartPointPointerDown (fun chart point ->
                     (point.Model.MesocycleId, exercise, point.Model.MesocycleNumber)
-                    |> Msg.ExerciseSummaryClicked
+                    |> Progress.ExerciseSummaryClicked
+                    |> Msg.Progress
                     |> dispatch
 
                     tooltip.Hide(chart.CoreChart)
@@ -402,7 +413,7 @@ let view (state: State) dispatch =
                 Fill = null
             )
 
-        let onDismissExerciseDetailClick _ = Msg.ExerciseDetailDismissed |> dispatch
+        let onDismissExerciseDetailClick _ = Progress.ExerciseDetailDismissed |> Msg.Progress |> dispatch
 
         let header =
             StackPanel.create [

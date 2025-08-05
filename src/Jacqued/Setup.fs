@@ -10,6 +10,7 @@ open Avalonia.Styling
 open Jacqued.Controls
 open Jacqued.DSL
 open Jacqued.Helpers
+open Jacqued.Msg
 open Jacqued.Util
 open Material.Icons
 
@@ -41,42 +42,47 @@ let update handler msg (state: State) =
                 MeasurementSystem = e.MeasurementSystem }
             |> pass
         | _ -> state |> pass
-    | SetupGym(bar, plates, units, days) ->
-        state,
-        handler (
-            Command.SetupGym(
-                { Bar = bar
-                  Plates = plates
-                  MeasurementSystem = units
-                  ExerciseDaysPerWeek = days }
-                : SetupGym
+    | Setup e ->
+        match e with
+        | SetupGym(bar, plates, units, days) ->
+            state,
+            handler (
+                Command.SetupGym(
+                    { Bar = bar
+                      Plates = plates
+                      MeasurementSystem = units
+                      ExerciseDaysPerWeek = days }
+                    : SetupGym
+                )
             )
-        )
-    | ExerciseDaysPerWeekChanged daysPerWeek ->
-        { state with
-            ExerciseDaysPerWeek = daysPerWeek }
-        |> pass
-    | MeasurementSystemChanged system ->
-        { state with
-            MeasurementSystem = system }
-        |> pass
-    | BarbellWeightChanged weight -> { state with Bar = Bar.Of(weight) } |> pass
-    | PlateWeightChanged weight -> { state with PlateToAdd = weight } |> pass
-    | AddPlate weight ->
-        let platePairs = state.Plates |> List.append [ PlatePair(weight) ]
+        | ExerciseDaysPerWeekChanged daysPerWeek ->
+            { state with
+                ExerciseDaysPerWeek = daysPerWeek }
+            |> pass
+        | MeasurementSystemChanged system ->
+            { state with
+                MeasurementSystem = system }
+            |> pass
+        | BarbellWeightChanged weight -> { state with Bar = Bar.Of(weight) } |> pass
+        | PlateWeightChanged weight -> { state with PlateToAdd = weight } |> pass
+        | AddPlate weight ->
+            let platePairs = state.Plates |> List.append [ PlatePair(weight) ]
 
-        { state with
-            Plates = platePairs
-            PlateToAdd = Weight.zero }
-        |> pass
-    | RemovePlate weight ->
-        { state with
-            Plates =
-                state.Plates
-                |> List.removeAt (state.Plates |> List.findIndex (fun plate -> plate.WeightOfEach = weight)) }
-        |> pass
-    | SelectTheme theme -> { state with SelectedTheme = theme } |> pass
-    | ConfigurationSettingsLoaded { ThemeVariant = theme } -> { state with SelectedTheme = theme } |> pass
+            { state with
+                Plates = platePairs
+                PlateToAdd = Weight.zero }
+            |> pass
+        | RemovePlate weight ->
+            { state with
+                Plates =
+                    state.Plates
+                    |> List.removeAt (state.Plates |> List.findIndex (fun plate -> plate.WeightOfEach = weight)) }
+            |> pass
+    | Settings e ->
+        match e with
+        | SelectTheme theme -> { state with SelectedTheme = theme } |> pass
+        | ConfigurationSettingsLoaded { ThemeVariant = theme } -> { state with SelectedTheme = theme } |> pass
+        | _ -> state |> pass
     | _ -> state |> pass
 
 let private radioButtonGroup (format: 't -> string) items selected label groupName action =
@@ -108,13 +114,13 @@ let private themeSelector state dispatch =
 
     let format (item: ThemeVariant) = item.Key |> string
 
-    radioButtonGroup format themes state.SelectedTheme "Theme" (nameof ThemeVariant) (Msg.SelectTheme >> dispatch)
+    radioButtonGroup format themes state.SelectedTheme "Theme" (nameof ThemeVariant) (Settings.SelectTheme >> Msg.Settings >> dispatch)
 
 let private gymSetup (state: State) (dispatch: Msg -> unit) =
     let onBarbellWeightChange s =
         let msg =
             match Weight.tryParse s with
-            | Ok weight -> weight |> BarbellWeightChanged
+            | Ok weight -> weight |> Setup.BarbellWeightChanged |> Msg.Setup
             | Result.Error error -> error |> Message |> ApplicationError
 
         msg |> dispatch
@@ -122,7 +128,7 @@ let private gymSetup (state: State) (dispatch: Msg -> unit) =
     let onPlateWeightChange s =
         let msg =
             match Weight.tryParse s with
-            | Ok weight -> weight |> PlateWeightChanged
+            | Ok weight -> weight |> Setup.PlateWeightChanged |> Msg.Setup
             | Result.Error error -> error |> Message |> ApplicationError
 
         msg |> dispatch
@@ -130,7 +136,7 @@ let private gymSetup (state: State) (dispatch: Msg -> unit) =
     let onPlateAdd weight _ =
         let msg =
             if weight > Weight.zero then
-                weight |> AddPlate
+                weight |> Msg.Setup.AddPlate |> Msg.Setup
             else
                 "Weight must be greater than 0" |> Message |> ApplicationError
 
@@ -143,13 +149,14 @@ let private gymSetup (state: State) (dispatch: Msg -> unit) =
             onPlateAdd weight e
             e.Handled <- true
 
-    let onPlateRemove = RemovePlate >> dispatch
+    let onPlateRemove = Msg.Setup.RemovePlate >> Msg.Setup >> dispatch
 
     let setupGymEnabled = state.Bar.Weight > Weight.zero && state.Plates.Length > 0
 
     let onSetupGym _ =
         (state.Bar, state.Plates, state.MeasurementSystem, state.ExerciseDaysPerWeek)
-        |> Msg.SetupGym
+        |> Msg.Setup.SetupGym
+        |> Msg.Setup
         |> dispatch
 
     let setupGym =
@@ -171,7 +178,7 @@ let private gymSetup (state: State) (dispatch: Msg -> unit) =
                 state.ExerciseDaysPerWeek
                 "Exercise days"
                 (nameof ExerciseDaysPerWeek)
-                (ExerciseDaysPerWeekChanged >> dispatch)
+                (Msg.Setup.ExerciseDaysPerWeekChanged >> Msg.Setup >> dispatch)
 
             radioButtonGroup
                 format
@@ -179,7 +186,7 @@ let private gymSetup (state: State) (dispatch: Msg -> unit) =
                 state.MeasurementSystem
                 "Units"
                 (nameof MeasurementSystem)
-                (MeasurementSystemChanged >> dispatch)
+                (Msg.Setup.MeasurementSystemChanged >> Msg.Setup >> dispatch)
 
             TextBox.create [
                 TextBox.label "Barbell"

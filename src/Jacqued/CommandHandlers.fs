@@ -24,10 +24,33 @@ module Gym =
             | Ok _ -> Ok events
             | Error e -> Error e
 
+module OneRepMaxes =
+    open OneRepMaxes
+    
+    let private exercise =
+        function
+        | CalculateOneRepMax { Exercise = exercise } -> exercise 
+        | unknown -> invalidOp $"{unknown} was not recognized"
+
+    let create append =
+        let streamName exercise = $"oneRepMax-{exercise.ToString().ToLowerInvariant()}"
+        
+        let save exercise events =
+            append (streamName exercise) -2 events
+
+        fun command ->
+            let exercise = exercise command
+            
+            let events = handle command
+            
+            match save exercise events with
+            | Ok _ -> Ok events
+            | Error e -> Error e
+
 module Mesocycle =
     open Mesocycle
 
-    let mesocycleId =
+    let private mesocycleId =
         function
         | StartMesocycle { MesocycleId = MesocycleId id } -> id
         | CompleteRepSet { MesocycleId = MesocycleId id } -> id
@@ -59,3 +82,4 @@ module Mesocycle =
             match save id expectedVersion events with
             | Ok _ -> Ok events
             | Error e -> Error e
+
