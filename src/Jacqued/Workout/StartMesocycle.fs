@@ -47,11 +47,19 @@ let view (state: State) dispatch =
         |> dispatch
 
     let onCalculateOneRepMax _ =
-        state.CurrentExercise |> OneRepMaxLifts.BeginCalculateOneRepMaxClicked |> Workout.OneRepMaxLifts |> Msg.Workout |> dispatch
-    
+        state.CurrentExercise
+        |> OneRepMaxLifts.BeginCalculateOneRepMaxClicked
+        |> Workout.OneRepMaxLifts
+        |> Msg.Workout
+        |> dispatch
+
     let onStartDateChange (d: Nullable<DateTimeOffset>) =
         (if d.HasValue then
-             d.Value.Date |> (DateOnly.FromDateTime >> Mesocycle.StartDateChanged >> Workout.Mesocycle >> Msg.Workout)
+             d.Value.Date
+             |> (DateOnly.FromDateTime
+                 >> Mesocycle.StartDateChanged
+                 >> Workout.Mesocycle
+                 >> Msg.Workout)
          else
              "No date selected" |> Message |> ApplicationError)
         |> dispatch
@@ -65,15 +73,17 @@ let view (state: State) dispatch =
           | Some d -> d),
          state.Bar,
          state.GymPlates)
-        |> Mesocycle.StartMesocycle |> Workout.Mesocycle |> Msg.Workout
+        |> Mesocycle.StartMesocycle
+        |> Workout.Mesocycle
+        |> Msg.Workout
         |> dispatch
 
     let calculateOneRepMax =
-        MaterialButton.create [
-            MaterialButton.content ("Calculate", MaterialIconKind.CalculatorVariantOutline)
-            MaterialButton.onClick (onCalculateOneRepMax, SubPatchOptions.OnChangeOf state.CurrentExercise)
+        FlatButton.create [
+            DockPanel.dock Dock.Right
+            FlatButton.content MaterialIconKind.CalculatorVariantOutline
+            FlatButton.onClick (onCalculateOneRepMax, SubPatchOptions.OnChangeOf state.CurrentExercise)
         ]
-    
 
     let mesocycleNumber, oneRepMax = state.Mesocycles[state.CurrentExercise]
 
@@ -99,16 +109,18 @@ let view (state: State) dispatch =
                     DatePicker.horizontalAlignment HorizontalAlignment.Stretch
                     DatePicker.onSelectedDateChanged onStartDateChange
                 ]
-                
-                StackPanel.create [
+
+                DockPanel.create [
+                    DockPanel.lastChildFill true
                     StackPanel.children [
+                        calculateOneRepMax
                         TextBox.create [
-                            TextBox.label "One rep max"
+                            DockPanel.dock Dock.Left
+                            TextBox.label "1RM"
                             TextBox.contentType TextInputContentType.Number
                             TextBox.text $"{oneRepMax}"
                             TextBox.onTextChanged onOneRepMaxChange
                         ]
-                        calculateOneRepMax
                     ]
                 ]
                 buttonBar [ startMesocycle ]
@@ -127,6 +139,11 @@ let update now handler msg (state: State) =
                 GymPlates = e.Plates
                 MeasurementSystem = e.MeasurementSystem
                 ExerciseDaysPerWeek = e.ExercisesDaysPerWeek }
+            |> pass
+        | OneRepMaxCalculated e ->
+            { state with
+                StartingAt = Calculate.nextExerciseDate state.ExerciseDaysPerWeek e.CalculatedOn |> Some
+                CurrentExercise = e.Exercise |> Exercise.next }
             |> pass
         | MesocycleCompleted e ->
             { state with
@@ -152,7 +169,7 @@ let update now handler msg (state: State) =
         match e with
         | Mesocycle e ->
             match e with
-            | OneRepMaxChanged oneRepMax ->
+            | Mesocycle.OneRepMaxChanged oneRepMax ->
                 { state with
                     Mesocycles =
                         state.Mesocycles
@@ -162,21 +179,18 @@ let update now handler msg (state: State) =
                 { state with
                     StartingAt = startingAt |> Some }
                 |> pass
-            | StartMesocycle(mesocycleId, exercise, oneRepMax, startedAt, bar, platePairs) ->
-                if oneRepMax > Weight.zero then
-                    state,
-                    handler (
-                        Command.StartMesocycle
-                            { MesocycleId = mesocycleId
-                              Exercise = exercise
-                              StartedAt = startedAt
-                              OneRepMax = oneRepMax
-                              Bar = bar
-                              Plates = platePairs
-                              MeasurementSystem = state.MeasurementSystem }
-                    )
-                else
-                    state |> pass
-        | _ -> state |> pass                    
-
+            | StartMesocycle(mesocycleId, exercise, oneRepMax, startedAt, bar, platePairs) when oneRepMax > Weight.zero ->
+                state,
+                handler (
+                    Command.StartMesocycle
+                        { MesocycleId = mesocycleId
+                          Exercise = exercise
+                          StartedAt = startedAt
+                          OneRepMax = oneRepMax
+                          Bar = bar
+                          Plates = platePairs
+                          MeasurementSystem = state.MeasurementSystem }
+                )
+            | _ -> state |> pass
+        | _ -> state |> pass
     | _ -> state |> pass

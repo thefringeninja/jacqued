@@ -103,6 +103,10 @@ let update msg (state: State) =
                 ExerciseDaysPerWeek = e.ExercisesDaysPerWeek
                 GymPlates = e.Plates
                 MeasurementSystem = e.MeasurementSystem }
+        | OneRepMaxCalculated e ->
+            { state with
+                CurrentExercise = e.Exercise |> Exercise.next
+                Date = e.CalculatedOn |> Calculate.nextExerciseDate state.ExerciseDaysPerWeek }            
         | MesocycleStarted e ->
             let mesocycleNumber, _, _ = state.Exercises[e.WorkoutPlan.Exercise]
 

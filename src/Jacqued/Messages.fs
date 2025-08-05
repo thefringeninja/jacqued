@@ -35,6 +35,17 @@ module Msg =
             | ExerciseDateChanged of DateOnly
             | CompleteWarmup
 
+        type OneRepMaxLifts =
+            | BeginCalculateOneRepMaxClicked of Exercise
+            | OneRepMaxChanged of Weight
+            | ExerciseDateChanged of DateOnly
+            | OneRepMaxEstimated
+            | CompleteWarmup
+            | IncreaseReps
+            | DecreaseReps
+            | CompleteCalculateOneRepMaxClicked of Exercise * uint * Weight * DateOnly
+            | Complete of Exercise
+            
         type SupplementaryLifts =
             | SelectedSupplementaryLiftsIndexChanged of int
         
@@ -42,6 +53,7 @@ module Msg =
         | Mesocycle of Workout.Mesocycle
         | MainLifts of Workout.MainLifts
         | WarmupLifts of Workout.WarmupLifts
+        | OneRepMaxLifts of Workout.OneRepMaxLifts
         | SupplementaryLifts of Workout.SupplementaryLifts
         | ContinueExercise of Exercise
         | CompleteWave of MesocycleId * DateOnly

@@ -176,6 +176,10 @@ let update handler msg (state: State) =
                 ExerciseDaysPerWeek = e.ExercisesDaysPerWeek
                 GymPlates = e.Plates }
             |> pass
+        | OneRepMaxCalculated e ->
+            { state with
+                CurrentExercise = e.Exercise |> Exercise.next }
+            |> pass
         | MesocycleStarted e ->
             { state with
                 CurrentExercise = e.WorkoutPlan.Exercise

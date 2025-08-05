@@ -60,7 +60,7 @@ let private workout count =
                 |> List.allPairs Wave.all
                 |> List.map (fun (wave, set) ->
                     let reps = Calculate.reps wave set
-                    let weight = Calculate.weight wave set bar plates trainingMax
+                    let weight = Calculate.exerciseWeight wave set bar plates trainingMax
 
                     ((wave, set), (weight, reps)))
 

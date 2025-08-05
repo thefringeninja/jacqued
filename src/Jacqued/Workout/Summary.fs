@@ -86,6 +86,9 @@ let update msg (state: State) =
         | GymSetup e ->
             { state with
                 MeasurementSystem = e.MeasurementSystem }
+        | OneRepMaxCalculated e ->
+            { state with
+                CurrentExercise = e.Exercise |> Exercise.next }
         | MesocycleStarted e ->
             let mesocycleNumber, _, _ = state.Exercises[e.WorkoutPlan.Exercise]
 

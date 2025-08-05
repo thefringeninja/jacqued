@@ -60,8 +60,14 @@ module Shell =
 
         let gym = Gym.create read append
 
+        let oneRepMaxes = OneRepMaxes.create append
         let mesocycle = Mesocycle.create read append
         
+        let workout command =
+            match command with
+            | CalculateOneRepMax _ -> oneRepMaxes command
+            | other -> mesocycle other
+
         let setupComplete =
             match msg with
             | Event e ->
@@ -133,7 +139,7 @@ module Shell =
                       let progress = Progress.update msg state.Progress
 
                       let workout, result =
-                          Workout.update (fun () -> DateOnly.today) mesocycle msg state.Workout
+                          Workout.update (fun () -> DateOnly.today) workout msg state.Workout
 
                       yield result |> Update.Events
 

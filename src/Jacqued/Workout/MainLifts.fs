@@ -173,6 +173,12 @@ let update handler msg state =
                 GymPlates = e.Plates
                 MeasurementSystem = e.MeasurementSystem }
             |> pass
+        | OneRepMaxCalculated e ->
+            { state with
+                Reps = 0u
+                CurrentExercise = e.Exercise |> nextExercise
+                StartingAt = Calculate.nextExerciseDate state.ExerciseDaysPerWeek e.CalculatedOn }
+            |> pass
         | MesocycleStarted e ->
             let mesocycleNumber, _, _, _ = state.Exercises[e.WorkoutPlan.Exercise]
 
@@ -225,7 +231,6 @@ let update handler msg state =
                 Reps = 0u
                 CurrentExercise = e.Exercise |> nextExercise }
             |> pass
-        | _ -> state |> pass
     | Workout e ->
         match e with
         | Mesocycle e ->
