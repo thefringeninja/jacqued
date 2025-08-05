@@ -53,8 +53,7 @@ type MainActivity() =
         let store =
             new SqliteStreamStore(
                 SqliteStreamStoreSettings(
-                    SqliteConnectionStringBuilder(DataSource = Path.Combine(dataSourceDirectory, "jacqued.db"))
-                        .ToString(),
+                    SqliteConnectionStringBuilder(DataSource = Path.Combine(dataSourceDirectory, "jacqued.db")).ToString(),
                     GetUtcNow = (fun () -> DateTime.UtcNow)
                 )
             )
@@ -63,9 +62,7 @@ type MainActivity() =
         store
 
     override _.CreateAppBuilder() =
-        AppBuilder
-            .Configure<App>(fun () -> App(streamStore, settingsFile))
-            .UseAndroid()
+        AppBuilder.Configure<App>(fun () -> App(streamStore, settingsFile)).UseAndroid()
 
     override this.Dispose(disposing) =
         streamStore.Dispose()

@@ -29,9 +29,9 @@ module Calculate =
                    Wave.Four, RepSet.One, (40, 5u, [ 10m ])
                    Wave.Four, RepSet.Two, (50, 5u, [ 15m ])
                    Wave.Four, RepSet.Three, (60, 5u, [ 20m ]) ]
-                 |> List.map (fun (wave, repSet, (weight, reps, plates)) ->
-                     (wave, repSet, (weight |> Weight))))
-            <| fun (wave, repSet, expected) -> Expect.equal (Calculate.exerciseWeight wave repSet bar platePairs ninetyPercentMax) expected ""
+                 |> List.map (fun (wave, repSet, (weight, reps, plates)) -> (wave, repSet, (weight |> Weight))))
+            <| fun (wave, repSet, expected) ->
+                Expect.equal (Calculate.exerciseWeight wave repSet bar platePairs ninetyPercentMax) expected ""
         ]
 
     [<Tests>]

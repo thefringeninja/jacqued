@@ -49,71 +49,67 @@ type FlatButton() =
 
 type TopAppBar() =
     inherit ContentControl()
-        // ContentControl(
-        //     Styles =
-        //         [ Style(
-        //               Setters =
-        //                   [ Setter(TopAppBar.BackgroundProperty, Theme.Brushes.primaryMid)
-        //                     Setter(TopAppBar.ForegroundProperty, Theme.Brushes.primaryMidForeground)
-        //                     Setter(TopAppBar.HorizontalAlignmentProperty, HorizontalAlignment.Stretch)
-        //                     Setter(TopAppBar.VerticalAlignmentProperty, VerticalAlignment.Top)
-        //                     Setter(TopAppBar.FocusableProperty, false)
-        //
-        //                     let g =
-        //                         Grid(
-        //                             HorizontalAlignment = HorizontalAlignment.Stretch,
-        //                             VerticalAlignment = VerticalAlignment.Stretch,
-        //                             RowDefinitions = RowDefinitions("Auto,100"),
-        //                             Properties = [ (TextBlock.ForegroundProperty, Theme.Brushes.primaryMid) ],
-        //                             Children =
-        //                                 [ Border(
-        //                                       HorizontalAlignment = HorizontalAlignment.Stretch,
-        //                                       VerticalAlignment = VerticalAlignment.Top
-        //                                   )
-        //                                   Grid()
-        //                                   Border(
-        //                                       HorizontalAlignment = HorizontalAlignment.Stretch,
-        //                                       VerticalAlignment = VerticalAlignment.Stretch,
-        //                                       Focusable = false,
-        //                                       Properties = [ Grid.RowProperty, 1 ],
-        //                                       Child =
-        //                                           ContentControl(
-        //                                               Margin = Thickness(80, 0, 16, 0),
-        //                                               HorizontalAlignment = HorizontalAlignment.Left,
-        //                                               VerticalAlignment = VerticalAlignment.Center,
-        //                                               Focusable = false,
-        //                                               Content = new TemplateBinding(TopAppBar.TitleProperty),
-        //                                               Properties =
-        //                                                   [ Grid.ColumnProperty, 1
-        //                                                     Grid.ColumnSpanProperty, 2
-        //                                                     TextBlock.FontSizeProperty, 20 ]
-        //                                           )
-        //                                   ) ]
-        //                         )
-        //
-        //                     Setter(
-        //                         TopAppBar.TemplateProperty,
-        //                         FuncControlTemplate(System.Func<TemplatedControl, INameScope, Control>(fun _ _ -> g))
-        //                     ) ]
-        //           )
-        //
-        //           ]
-        // )
+    // ContentControl(
+    //     Styles =
+    //         [ Style(
+    //               Setters =
+    //                   [ Setter(TopAppBar.BackgroundProperty, Theme.Brushes.primaryMid)
+    //                     Setter(TopAppBar.ForegroundProperty, Theme.Brushes.primaryMidForeground)
+    //                     Setter(TopAppBar.HorizontalAlignmentProperty, HorizontalAlignment.Stretch)
+    //                     Setter(TopAppBar.VerticalAlignmentProperty, VerticalAlignment.Top)
+    //                     Setter(TopAppBar.FocusableProperty, false)
+    //
+    //                     let g =
+    //                         Grid(
+    //                             HorizontalAlignment = HorizontalAlignment.Stretch,
+    //                             VerticalAlignment = VerticalAlignment.Stretch,
+    //                             RowDefinitions = RowDefinitions("Auto,100"),
+    //                             Properties = [ (TextBlock.ForegroundProperty, Theme.Brushes.primaryMid) ],
+    //                             Children =
+    //                                 [ Border(
+    //                                       HorizontalAlignment = HorizontalAlignment.Stretch,
+    //                                       VerticalAlignment = VerticalAlignment.Top
+    //                                   )
+    //                                   Grid()
+    //                                   Border(
+    //                                       HorizontalAlignment = HorizontalAlignment.Stretch,
+    //                                       VerticalAlignment = VerticalAlignment.Stretch,
+    //                                       Focusable = false,
+    //                                       Properties = [ Grid.RowProperty, 1 ],
+    //                                       Child =
+    //                                           ContentControl(
+    //                                               Margin = Thickness(80, 0, 16, 0),
+    //                                               HorizontalAlignment = HorizontalAlignment.Left,
+    //                                               VerticalAlignment = VerticalAlignment.Center,
+    //                                               Focusable = false,
+    //                                               Content = new TemplateBinding(TopAppBar.TitleProperty),
+    //                                               Properties =
+    //                                                   [ Grid.ColumnProperty, 1
+    //                                                     Grid.ColumnSpanProperty, 2
+    //                                                     TextBlock.FontSizeProperty, 20 ]
+    //                                           )
+    //                                   ) ]
+    //                         )
+    //
+    //                     Setter(
+    //                         TopAppBar.TemplateProperty,
+    //                         FuncControlTemplate(System.Func<TemplatedControl, INameScope, Control>(fun _ _ -> g))
+    //                     ) ]
+    //           )
+    //
+    //           ]
+    // )
 
     let trailing = Controls()
 
-    static let titleProperty = AvaloniaProperty.Register<TopAppBar, string>(nameof Unchecked.defaultof<TopAppBar>.Title, "", true)
-    
-    static member TitleProperty with get() = titleProperty
-    
-    
+    static let titleProperty =
+        AvaloniaProperty.Register<TopAppBar, string>(nameof Unchecked.defaultof<TopAppBar>.Title, "", true)
+
+    static member TitleProperty = titleProperty
 
     member this.Title
         with get () = this.GetValue(TopAppBar.TitleProperty)
         and set value = this.SetValue<string>(TopAppBar.TitleProperty, value) |> ignore
 
-    
-    member this.Trailing
-        with get() = trailing
-        //and set value = this.SetValue<Controls>(TopAppBar.TrailingProperty, value) |> ignore
-    
+    member this.Trailing = trailing
+//and set value = this.SetValue<Controls>(TopAppBar.TrailingProperty, value) |> ignore

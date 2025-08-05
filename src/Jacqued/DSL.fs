@@ -19,15 +19,13 @@ open Material.Styles.Assists
 module ComboBox =
     type ComboBox with
         static member label<'t when 't :> ComboBox>(value: string) =
-            AttrBuilder<ComboBox>
-                .CreateProperty<string>(ComboBoxAssist.LabelProperty, value, ValueNone)
+            AttrBuilder<ComboBox>.CreateProperty<string>(ComboBoxAssist.LabelProperty, value, ValueNone)
 
 [<AutoOpen>]
 module TextBox =
     type TextBox with
         static member label<'t when 't :> TextBox>(value: string) =
-            AttrBuilder<TextBox>
-                .CreateProperty<string>(TextFieldAssist.LabelProperty, value, ValueNone)
+            AttrBuilder<TextBox>.CreateProperty<string>(TextFieldAssist.LabelProperty, value, ValueNone)
 
 [<AutoOpen>]
 module MaterialIcon =
@@ -36,8 +34,7 @@ module MaterialIcon =
     type MaterialIcon with
 
         static member kind<'t when 't :> MaterialIcon>(value: MaterialIconKind) : IAttr<'t> =
-            AttrBuilder<'t>
-                .CreateProperty<MaterialIconKind>(MaterialIcon.KindProperty, value, ValueNone)
+            AttrBuilder<'t>.CreateProperty<MaterialIconKind>(MaterialIcon.KindProperty, value, ValueNone)
 
 let private buttonContent (text: string option) (iconKind: MaterialIconKind option) (orientation: Orientation) =
     let padding =
@@ -136,8 +133,7 @@ module FloatingButton =
 
     type FloatingButton with
         static member isExtended<'t when 't :> FloatingButton>(value: bool) : IAttr<'t> =
-            AttrBuilder<'t>
-                .CreateProperty<bool>(FloatingButton.IsExtendedProperty, value, ValueNone)
+            AttrBuilder<'t>.CreateProperty<bool>(FloatingButton.IsExtendedProperty, value, ValueNone)
 
         static member content<'t when 't :> FloatingButton>(iconKind: MaterialIconKind, ?text: string) : IAttr<'t> =
             FloatingButton.content (buttonContent text (iconKind |> Some) Orientation.Horizontal)
@@ -270,8 +266,7 @@ module CartesianChart =
                     token.Register(fun _ -> control.remove_VisualElementsPointerDown (handler))
                     |> ignore
 
-            AttrBuilder<'t>
-                .CreateSubscription<VisualElementsEventArgs>(name, factory, func, ?subPatchOptions = subPatchOptions)
+            AttrBuilder<'t>.CreateSubscription<VisualElementsEventArgs>(name, factory, func, ?subPatchOptions = subPatchOptions)
 
         static member xaxes<'t when 't :> CartesianChart>(value: seq<ICartesianAxis>) : IAttr<'t> =
             AttrBuilder<'t>
@@ -286,8 +281,7 @@ module CartesianChart =
                 .CreateProperty<LegendPosition>(property = CartesianChart.LegendPositionProperty, value = value, comparer = ValueNone)
 
         static member series<'t when 't :> CartesianChart>(value: seq<ISeries>) : IAttr<'t> =
-            AttrBuilder<'t>
-                .CreateProperty<seq<ISeries>>(property = CartesianChart.SeriesProperty, value = value, comparer = ValueNone)
+            AttrBuilder<'t>.CreateProperty<seq<ISeries>>(property = CartesianChart.SeriesProperty, value = value, comparer = ValueNone)
 
         static member legend<'t when 't :> CartesianChart>(value: IChartLegend) : IAttr<'t> =
             let name = nameof Unchecked.defaultof<'t>.Legend
@@ -296,8 +290,7 @@ module CartesianChart =
             let setter: 't * IChartLegend -> unit =
                 (fun (control, value) -> control.Legend <- value)
 
-            AttrBuilder<'t>
-                .CreateProperty<IChartLegend>(name, value, ValueSome getter, ValueSome setter, ValueNone)
+            AttrBuilder<'t>.CreateProperty<IChartLegend>(name, value, ValueSome getter, ValueSome setter, ValueNone)
 
         static member tooltip<'t when 't :> CartesianChart>(value: IChartTooltip) : IAttr<'t> =
             let name = nameof Unchecked.defaultof<'t>.Tooltip
@@ -306,24 +299,20 @@ module CartesianChart =
             let setter: 't * IChartTooltip -> unit =
                 (fun (control, value) -> control.Tooltip <- value)
 
-            AttrBuilder<'t>
-                .CreateProperty<IChartTooltip>(name, value, ValueSome getter, ValueSome setter, ValueNone)
+            AttrBuilder<'t>.CreateProperty<IChartTooltip>(name, value, ValueSome getter, ValueSome setter, ValueNone)
 
         static member zoomMode<'t when 't :> CartesianChart>(value: ZoomAndPanMode) : IAttr<'t> =
-            AttrBuilder<'t>
-                .CreateProperty<ZoomAndPanMode>(property = CartesianChart.ZoomModeProperty, value = value, comparer = ValueNone)
+            AttrBuilder<'t>.CreateProperty<ZoomAndPanMode>(property = CartesianChart.ZoomModeProperty, value = value, comparer = ValueNone)
 
         static member legendTextPaint<'t when 't :> CartesianChart>(value: Paint) : IAttr<'t> =
-            AttrBuilder<'t>
-                .CreateProperty<Paint>(property = CartesianChart.LegendTextPaintProperty, value = value, comparer = ValueNone)
+            AttrBuilder<'t>.CreateProperty<Paint>(property = CartesianChart.LegendTextPaintProperty, value = value, comparer = ValueNone)
 
         static member legendBackgroundPaint<'t when 't :> CartesianChart>(value: Paint) : IAttr<'t> =
             AttrBuilder<'t>
                 .CreateProperty<Paint>(property = CartesianChart.LegendBackgroundPaintProperty, value = value, comparer = ValueNone)
 
         static member tooltipTextPaint<'t when 't :> CartesianChart>(value: Paint) : IAttr<'t> =
-            AttrBuilder<'t>
-                .CreateProperty<Paint>(property = CartesianChart.TooltipTextPaintProperty, value = value, comparer = ValueNone)
+            AttrBuilder<'t>.CreateProperty<Paint>(property = CartesianChart.TooltipTextPaintProperty, value = value, comparer = ValueNone)
 
         static member tooltipBackgroundPaint<'t when 't :> CartesianChart>(value: Paint) : IAttr<'t> =
             AttrBuilder<'t>
@@ -338,5 +327,4 @@ module ReactiveDialogHost =
 
     type ReactiveDialogHost with
         static member closeKey<'t when 't :> ReactiveDialogHost>(value: Key) : IAttr<'t> =
-            AttrBuilder<'t>
-                .CreateProperty<Key>(property = ReactiveDialogHost.CloseKeyProperty, value = value, comparer = ValueNone)
+            AttrBuilder<'t>.CreateProperty<Key>(property = ReactiveDialogHost.CloseKeyProperty, value = value, comparer = ValueNone)

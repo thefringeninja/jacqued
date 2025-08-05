@@ -36,7 +36,9 @@ let private start (command: StartMesocycle) state =
             |> List.allPairs Wave.all
             |> List.map (fun (wave, set) ->
                 let reps = Calculate.reps wave set
-                let weight = Calculate.exerciseWeight wave set command.Bar command.Plates trainingMax
+
+                let weight =
+                    Calculate.exerciseWeight wave set command.Bar command.Plates trainingMax
 
                 ((wave, set), (weight, reps)))
 

@@ -71,14 +71,14 @@ type App(store: IStreamStore, settingsFile) =
                 let onActualThemeChanged dispatch =
                     this.PropertyChanged.Subscribe(fun e ->
                         if e.Property = Application.ActualThemeVariantProperty then
-                            e.GetNewValue<ThemeVariant>() |> (Settings.ActualThemeSelected >> Msg.Settings >> dispatch))
+                            e.GetNewValue<ThemeVariant>()
+                            |> (Settings.ActualThemeSelected >> Msg.Settings >> dispatch))
 
                 [ [ nameof onActualThemeChanged ], onActualThemeChanged ]
 
             this.RequestedThemeVariant <- settings.ThemeVariant
-            
-            let backupManager =
-                BackupManager(store, storageProvider, (fun () -> DateTime.Now))
+
+            let backupManager = BackupManager(store, storageProvider, (fun () -> DateTime.Now))
 
             let init = Shell.init store settings
             let update = Shell.update store backupManager

@@ -11,7 +11,7 @@ module Msg =
         | MeasurementSystemChanged of MeasurementSystem
         | ExerciseDaysPerWeekChanged of ExerciseDaysPerWeek
         | AddPlate of Weight
-        | RemovePlate of Weight    
+        | RemovePlate of Weight
 
     type Data =
         | BeginBackup
@@ -24,7 +24,7 @@ module Msg =
             | StartMesocycle of MesocycleId * Exercise * Weight * DateOnly * Bar * PlatePair list
             | OneRepMaxChanged of Weight
             | StartDateChanged of DateOnly
-            
+
         type MainLifts =
             | CompleteRepSet of MesocycleId * uint * Weight
             | IncreaseReps
@@ -45,10 +45,9 @@ module Msg =
             | DecreaseReps
             | CompleteCalculateOneRepMaxClicked of Exercise * uint * Weight * DateOnly
             | Complete of Exercise
-            
-        type SupplementaryLifts =
-            | SelectedSupplementaryLiftsIndexChanged of int
-        
+
+        type SupplementaryLifts = SelectedSupplementaryLiftsIndexChanged of int
+
     type Workout =
         | Mesocycle of Workout.Mesocycle
         | MainLifts of Workout.MainLifts
@@ -62,13 +61,12 @@ module Msg =
         | SelectedProgressChartExerciseChanged of Exercise option
         | ExerciseSummaryClicked of MesocycleId * Exercise * uint
         | ExerciseDetailDismissed
-        
 
     type Settings =
         | SelectTheme of ThemeVariant
         | ActualThemeSelected of ThemeVariant
         | ConfigurationSettingsLoaded of Jacqued.Settings
-        
+
 type ApplicationError =
     | Exception of exn
     | Message of string

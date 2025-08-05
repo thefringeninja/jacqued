@@ -40,7 +40,11 @@ let view (state: State) dispatch =
 
     let onExerciseDateChange (d: Nullable<DateTimeOffset>) =
         (if d.HasValue then
-             d.Value.Date |> (DateOnly.FromDateTime >> WarmupLifts.ExerciseDateChanged >> Workout.WarmupLifts >> Msg.Workout)
+             d.Value.Date
+             |> (DateOnly.FromDateTime
+                 >> WarmupLifts.ExerciseDateChanged
+                 >> Workout.WarmupLifts
+                 >> Msg.Workout)
          else
              "No date selected" |> Message |> ApplicationError)
         |> dispatch
@@ -79,7 +83,8 @@ let view (state: State) dispatch =
                     )
                     |> divide
 
-                let onCompleteWarmupClick _ = WarmupLifts.CompleteWarmup |> Workout.WarmupLifts |> Msg.Workout |> dispatch
+                let onCompleteWarmupClick _ =
+                    WarmupLifts.CompleteWarmup |> Workout.WarmupLifts |> Msg.Workout |> dispatch
 
                 let completeWarmup =
                     MaterialButton.create [
@@ -106,7 +111,7 @@ let update msg (state: State) =
         | OneRepMaxCalculated e ->
             { state with
                 CurrentExercise = e.Exercise |> Exercise.next
-                Date = e.CalculatedOn |> Calculate.nextExerciseDate state.ExerciseDaysPerWeek }            
+                Date = e.CalculatedOn |> Calculate.nextExerciseDate state.ExerciseDaysPerWeek }
         | MesocycleStarted e ->
             let mesocycleNumber, _, _ = state.Exercises[e.WorkoutPlan.Exercise]
 
@@ -147,9 +152,7 @@ let update msg (state: State) =
         match e with
         | WarmupLifts e ->
             match e with
-            | WarmupLifts.ExerciseDateChanged date ->
-                { state with
-                    State.Date = date }
+            | WarmupLifts.ExerciseDateChanged date -> { state with State.Date = date }
             | _ -> state
         | _ -> state
     | _ -> state

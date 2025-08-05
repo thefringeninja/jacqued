@@ -62,7 +62,7 @@ module Shell =
 
         let oneRepMaxes = OneRepMaxes.create append
         let mesocycle = Mesocycle.create read append
-        
+
         let workout command =
             match command with
             | CalculateOneRepMax _ -> oneRepMaxes command
@@ -95,7 +95,11 @@ module Shell =
             | Msg.Data msg ->
                 match msg with
                 | Data.BeginBackup ->
-                    [ Cmd.OfAsync.either backupManager.backup () (Ok >> Data.CompleteBackup >> Msg.Data) (exnToError >> Data.CompleteBackup >> Msg.Data)
+                    [ Cmd.OfAsync.either
+                          backupManager.backup
+                          ()
+                          (Ok >> Data.CompleteBackup >> Msg.Data)
+                          (exnToError >> Data.CompleteBackup >> Msg.Data)
                       |> Update.Cmd
                       { state with
                           AsyncOperationInProgress = true }
@@ -109,7 +113,11 @@ module Shell =
                               AsyncOperationInProgress = false }
                           |> Update.State ]
                 | Data.BeginRestore ->
-                    [ Cmd.OfAsync.either backupManager.restore () (Ok >> Data.CompleteRestore >> Msg.Data) (exnToError >> Data.CompleteRestore >> Msg.Data)
+                    [ Cmd.OfAsync.either
+                          backupManager.restore
+                          ()
+                          (Ok >> Data.CompleteRestore >> Msg.Data)
+                          (exnToError >> Data.CompleteRestore >> Msg.Data)
                       |> Update.Cmd
                       { state with
                           AsyncOperationInProgress = true }
@@ -182,8 +190,11 @@ module Shell =
         cmd
 
     let view state dispatch =
-        let backupClick _ = Data.BeginBackup |> Msg.Data |> dispatch
-        let restoreClick _ = Data.BeginRestore |> Msg.Data |> dispatch
+        let backupClick _ =
+            Data.BeginBackup |> Msg.Data |> dispatch
+
+        let restoreClick _ =
+            Data.BeginRestore |> Msg.Data |> dispatch
 
         let appBar =
             TopAppBar.create [
@@ -244,7 +255,7 @@ module Shell =
     let init store (settings: Jacqued.Settings) () =
         let events =
             seq {
-                yield settings |> Settings.ConfigurationSettingsLoaded |> Msg.Settings 
+                yield settings |> Settings.ConfigurationSettingsLoaded |> Msg.Settings
 
                 yield Theme.get () |> Settings.ActualThemeSelected |> Msg.Settings
 

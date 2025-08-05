@@ -25,6 +25,7 @@ let rec private nextDate date =
         yield date
         yield! nextDate (nextExerciseDate ExerciseDaysPerWeek.Four date)
     }
+
 let private workout count =
     let baseWeights =
         [ (Squats, 150m); (Deadlifts, 120m); (BenchPress, 100m); (OverheadPress, 105m) ]
@@ -90,9 +91,9 @@ let private workout count =
                           Weight = weight
                           Wave = wave
                           Reps =
-                              match repSet with
-                              | RepSet.Three -> reps + (rand.Next(0, 10) |> uint32)
-                              | _ -> reps
+                            match repSet with
+                            | RepSet.Three -> reps + (rand.Next(0, 10) |> uint32)
+                            | _ -> reps
                           CompletedAt = startedAt })
 
             yield
