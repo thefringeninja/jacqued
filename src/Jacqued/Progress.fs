@@ -212,7 +212,7 @@ let private updateDetails msg (state: Detail) =
                 Details = recordReps e.MesocycleId e.Wave e.Reps e.Weight }
         | _ -> state
     | Progress e ->
-        match e with 
+        match e with
         | ExerciseSummaryClicked(mesocycleId, exercise, mesocycleNumber) ->
             { state with
                 MesocycleId = mesocycleId |> Some
@@ -232,8 +232,8 @@ let update msg state =
         | Settings e ->
             match e with
             | ActualThemeSelected theme ->
-                    { state with
-                        ThemeKey = theme.Key |> string }
+                { state with
+                    ThemeKey = theme.Key |> string }
             | _ -> state
         | _ -> state
 
@@ -289,7 +289,10 @@ let view (state: State) dispatch =
 
     let summaryView () =
         let onSelectedExerciseChange (e: obj) =
-            (e :?> Exercise option) |> Progress.SelectedProgressChartExerciseChanged |> Msg.Progress |> dispatch
+            (e :?> Exercise option)
+            |> Progress.SelectedProgressChartExerciseChanged
+            |> Msg.Progress
+            |> dispatch
 
         let itemTemplate item =
             match item with
@@ -413,7 +416,8 @@ let view (state: State) dispatch =
                 Fill = null
             )
 
-        let onDismissExerciseDetailClick _ = Progress.ExerciseDetailDismissed |> Msg.Progress |> dispatch
+        let onDismissExerciseDetailClick _ =
+            Progress.ExerciseDetailDismissed |> Msg.Progress |> dispatch
 
         let header =
             StackPanel.create [

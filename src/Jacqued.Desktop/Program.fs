@@ -15,21 +15,17 @@ module Program =
 
         dataSourceDirectory.Create()
 
-        let settingsFile = FileInfo(Path.Combine(dataSourceDirectory.FullName, "settings.json"))
+        let settingsFile =
+            FileInfo(Path.Combine(dataSourceDirectory.FullName, "settings.json"))
 
         use store =
             new SqliteStreamStore(
                 SqliteStreamStoreSettings(
-                    SqliteConnectionStringBuilder(DataSource = Path.Combine(dataSourceDirectory.FullName, "Jacqued.db"))
-                        .ToString(),
+                    SqliteConnectionStringBuilder(DataSource = Path.Combine(dataSourceDirectory.FullName, "Jacqued.db")).ToString(),
                     GetUtcNow = (fun () -> DateTime.UtcNow)
                 )
             )
 
         store.CreateSchemaIfNotExists()
 
-        AppBuilder
-            .Configure<App>(fun () -> App(store, settingsFile))
-            .UsePlatformDetect()
-            .UseSkia()
-            .StartWithClassicDesktopLifetime(args)
+        AppBuilder.Configure<App>(fun () -> App(store, settingsFile)).UsePlatformDetect().UseSkia().StartWithClassicDesktopLifetime(args)

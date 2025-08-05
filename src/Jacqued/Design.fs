@@ -40,10 +40,7 @@ let palette =
       GreenSwatch()
       DeepOrangeSwatch()
       CyanSwatch() ]
-    |> List.map (fun swatch ->
-        swatch.Lookup
-        |> Seq.map ((|KeyValue|) >> mapShade)
-        |> Map.ofSeq)
+    |> List.map (fun swatch -> swatch.Lookup |> Seq.map ((|KeyValue|) >> mapShade) |> Map.ofSeq)
 
 module Theme =
     let set theme =
@@ -84,8 +81,6 @@ module Theme =
         let rec secondaryMid = (resource (nameof secondaryMid)).Value
         let rec secondaryDark = (resource (nameof secondaryDark)).Value
 
-    
-        
     module Controls =
         let private resource name =
             let name = name |> Util.pascalize

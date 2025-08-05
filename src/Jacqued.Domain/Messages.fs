@@ -20,7 +20,7 @@ and CalculateOneRepMax =
     { Weight: Weight
       Reps: uint32
       Exercise: Exercise
-      CalculatedOn: DateOnly }    
+      CalculatedOn: DateOnly }
 
 and StartMesocycle =
     { MesocycleId: MesocycleId
@@ -36,6 +36,7 @@ and CompleteRepSet =
       Reps: uint
       Weight: Weight
       CompletedAt: DateOnly }
+
 and CompleteWave =
     { MesocycleId: MesocycleId
       CompletedAt: DateOnly }
@@ -48,7 +49,7 @@ and FailRepSet =
 
 type Event =
     | GymSetup of GymSetup
-    | OneRepMaxCalculated of OneRepMaxCalculated 
+    | OneRepMaxCalculated of OneRepMaxCalculated
     | MesocycleStarted of MesocycleStarted
     | RepSetCompleted of RepSetCompleted
     | WaveCompleted of WaveCompleted

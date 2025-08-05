@@ -15,7 +15,7 @@ let private scrollbarVisibility =
     else
         ScrollBarVisibility.Auto
 
-let layout (content:IView) =
+let layout (content: IView) =
     ScrollViewer.create [
         ScrollViewer.horizontalScrollBarVisibility ScrollBarVisibility.Disabled
         ScrollViewer.verticalScrollBarVisibility scrollbarVisibility
@@ -51,7 +51,7 @@ let segmentedButtonBar (buttons: IView<MaterialButton> list) =
                   yield MaterialButton.cornerRadius (0, 16, 16, 0) ]
 
         View.withAttrs attrs button
-        
+
     StackPanel.create [
         StackPanel.orientation Orientation.Horizontal
         StackPanel.children (buttons |> List.mapi mapButton)

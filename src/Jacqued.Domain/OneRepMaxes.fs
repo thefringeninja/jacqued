@@ -1,6 +1,6 @@
 module Jacqued.OneRepMaxes
 
-let private calculate (command:CalculateOneRepMax) =
+let private calculate (command: CalculateOneRepMax) =
     if command.Weight < Weight.zero then
         invalidArg (nameof command) "Weight must be positive"
 

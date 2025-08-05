@@ -14,7 +14,9 @@ type Settings =
     { ThemeVariant: ThemeVariant
       SettingsPath: string option }
 
-    static member zero = { ThemeVariant = ThemeVariant.Default; SettingsPath = None }
+    static member zero =
+        { ThemeVariant = ThemeVariant.Default
+          SettingsPath = None }
 
     static member create(data: SettingsData option) =
         match data with
@@ -28,10 +30,11 @@ type Settings =
                     | _ -> ThemeVariant.Default
                 | None -> ThemeVariant.Default
 
-            { ThemeVariant = themeVariant; SettingsPath = None } 
+            { ThemeVariant = themeVariant
+              SettingsPath = None }
         | None -> Settings.zero
 
-    static member options = 
+    static member options =
         let options =
             JsonFSharpOptions()
                 .WithUnionAdjacentTag()
@@ -45,14 +48,18 @@ type Settings =
                 .ToJsonSerializerOptions()
 
         options.PropertyNamingPolicy <- JsonNamingPolicy.CamelCase
-        
-        options
-    
-    static member load (reader:StreamReader) =
-        let data = JsonSerializer.Deserialize<SettingsData>(reader.ReadToEnd(), Settings.options) |> Some
-        Settings.create data
-        
-    member this.save (writer:StreamWriter) =
-        let data:SettingsData = { ThemeVariant = this.ThemeVariant.Key.ToString().ToLowerInvariant() |> Some  }
-        writer.Write(JsonSerializer.Serialize(data, Settings.options))
 
+        options
+
+    static member load(reader: StreamReader) =
+        let data =
+            JsonSerializer.Deserialize<SettingsData>(reader.ReadToEnd(), Settings.options)
+            |> Some
+
+        Settings.create data
+
+    member this.save(writer: StreamWriter) =
+        let data: SettingsData =
+            { ThemeVariant = this.ThemeVariant.Key.ToString().ToLowerInvariant() |> Some }
+
+        writer.Write(JsonSerializer.Serialize(data, Settings.options))

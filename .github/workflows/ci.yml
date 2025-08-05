@@ -44,9 +44,13 @@ jobs:
       - name: restore workloads
         run: dotnet workload restore
         if: ${{ matrix.runs-on != 'windows' }}
+      - name: restore tools
+        run: dotnet tool restore
       - name: restore packages
         run: dotnet restore
         if: steps.cache-nuget.outputs.cache-hit != 'true'
+      - name: lint
+        run: dotnet fantomas . --check
       - name: build
         run: dotnet build --configuration Release
       - name: test

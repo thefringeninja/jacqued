@@ -32,16 +32,19 @@ type Weight(value: decimal) =
     static member (+)(a: Weight, b: Weight) = Weight(a.Value + b.Value)
     static member (-)(a: Weight, b: Weight) = Weight(a.Value - b.Value)
     static member (%)(a: Weight, b: Weight) = Weight(a.Value % b.Value)
-    
-    static member op_Explicit(value:Weight):float = value.Value |> float
+
+    static member op_Explicit(value: Weight) : float = value.Value |> float
 
 [<Struct>]
-type Bar private(value: Weight) =
+type Bar private (value: Weight) =
     member _.Weight = value
+
     static member Of(value: Weight) =
         if value <= Weight.zero then
             invalidArg (nameof value) "bar must have positive weight"
+
         Bar(value)
+
     static member zero = Bar(Weight.zero)
     override this.ToString() = value.Value.ToString("F2")
 
@@ -51,13 +54,14 @@ type PlatePair(weight: Weight) =
     member this.Weight = weight * 2
     member this.WeightOfEach = weight
 
-    override this.Equals(other) = weight = (other :?> PlatePair).WeightOfEach
+    override this.Equals(other) =
+        weight = (other :?> PlatePair).WeightOfEach
+
     override this.GetHashCode() = weight.GetHashCode()
     override this.ToString() = weight.ToString()
 
     interface IComparable<PlatePair> with
         member this.CompareTo other = compare weight other.WeightOfEach
-
 
     interface IComparable with
         member this.CompareTo other =
@@ -86,7 +90,7 @@ type Exercise =
     static member all = [ Squats; BenchPress; Deadlifts; OverheadPress ]
     static member upper = [ BenchPress; OverheadPress ]
     static member lower = [ Squats; Deadlifts ]
-    
+
     static member next exercise =
         match exercise with
         | Squats -> BenchPress
@@ -100,10 +104,9 @@ type Exercise =
         | BenchPress -> Squats
         | Deadlifts -> BenchPress
         | OverheadPress -> Deadlifts
-    member x.isUpper =
-        Exercise.upper |> List.contains x
-    member x.isLower =
-        Exercise.lower |> List.contains x
+
+    member x.isUpper = Exercise.upper |> List.contains x
+    member x.isLower = Exercise.lower |> List.contains x
 
 type MeasurementSystem =
     | Metric
