@@ -23,7 +23,8 @@ type State =
       MeasurementSystem: MeasurementSystem
       Bar: Bar
       GymPlates: PlatePair list
-      ExerciseDaysPerWeek: ExerciseDaysPerWeek }
+      ExerciseDaysPerWeek: ExerciseDaysPerWeek
+      WeightIncreases: WeightIncreases }
 
     static member zero =
         { CurrentExercise = Squats
@@ -35,7 +36,8 @@ type State =
           MeasurementSystem = Metric
           Bar = Bar.zero
           GymPlates = []
-          ExerciseDaysPerWeek = ExerciseDaysPerWeek.Four }
+          ExerciseDaysPerWeek = ExerciseDaysPerWeek.Four
+          WeightIncreases = WeightIncreases.standard }
 
 type private Supplement =
     | ``First Set Last``
@@ -133,7 +135,10 @@ let view (state: State) dispatch =
             |> dispatch
 
         let onCompleteWaveClick _ =
-            (mesocycleId, date) |> Workout.CompleteWave |> Msg.Workout |> dispatch
+            (mesocycleId, date, state.WeightIncreases)
+            |> Workout.CompleteWave
+            |> Msg.Workout
+            |> dispatch
 
         let supplement =
             (Supplement.all, (Supplement.all |> List.map supplementary))
@@ -151,7 +156,7 @@ let view (state: State) dispatch =
         let completeWave =
             MaterialButton.create [
                 MaterialButton.content ($"Complete Wave {wave}", MaterialIconKind.Barbell)
-                MaterialButton.onClick (onCompleteWaveClick, SubPatchOptions.OnChangeOf(wave))
+                MaterialButton.onClick (onCompleteWaveClick, SubPatchOptions.OnChangeOf((wave, state.WeightIncreases)))
             ]
 
         StackPanel.create [
@@ -179,6 +184,10 @@ let update handler msg (state: State) =
         | OneRepMaxCalculated e ->
             { state with
                 CurrentExercise = e.Exercise |> Exercise.next }
+            |> pass
+        | WeightIncreasesSet e ->
+            { state with
+                WeightIncreases = e.Increases }
             |> pass
         | MesocycleStarted e ->
             { state with
@@ -231,12 +240,13 @@ let update handler msg (state: State) =
                 { state with
                     SelectedIndex = selectedIndex }
                 |> pass
-        | CompleteWave(mesocycleId, date) ->
+        | CompleteWave(mesocycleId, date, increase) ->
             state,
             handler (
                 Command.CompleteWave
                     { MesocycleId = mesocycleId
-                      CompletedAt = date }
+                      CompletedAt = date
+                      WeightIncrease = increase }
             )
         | _ -> state |> pass
     | _ -> state |> pass

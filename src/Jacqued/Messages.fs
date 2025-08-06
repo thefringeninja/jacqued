@@ -12,6 +12,8 @@ module Msg =
         | ExerciseDaysPerWeekChanged of ExerciseDaysPerWeek
         | AddPlate of Weight
         | RemovePlate of Weight
+        | SetWeightIncreasesClick of WeightIncreases
+        | SelectedWeightIncreasesChanged of WeightIncreases
 
     type Data =
         | BeginBackup
@@ -55,7 +57,7 @@ module Msg =
         | OneRepMaxLifts of Workout.OneRepMaxLifts
         | SupplementaryLifts of Workout.SupplementaryLifts
         | ContinueExercise of Exercise
-        | CompleteWave of MesocycleId * DateOnly
+        | CompleteWave of MesocycleId * DateOnly * WeightIncreases
 
     type Progress =
         | SelectedProgressChartExerciseChanged of Exercise option

@@ -231,6 +231,7 @@ let update handler msg state =
                 Reps = 0u
                 CurrentExercise = e.Exercise |> nextExercise }
             |> pass
+        | _ -> state |> pass
     | Workout e ->
         match e with
         | Mesocycle e ->

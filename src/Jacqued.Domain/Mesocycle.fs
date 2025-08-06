@@ -89,12 +89,7 @@ let private completeWave (command: CompleteWave) state =
 
               if state.Wave = Wave.Four then
                   let suggestedOneRepMax =
-                      state.OneRepMax
-                      + match (state.MeasurementSystem, state.WorkoutPlan.Exercise) with
-                        | Metric, (Squats | Deadlifts) -> Weight(5m)
-                        | Metric, (BenchPress | OverheadPress) -> Weight(2.5m)
-                        | Imperial, (Squats | Deadlifts) -> Weight(10m)
-                        | Imperial, (BenchPress | OverheadPress) -> Weight(5m)
+                      command.WeightIncrease.calculate (state.MeasurementSystem, state.WorkoutPlan.Exercise, state.OneRepMax)
 
                   yield
                       MesocycleCompleted

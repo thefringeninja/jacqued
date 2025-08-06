@@ -163,3 +163,48 @@ type WorkoutPlan =
     static member zero =
         { Exercise = Exercise.Squats
           Sets = Map.empty }
+
+type WeightIncreases = WeightIncreases of Map<Exercise, Map<MeasurementSystem, Weight>>
+
+type WeightIncreases with
+    static member private exerciseMap =
+        Exercise.all
+        |> List.map (fun e -> (e, [ (Imperial, Weight.zero); (Metric, Weight.zero) ] |> Map.ofList))
+        |> Map.ofList
+
+    static member zero = WeightIncreases.exerciseMap |> WeightIncreases.WeightIncreases
+
+    static member standard =
+        WeightIncreases.exerciseMap
+        |> Map.map (fun exercise _ ->
+            (if exercise.isLower then
+                 [ (Imperial, 10m |> Weight); (Metric, 5m |> Weight) ]
+             else
+                 [ (Imperial, 5m |> Weight); (Metric, 2.5m |> Weight) ])
+            |> Map.ofList)
+        |> WeightIncreases.WeightIncreases
+
+    static member light =
+        WeightIncreases.exerciseMap
+        |> Map.map (fun exercise _ ->
+            (if exercise.isLower then
+                 [ (Imperial, 5m |> Weight); (Metric, 2.5m |> Weight) ]
+             else
+                 [ (Imperial, 2.5m |> Weight); (Metric, 1.25m |> Weight) ])
+            |> Map.ofList)
+        |> WeightIncreases.WeightIncreases
+
+    member this.calculate(units: MeasurementSystem, exercise: Exercise, weight: Weight) =
+        match this with
+        | WeightIncreases wi -> wi[exercise][units] + weight
+
+    member this.allWeightsArePositive() =
+        if
+            not (
+                match this with
+                | WeightIncreases wi ->
+                    wi
+                    |> Map.forall (fun _ weights -> weights |> Map.forall (fun _ w -> w > Weight.zero))
+            )
+        then
+            invalidOp "One or more weights was less than or equal to zero"

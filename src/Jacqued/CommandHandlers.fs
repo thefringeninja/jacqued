@@ -24,17 +24,17 @@ module Gym =
             | Ok _ -> Ok events
             | Error e -> Error e
 
-module OneRepMaxes =
-    open OneRepMaxes
+module Exercises =
+    open Exercises
 
     let private exercise =
         function
-        | CalculateOneRepMax { Exercise = exercise } -> exercise
+        | CalculateOneRepMax { Exercise = exercise } -> (exercise |> string).ToLowerInvariant()
+        | SetWeightIncreases _ -> "all"
         | unknown -> invalidOp $"{unknown} was not recognized"
 
     let create append =
-        let streamName exercise =
-            $"oneRepMax-{exercise.ToString().ToLowerInvariant()}"
+        let streamName exercise = $"exercise-{exercise}"
 
         let save exercise events = append (streamName exercise) -2 events
 

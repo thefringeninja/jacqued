@@ -62,6 +62,7 @@ options.Converters.Add(DateOnlyConverter())
 let typeToEventType (event: Event) =
     match event with
     | GymSetup e -> nameof GymSetup, (e :> obj)
+    | WeightIncreasesSet e -> nameof WeightIncreasesSet, (e :> obj)
     | OneRepMaxCalculated e -> nameof OneRepMaxCalculated, (e :> obj)
     | MesocycleStarted e -> nameof MesocycleStarted, (e :> obj)
     | RepSetCompleted e -> nameof RepSetCompleted, (e :> obj)
@@ -72,6 +73,7 @@ let typeToEventType (event: Event) =
 let eventTypeToType eventType =
     match eventType with
     | nameof GymSetup -> typeof<GymSetup>
+    | nameof WeightIncreasesSet -> typeof<WeightIncreasesSet>
     | nameof OneRepMaxCalculated -> typeof<OneRepMaxCalculated>
     | nameof MesocycleStarted -> typeof<MesocycleStarted>
     | nameof RepSetCompleted -> typeof<RepSetCompleted>
