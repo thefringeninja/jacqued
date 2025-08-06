@@ -60,13 +60,18 @@ module Shell =
 
         let gym = Gym.create read append
 
-        let oneRepMaxes = OneRepMaxes.create append
+        let exercises = Exercises.create append
         let mesocycle = Mesocycle.create read append
 
         let workout command =
             match command with
-            | CalculateOneRepMax _ -> oneRepMaxes command
-            | other -> mesocycle other
+            | CalculateOneRepMax _ -> exercises command
+            | _ -> mesocycle command
+
+        let setup command =
+            match command with
+            | SetWeightIncreases _ -> exercises command
+            | _ -> gym command
 
         let setupComplete =
             match msg with
@@ -141,7 +146,7 @@ module Shell =
                           |> Update.State ]
             | _ ->
                 try
-                    [ let setup, result = Setup.update gym msg state.Setup
+                    [ let setup, result = Setup.update setup msg state.Setup
                       yield result |> Update.Events
 
                       let progress = Progress.update msg state.Progress

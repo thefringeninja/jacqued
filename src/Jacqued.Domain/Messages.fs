@@ -4,6 +4,7 @@ open System
 
 type Command =
     | SetupGym of SetupGym
+    | SetWeightIncreases of SetWeightIncreases
     | CalculateOneRepMax of CalculateOneRepMax
     | StartMesocycle of StartMesocycle
     | CompleteRepSet of CompleteRepSet
@@ -15,6 +16,8 @@ and SetupGym =
       Plates: PlatePair list
       MeasurementSystem: MeasurementSystem
       ExerciseDaysPerWeek: ExerciseDaysPerWeek }
+
+and SetWeightIncreases = { Increases: WeightIncreases }
 
 and CalculateOneRepMax =
     { Weight: Weight
@@ -39,7 +42,8 @@ and CompleteRepSet =
 
 and CompleteWave =
     { MesocycleId: MesocycleId
-      CompletedAt: DateOnly }
+      CompletedAt: DateOnly
+      WeightIncrease: WeightIncreases }
 
 and FailRepSet =
     { MesocycleId: MesocycleId
@@ -49,12 +53,15 @@ and FailRepSet =
 
 type Event =
     | GymSetup of GymSetup
+    | WeightIncreasesSet of WeightIncreasesSet
     | OneRepMaxCalculated of OneRepMaxCalculated
     | MesocycleStarted of MesocycleStarted
     | RepSetCompleted of RepSetCompleted
     | WaveCompleted of WaveCompleted
     | MesocycleFailed of MesocycleFailed
     | MesocycleCompleted of MesocycleCompleted
+
+and WeightIncreasesSet = { Increases: WeightIncreases }
 
 and GymSetup =
     { Bar: Bar

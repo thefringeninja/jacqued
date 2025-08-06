@@ -20,7 +20,8 @@ type State =
       PlateToAdd: Weight
       MeasurementSystem: MeasurementSystem
       ExerciseDaysPerWeek: ExerciseDaysPerWeek
-      SelectedTheme: ThemeVariant }
+      SelectedTheme: ThemeVariant
+      SelectedWeightIncreases: WeightIncreases }
 
     static member zero =
         { Bar = Bar.zero
@@ -28,7 +29,8 @@ type State =
           PlateToAdd = Weight.zero
           MeasurementSystem = Metric
           ExerciseDaysPerWeek = ExerciseDaysPerWeek.Four
-          SelectedTheme = ThemeVariant.Default }
+          SelectedTheme = ThemeVariant.Default
+          SelectedWeightIncreases = WeightIncreases.standard }
 
 let update handler msg (state: State) =
     match msg with
@@ -78,6 +80,12 @@ let update handler msg (state: State) =
                     state.Plates
                     |> List.removeAt (state.Plates |> List.findIndex (fun plate -> plate.WeightOfEach = weight)) }
             |> pass
+        | SelectedWeightIncreasesChanged weightIncreases ->
+            { state with
+                SelectedWeightIncreases = weightIncreases }
+            |> pass
+        | SetWeightIncreasesClick weightIncreases ->
+            state, handler (Command.SetWeightIncreases({ Increases = weightIncreases }: SetWeightIncreases))
     | Settings e ->
         match e with
         | SelectTheme theme -> { state with SelectedTheme = theme } |> pass
@@ -217,10 +225,57 @@ let private gymSetup (state: State) (dispatch: Msg -> unit) =
         ]
     ]
 
+let weightIncreases = [ WeightIncreases.standard; WeightIncreases.light ]
+
+let weightIncreasesNames =
+    [ nameof WeightIncreases.standard; nameof WeightIncreases.light ]
+
+let weightIncreasesItemTemplate (item: WeightIncreases) =
+    weightIncreasesNames[(weightIncreases |> List.findIndex (fun wi -> wi = item))]
+    |> Typography.body2
+
+let weightIncrease (state: State) dispatch =
+    let onSelectedWeightIncreasesChanged (e: obj) =
+        (e :?> WeightIncreases)
+        |> Setup.SelectedWeightIncreasesChanged
+        |> Msg.Setup
+        |> dispatch
+
+    let comboBox =
+        ComboBox.create [
+            ComboBox.dataItems weightIncreases
+            ComboBox.itemTemplate (DataTemplateView<WeightIncreases>.create weightIncreasesItemTemplate)
+            ComboBox.onSelectedItemChanged onSelectedWeightIncreasesChanged
+            ComboBox.selectedItem state.SelectedWeightIncreases
+        ]
+
+    let onSetWeightIncreases _ =
+        state.SelectedWeightIncreases
+        |> Setup.SetWeightIncreasesClick
+        |> Msg.Setup
+        |> dispatch
+
+    let setWeightIncreases =
+        MaterialButton.create [
+            MaterialButton.content ("Set Weight Increases", MaterialIconKind.Barbell)
+            MaterialButton.onClick (onSetWeightIncreases, SubPatchOptions.OnChangeOf state.SelectedWeightIncreases)
+        ]
+
+    StackPanel.create [
+        StackPanel.orientation Orientation.Vertical
+        StackPanel.children [ comboBox; buttonBar [ setWeightIncreases ] ]
+    ]
+
 let view state dispatch =
     let content =
         StackPanel.create [
-            StackPanel.children [ themeSelector state dispatch; Separator.create []; gymSetup state dispatch ]
+            StackPanel.children [
+                themeSelector state dispatch
+                Separator.create []
+                gymSetup state dispatch
+                Separator.create []
+                weightIncrease state dispatch
+            ]
         ]
 
     layout content
