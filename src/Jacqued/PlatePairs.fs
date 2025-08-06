@@ -34,7 +34,7 @@ type PlatePairs() =
                           View.withAttrs
                               [ TextBlock.margin (12, 0, rightMargin func, 0)
                                 TextBlock.verticalAlignment VerticalAlignment.Center ]
-                              (Typography.body2 $"{platePair.WeightOfEach} {units} (x{count})")
+                              (Typography.platePairs (platePair.WeightOfEach, units, count))
                           |> generalize
 
                       if func.IsSome then

@@ -12,7 +12,7 @@ open Jacqued.Helpers
 open Jacqued.Msg
 open Jacqued.Msg.Workout
 open Jacqued.Util
-open Jacqued.Workout.Types
+open Jacqued.Workout
 open Material.Icons
 
 type Exercises = Map<Exercise, uint * Wave * Lift list>
@@ -53,9 +53,9 @@ let view (state: State) dispatch =
         StackPanel.create [
             StackPanel.orientation Orientation.Vertical
             StackPanel.children [
-                yield Typography.headline4 "Warmup"
-                yield Typography.headline5 $"Mesocycle {mesocycleNumber}"
-                yield Typography.headline6 $"{state.CurrentExercise}, Wave {wave}"
+                yield Typography.activity "Warmup"
+                yield Typography.mesocycleNumber mesocycleNumber
+                yield Typography.currentExercise (state.CurrentExercise, wave)
                 yield
                     DatePicker.create [
                         DatePicker.selectedDate state.Date.DateTime
@@ -70,9 +70,9 @@ let view (state: State) dispatch =
                             StackPanel.create [
                                 StackPanel.orientation Orientation.Vertical
                                 StackPanel.children [
-                                    Typography.body2 $"Set {set.RepSet}"
-                                    Typography.body2 $"Weight: {set.Weight}{state.MeasurementSystem}"
-                                    Typography.body2 $"Reps: {set.Reps}"
+                                    Typography.repSet set.RepSet
+                                    Typography.weight (set.Weight, state.MeasurementSystem)
+                                    Typography.reps set.Reps
                                     WrapPanel.create [
                                         WrapPanel.orientation Orientation.Horizontal
                                         WrapPanel.children (PlatePairs.control (state.MeasurementSystem, set.Plates))

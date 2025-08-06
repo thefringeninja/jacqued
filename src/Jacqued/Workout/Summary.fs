@@ -40,10 +40,10 @@ let view (state: State) dispatch =
         StackPanel.create [
             StackPanel.orientation Orientation.Vertical
             StackPanel.children [
-                yield Typography.headline4 "Summary"
-                yield Typography.headline5 $"Mesocycle {mesocycleNumber}"
-                yield Typography.headline6 $"{exercise}, Wave {wave}"
-                yield Typography.subtitle1 $"{completedDate:d}"
+                yield Typography.activity "Summary"
+                yield Typography.mesocycleNumber mesocycleNumber
+                yield Typography.currentExercise (exercise, wave)
+                yield Typography.date completedDate
 
                 yield!
                     RepSet.all
@@ -54,9 +54,9 @@ let view (state: State) dispatch =
                                 StackPanel.create [
                                     StackPanel.orientation Orientation.Vertical
                                     StackPanel.children [
-                                        Typography.body2 $"Set {repSet}"
-                                        Typography.body2 $"Weight: {weight}{state.MeasurementSystem}"
-                                        Typography.body2 $"Reps: {reps}"
+                                        Typography.repSet repSet
+                                        Typography.weight (weight, state.MeasurementSystem)
+                                        Typography.reps reps
                                     ]
                                 ]
                             | _ -> StackPanel.create [])

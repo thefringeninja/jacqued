@@ -437,8 +437,8 @@ let view (state: State) dispatch =
                     ]
                     StackPanel.create [
                         StackPanel.children [
-                            Typography.headline5 $"Mesocycle {state.Detail.MesocycleNumber}"
-                            Typography.headline6 $"{state.Detail.Exercise}"
+                            Typography.mesocycleNumber state.Detail.MesocycleNumber
+                            Typography.currentExercise state.Detail.Exercise
                         ]
                     ]
                 ]

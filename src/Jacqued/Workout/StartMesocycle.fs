@@ -97,9 +97,9 @@ let view (state: State) dispatch =
         StackPanel.create [
             StackPanel.orientation Orientation.Vertical
             StackPanel.children [
-                Typography.headline4 "Start Mesocycle"
-                Typography.headline5 $"Mesocycle {mesocycleNumber}"
-                Typography.headline6 $"{state.CurrentExercise}"
+                Typography.activity "Start Mesocycle"
+                Typography.mesocycleNumber mesocycleNumber
+                Typography.currentExercise state.CurrentExercise
                 DatePicker.create [
                     DatePicker.selectedDate (
                         match state.StartingAt with
