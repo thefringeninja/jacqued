@@ -193,9 +193,9 @@ let estimate (state: State) dispatch =
         StackPanel.create [
             StackPanel.orientation Orientation.Vertical
             StackPanel.children [
-                Typography.headline4 "Estimate 1RM"
-                Typography.headline6 $"{state.CurrentExercise}"
-                Typography.subtitle1 $"{state.Date:d}"
+                Typography.activity "Estimate 1RM"
+                Typography.currentExercise state.CurrentExercise
+                Typography.date state.Date
                 oneRepMaxEstimate
                 buttonBar [ estimateOneRepMax ]
             ]
@@ -240,13 +240,13 @@ let calculate (state: State) dispatch =
         StackPanel.create [
             StackPanel.orientation Orientation.Vertical
             StackPanel.children [
-                Typography.headline4 "Calculate 1RM"
-                Typography.headline6 $"{state.CurrentExercise}"
-                Typography.body2 $"Weight: {state.TestWeight}{state.MeasurementSystem}"
+                Typography.activity "Calculate 1RM"
+                Typography.currentExercise state.CurrentExercise
+                Typography.weight (state.TestWeight, state.MeasurementSystem)
                 DockPanel.create [
                     DockPanel.children [
                         View.withAttrs [ Control.dock Dock.Right ] (segmentedButtonBar [ decreaseReps; increaseReps ])
-                        View.withAttrs [ Control.dock Dock.Left ] (Typography.body2 $"Completed Reps: {state.Reps}")
+                        View.withAttrs [ Control.dock Dock.Left ] (Typography.completedReps state.Reps)
                     ]
                 ]
 
@@ -281,8 +281,8 @@ let warmup state dispatch =
         StackPanel.create [
             StackPanel.orientation Orientation.Vertical
             StackPanel.children [
-                yield Typography.headline4 "Warmup"
-                yield Typography.headline6 $"{state.CurrentExercise}"
+                yield Typography.activity "Warmup"
+                yield Typography.currentExercise state.CurrentExercise
                 yield!
                     set
                     |> List.map (
@@ -290,9 +290,9 @@ let warmup state dispatch =
                             StackPanel.create [
                                 StackPanel.orientation Orientation.Vertical
                                 StackPanel.children [
-                                    Typography.body2 $"Set {set.RepSet}"
-                                    Typography.body2 $"Weight: {set.Weight}{state.MeasurementSystem}"
-                                    Typography.body2 $"Reps: {set.Reps}"
+                                    Typography.repSet set.RepSet
+                                    Typography.weight (set.Weight, state.MeasurementSystem)
+                                    Typography.reps set.Reps
                                     WrapPanel.create [
                                         WrapPanel.orientation Orientation.Horizontal
                                         WrapPanel.children (PlatePairs.control (state.MeasurementSystem, set.Plates))
@@ -344,10 +344,10 @@ let summary state dispatch =
         StackPanel.create [
             StackPanel.orientation Orientation.Vertical
             StackPanel.children [
-                yield Typography.headline4 "Summary"
-                yield Typography.headline6 $"{state.CurrentExercise}"
-                yield Typography.subtitle1 $"{state.Date:d}"
-                yield Typography.subtitle2 $"{oneRepMax}"
+                yield Typography.activity "Summary"
+                yield Typography.currentExercise state.CurrentExercise
+                yield Typography.date state.Date
+                yield Typography.oneRepMax (oneRepMax, state.MeasurementSystem)
 
                 yield buttonBar [ nextExercise ]
             ]

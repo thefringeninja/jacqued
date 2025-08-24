@@ -87,7 +87,8 @@ let view (state: State) dispatch =
         let calculateWeight (repSet: int) =
             trainingMax * (lifts |> List.item repSet |> fst)
 
-        let calculateReps (repSet: int) = (lifts |> List.item repSet |> snd)
+        let calculateReps (repSet: int) =
+            (lifts |> List.item repSet |> snd |> uint)
 
         let calculatePlates = Calculate.plates state.Bar state.GymPlates
 
@@ -98,10 +99,10 @@ let view (state: State) dispatch =
 
             StackPanel.create [
                 StackPanel.children [
-                    Typography.headline6 $"{state.CurrentExercise}"
-                    Typography.body2 $"Set {repSet}"
-                    Typography.body2 $"Weight: {weight}{state.MeasurementSystem}"
-                    Typography.body2 $"Reps: {reps}"
+                    Typography.currentExercise state.CurrentExercise
+                    Typography.repSet repSet
+                    Typography.weight (weight, state.MeasurementSystem)
+                    Typography.reps reps
 
                     WrapPanel.create [
                         WrapPanel.orientation Orientation.Horizontal
@@ -161,7 +162,7 @@ let view (state: State) dispatch =
 
         StackPanel.create [
             StackPanel.children [
-                Typography.headline4 "Supplements"
+                Typography.activity "Supplements"
                 comboBox
                 supplement
                 buttonBar [ completeWave ]

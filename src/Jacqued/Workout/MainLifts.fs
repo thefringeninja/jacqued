@@ -14,7 +14,7 @@ open Jacqued.Design
 open Jacqued.Helpers
 open Jacqued.Msg
 open Jacqued.Msg.Workout
-open Jacqued.Workout.Types
+open Jacqued.Workout
 open Jacqued.Util
 open Material.Icons
 
@@ -136,17 +136,17 @@ let view (state: State) dispatch =
         StackPanel.create [
             StackPanel.orientation Orientation.Vertical
             StackPanel.children [
-                Typography.headline4 "Workout"
-                Typography.headline5 $"Mesocycle {mesocycleNumber}"
-                Typography.headline6 $"{state.CurrentExercise}, Wave {wave}"
-                Typography.subtitle1 $"{state.StartingAt:d}"
-                Typography.body2 $"Set {lift.RepSet}"
-                Typography.body2 $"Weight: {lift.Weight}{state.MeasurementSystem}"
-                Typography.body2 $"Reps: {lift.Reps}{plus}"
+                Typography.activity "Workout"
+                Typography.mesocycleNumber mesocycleNumber
+                Typography.currentExercise (state.CurrentExercise, wave)
+                Typography.date state.StartingAt
+                Typography.repSet lift.RepSet
+                Typography.weight (lift.Weight, state.MeasurementSystem)
+                Typography.reps (lift.Reps, lift.RepSet = RepSet.Three)
                 DockPanel.create [
                     DockPanel.children [
                         View.withAttrs [ Control.dock Dock.Right ] (segmentedButtonBar [ decreaseReps; increaseReps ])
-                        View.withAttrs [ Control.dock Dock.Left ] (Typography.body2 $"Completed Reps: {state.Reps}")
+                        View.withAttrs [ Control.dock Dock.Left ] (Typography.completedReps state.Reps)
                     ]
                 ]
 

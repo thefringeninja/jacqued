@@ -1,4 +1,4 @@
-module Jacqued.Workout.Types
+namespace Jacqued.Workout
 
 open Jacqued
 
