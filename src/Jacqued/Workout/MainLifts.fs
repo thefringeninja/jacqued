@@ -18,7 +18,7 @@ open Jacqued.Workout
 open Jacqued.Util
 open Material.Icons
 
-type WorkoutPlans = Map<Exercise, Map<Wave * RepSet, Lift>>
+type WorkoutPlans = Map<Exercise, (Weight * Map<Wave * RepSet, Lift>)>
 type Exercises = Map<Exercise, uint * MesocycleId * Wave * RepSet>
 
 type State =
@@ -45,10 +45,11 @@ type State =
             Exercise.all
             |> List.map (fun e ->
                 (e,
-                 (Wave.all, RepSet.all)
-                 ||> Seq.allPairs
-                 |> Seq.map (fun e -> (e, Lift.zero))
-                 |> Map.ofSeq))
+                 (Weight.zero,
+                  (Wave.all, RepSet.all)
+                  ||> Seq.allPairs
+                  |> Seq.map (fun e -> (e, Lift.zero))
+                  |> Map.ofSeq)))
             |> Map.ofList
           Bar = Bar.zero
           GymPlates = []
@@ -60,7 +61,8 @@ let view (state: State) dispatch =
     let mesocycleNumber, mesocycleId, wave, repSet =
         state.Exercises[state.CurrentExercise]
 
-    let lift = state.WorkoutPlans[state.CurrentExercise][wave, repSet]
+    let oneRepMax = state.WorkoutPlans[state.CurrentExercise] |> fst
+    let lift = (state.WorkoutPlans[state.CurrentExercise] |> snd)[wave, repSet]
 
     let onCompleteRepSetClick _ =
         (mesocycleId, state.Reps, lift.Weight)
@@ -140,6 +142,7 @@ let view (state: State) dispatch =
                 Typography.mesocycleNumber mesocycleNumber
                 Typography.currentExercise (state.CurrentExercise, wave)
                 Typography.date state.StartingAt
+                Typography.oneRepMax (oneRepMax, state.MeasurementSystem)
                 Typography.repSet lift.RepSet
                 Typography.weight (lift.Weight, state.MeasurementSystem)
                 Typography.reps (lift.Reps, lift.RepSet = RepSet.Three)
@@ -192,12 +195,13 @@ let update handler msg state =
                     state.WorkoutPlans
                     |> Map.add
                         e.WorkoutPlan.Exercise
-                        (e.WorkoutPlan.Sets
-                         |> Map.map (fun (_, repSet) (weight, reps) ->
-                             { Plates = Calculate.plates state.Bar state.GymPlates weight
-                               Weight = weight
-                               Reps = reps
-                               RepSet = repSet })) }
+                        (e.OneRepMax,
+                         (e.WorkoutPlan.Sets
+                          |> Map.map (fun (_, repSet) (weight, reps) ->
+                              { Plates = Calculate.plates state.Bar state.GymPlates weight
+                                Weight = weight
+                                Reps = reps
+                                RepSet = repSet }))) }
             |> pass
         | RepSetCompleted e ->
             let mesocycleNumber, mesocycleId, wave, _ = state.Exercises[e.Exercise]

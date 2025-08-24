@@ -52,7 +52,8 @@ type Typography() =
     static member completedReps(reps: uint) =
         Typography.body2 $"Completed Reps: {reps}"
 
-    static member oneRepMax(weight: Weight, units: MeasurementSystem) = Typography.subtitle2 $"{weight}{units}"
+    static member oneRepMax(weight: Weight, units: MeasurementSystem) =
+        Typography.subtitle2 $"1RM: {weight}{units}"
 
     static member date(date: DateOnly) = Typography.subtitle1 $"{date:d}"
 
