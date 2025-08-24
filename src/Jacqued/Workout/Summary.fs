@@ -15,10 +15,13 @@ open Material.Icons
 type Exercises = Map<Exercise, uint * Wave * DateOnly>
 type CompletedReps = Map<Exercise, Map<RepSet, Weight * uint>>
 
+type OneRepMaxes = Map<Exercise, Weight>
+
 type State =
     { CurrentExercise: Exercise
       Exercises: Exercises
       CompletedReps: CompletedReps
+      OneRepMaxes: OneRepMaxes
       MeasurementSystem: MeasurementSystem }
 
     static member zero =
@@ -28,6 +31,7 @@ type State =
             |> List.map (fun e -> (e, (0u, Wave.One, DateOnly.MinValue)))
             |> Map.ofList
           CompletedReps = Exercise.all |> List.map (fun e -> (e, Map.empty)) |> Map.ofList
+          OneRepMaxes = Exercise.all |> List.map (fun e -> (e, Weight.zero)) |> Map.ofList
           MeasurementSystem = Metric }
 
 let view (state: State) dispatch =
@@ -44,7 +48,7 @@ let view (state: State) dispatch =
                 yield Typography.mesocycleNumber mesocycleNumber
                 yield Typography.currentExercise (exercise, wave)
                 yield Typography.date completedDate
-
+                yield Typography.oneRepMax (state.OneRepMaxes[exercise], state.MeasurementSystem)
                 yield!
                     RepSet.all
                     |> List.map (
@@ -94,6 +98,7 @@ let update msg (state: State) =
 
             { state with
                 CurrentExercise = e.WorkoutPlan.Exercise
+                OneRepMaxes = state.OneRepMaxes |> Map.add e.WorkoutPlan.Exercise e.OneRepMax
                 Exercises =
                     state.Exercises
                     |> Map.add e.WorkoutPlan.Exercise (mesocycleNumber + 1u, Wave.One, e.StartedAt)

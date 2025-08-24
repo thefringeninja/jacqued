@@ -15,7 +15,7 @@ open Jacqued.Util
 open Jacqued.Workout
 open Material.Icons
 
-type Exercises = Map<Exercise, uint * Wave * Lift list>
+type Exercises = Map<Exercise, uint * Wave * Lift list * Weight>
 
 type State =
     { CurrentExercise: Exercise
@@ -30,13 +30,16 @@ type State =
         { MeasurementSystem = Metric
           ExerciseDaysPerWeek = ExerciseDaysPerWeek.Four
           CurrentExercise = Squats
-          Exercises = Exercise.all |> List.map (fun e -> (e, (0u, Wave.One, []))) |> Map.ofList
+          Exercises =
+            Exercise.all
+            |> List.map (fun e -> (e, (0u, Wave.One, [], Weight.zero)))
+            |> Map.ofList
           Bar = Bar.zero
           GymPlates = []
           Date = DateOnly.MinValue }
 
 let view (state: State) dispatch =
-    let mesocycleNumber, wave, set = state.Exercises[state.CurrentExercise]
+    let mesocycleNumber, wave, set, oneRepMax = state.Exercises[state.CurrentExercise]
 
     let onExerciseDateChange (d: Nullable<DateTimeOffset>) =
         (if d.HasValue then
@@ -62,7 +65,7 @@ let view (state: State) dispatch =
                         DatePicker.horizontalAlignment HorizontalAlignment.Stretch
                         DatePicker.onSelectedDateChanged onExerciseDateChange
                     ]
-
+                yield Typography.oneRepMax (oneRepMax, state.MeasurementSystem)
                 yield!
                     set
                     |> List.map (
@@ -113,7 +116,7 @@ let update msg (state: State) =
                 CurrentExercise = e.Exercise |> Exercise.next
                 Date = e.CalculatedOn |> Calculate.nextExerciseDate state.ExerciseDaysPerWeek }
         | MesocycleStarted e ->
-            let mesocycleNumber, _, _ = state.Exercises[e.WorkoutPlan.Exercise]
+            let mesocycleNumber, _, _, _ = state.Exercises[e.WorkoutPlan.Exercise]
 
             let calculateWarmupSet repSet =
                 let reps = Calculate.warmupReps[repSet]
@@ -133,16 +136,18 @@ let update msg (state: State) =
                 Date = e.StartedAt
                 Exercises =
                     state.Exercises
-                    |> Map.add e.WorkoutPlan.Exercise (mesocycleNumber + 1u, Wave.One, (RepSet.all |> List.map calculateWarmupSet)) }
+                    |> Map.add
+                        e.WorkoutPlan.Exercise
+                        (mesocycleNumber + 1u, Wave.One, (RepSet.all |> List.map calculateWarmupSet), e.OneRepMax) }
         | WaveCompleted e ->
-            let mesocycleNumber, _, lifts = state.Exercises[e.Exercise]
+            let mesocycleNumber, _, lifts, oneRepMax = state.Exercises[e.Exercise]
 
             { state with
                 CurrentExercise = e.Exercise |> Exercise.next
                 Date = e.CompletedAt |> Calculate.nextExerciseDate state.ExerciseDaysPerWeek
                 Exercises =
                     state.Exercises
-                    |> Map.add e.Exercise (mesocycleNumber, e.Wave |> Wave.next, lifts) }
+                    |> Map.add e.Exercise (mesocycleNumber, e.Wave |> Wave.next, lifts, oneRepMax) }
         | MesocycleFailed e ->
             { state with
                 CurrentExercise = e.Exercise |> Exercise.next

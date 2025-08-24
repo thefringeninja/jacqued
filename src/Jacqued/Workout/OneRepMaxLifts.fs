@@ -51,7 +51,7 @@ type State =
           TestWeight = Weight.zero
           Date = DateOnly.MinValue
           Reps = 0u
-          OneRepMaxes = Map.empty
+          OneRepMaxes = Exercise.all |> List.map (fun e -> (e, Weight.zero)) |> Map.ofList
           ActualTheme = ThemeVariant.Default
           Screen = Screen.EstimateOneRepMax }
 
