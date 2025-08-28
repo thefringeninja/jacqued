@@ -63,3 +63,6 @@ let divide (views: IView list) : IView list =
 
           if i < views.Length - 1 then
               yield Separator.create [] ]
+
+let centerComboBoxItem (textBlock: IView<TextBlock>) =
+    View.withAttrs [ TextBlock.verticalAlignment VerticalAlignment.Center ] textBlock
