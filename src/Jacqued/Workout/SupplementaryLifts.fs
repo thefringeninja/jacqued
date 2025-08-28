@@ -147,7 +147,10 @@ let view (state: State) dispatch =
 
         let comboBox =
             ComboBox.create [
-                ComboBox.viewItems (supplement |> List.map (fst >> string >> Typography.body2 >> generalize))
+                ComboBox.viewItems (
+                    supplement
+                    |> List.map (fst >> string >> Typography.body2 >> centerComboBoxItem >> generalize)
+                )
                 ComboBox.onSelectedIndexChanged onSelectedSupplementaryLiftsIndexChanged
                 ComboBox.selectedIndex state.SelectedIndex
             ]

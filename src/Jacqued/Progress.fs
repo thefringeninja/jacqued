@@ -298,16 +298,13 @@ let view (state: State) dispatch =
             match item with
             | Some item -> item.ToString()
             | _ -> "All"
-            |> Typography.body2
-
-        let dataTemplateView = DataTemplateView<Exercise option>.create itemTemplate
 
         let selector =
             ComboBox.create [
                 DockPanel.dock Dock.Top
                 ComboBox.onSelectedItemChanged onSelectedExerciseChange
                 ComboBox.dataItems dataItems
-                ComboBox.itemTemplate dataTemplateView
+                ComboBox.itemTemplate (DataTemplateView<Exercise option>.create (itemTemplate >> Typography.body2 >> centerComboBoxItem))
             ]
 
         let legend = SKDefaultLegend()

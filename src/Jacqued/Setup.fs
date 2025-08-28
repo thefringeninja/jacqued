@@ -232,7 +232,6 @@ let weightIncreasesNames =
 
 let weightIncreasesItemTemplate (item: WeightIncreases) =
     weightIncreasesNames[(weightIncreases |> List.findIndex (fun wi -> wi = item))]
-    |> Typography.body2
 
 let weightIncrease (state: State) dispatch =
     let onSelectedWeightIncreasesChanged (e: obj) =
@@ -244,7 +243,9 @@ let weightIncrease (state: State) dispatch =
     let comboBox =
         ComboBox.create [
             ComboBox.dataItems weightIncreases
-            ComboBox.itemTemplate (DataTemplateView<WeightIncreases>.create weightIncreasesItemTemplate)
+            ComboBox.itemTemplate (
+                DataTemplateView<WeightIncreases>.create (weightIncreasesItemTemplate >> Typography.body2 >> centerComboBoxItem)
+            )
             ComboBox.onSelectedItemChanged onSelectedWeightIncreasesChanged
             ComboBox.selectedItem state.SelectedWeightIncreases
         ]
