@@ -1,5 +1,7 @@
 ﻿module Jacqued.CommandHandlers
 
+open System
+
 let private fold state evolve events =
     let acc (ev, s) e = ev + 1, evolve s e
 
@@ -82,3 +84,56 @@ module Mesocycle =
             match save id expectedVersion events with
             | Ok _ -> Ok events
             | Error e -> Error e
+
+module AssistanceTemplate =
+    open AssistanceTemplate
+
+    let private assistanceTemplateId =
+        function
+        | DefineAssistanceTemplate { AssistanceTemplateId = AssistanceTemplateId id } -> id
+        | RemoveAssistanceTemplate { AssistanceTemplateId = AssistanceTemplateId id } -> id
+        | unknown -> invalidOp $"{unknown} was not recognized"
+
+    let create readBackwards append hasAssistanceTemplate =
+        let streamName (assistanceTemplateId: Guid) =
+            $"assistanceTemplate-{assistanceTemplateId:n}"
+
+        let load assistanceTemplateId state =
+            fold state evolve (readBackwards (streamName assistanceTemplateId))
+
+        let save assistanceTemplateId events =
+            append (streamName assistanceTemplateId) -2 events
+
+        let handleCommand =
+            fun command ->
+                let id = assistanceTemplateId command
+
+                let _, state = load id State.zero
+
+                let events = handle hasAssistanceTemplate command state
+
+                match save id events with
+                | Ok _ -> Ok events
+                | Error e -> Error e
+
+        let handleQuery =
+            fun (assistanceTemplateId: AssistanceTemplateId) ->
+                match
+                    (readBackwards (streamName assistanceTemplateId.Value)
+                     |> Seq.choose (fun e ->
+                         match e with
+                         | AssistanceTemplateDefined e ->
+                             ({| AssistanceTemplateId = e.AssistanceTemplateId
+                                 Name = e.Name
+                                 Exercises = e.Exercises |})
+                             |> Some
+                         | _ -> None)
+                     |> Seq.tryHead)
+                with
+                | None ->
+                    {| AssistanceTemplateId = assistanceTemplateId
+                       Name = ""
+                       Exercises = Map.empty |}
+                | Some atd -> atd
+
+        (handleCommand, handleQuery)

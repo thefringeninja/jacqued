@@ -69,6 +69,8 @@ let typeToEventType (event: Event) =
     | WaveCompleted e -> nameof WaveCompleted, (e :> obj)
     | MesocycleFailed e -> nameof MesocycleFailed, (e :> obj)
     | MesocycleCompleted e -> nameof MesocycleCompleted, (e :> obj)
+    | AssistanceTemplateDefined e -> nameof AssistanceTemplateDefined, (e :> obj)
+    | AssistanceTemplateRemoved e -> nameof AssistanceTemplateRemoved, (e :> obj)
 
 let eventTypeToType eventType =
     match eventType with
@@ -80,6 +82,8 @@ let eventTypeToType eventType =
     | nameof WaveCompleted -> typeof<WaveCompleted>
     | nameof MesocycleFailed -> typeof<MesocycleFailed>
     | nameof MesocycleCompleted -> typeof<MesocycleCompleted>
+    | nameof AssistanceTemplateDefined -> typeof<AssistanceTemplateDefined>
+    | nameof AssistanceTemplateRemoved -> typeof<AssistanceTemplateRemoved>
     | _ -> invalidOp "Invalid event"
 
 let private deserializeData (eventType: string) (data: string) : Event =
@@ -114,6 +118,13 @@ let excludeSystemEvents (message: StreamMessage) = message.Type.StartsWith("$") 
 
 let readStream (store: IReadonlyStreamStore) streamName =
     let stream = store.ReadStreamForwards streamName
+
+    stream.ToBlockingEnumerable()
+    |> Seq.filter excludeSystemEvents
+    |> Seq.map deserialize
+
+let readStreamBackward (store: IReadonlyStreamStore) streamName =
+    let stream = store.ReadStreamBackwards streamName
 
     stream.ToBlockingEnumerable()
     |> Seq.filter excludeSystemEvents

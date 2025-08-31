@@ -208,3 +208,28 @@ type WeightIncreases with
             )
         then
             invalidOp "One or more weights was less than or equal to zero"
+
+type AssistanceExercise =
+    { Name: string
+      Description: string
+      BaseExercise: Exercise
+      PercentageOfOneRepMax: float
+      Sets: uint
+      Reps: uint }
+
+type AssistanceExercise with
+    static member zero =
+        { Name = ""
+          Description = ""
+          BaseExercise = Exercise.Squats
+          PercentageOfOneRepMax = 0.
+          Reps = 0u
+          Sets = 0u }
+
+type AssistanceTemplateId =
+    | AssistanceTemplateId of Guid
+
+    member this.Value = let (AssistanceTemplateId value) = this in value
+    static member New() = AssistanceTemplateId(Guid.NewGuid())
+    static member From value = AssistanceTemplateId(value)
+    static member Empty = AssistanceTemplateId(Guid.Empty)

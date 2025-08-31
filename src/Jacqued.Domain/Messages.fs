@@ -10,7 +10,8 @@ type Command =
     | CompleteRepSet of CompleteRepSet
     | CompleteWave of CompleteWave
     | FailRepSet of FailRepSet
-
+    | DefineAssistanceTemplate of DefineAssistanceTemplate
+    | RemoveAssistanceTemplate of RemoveAssistanceTemplate
 and SetupGym =
     { Bar: Bar
       Plates: PlatePair list
@@ -51,6 +52,14 @@ and FailRepSet =
       Weight: Weight
       FailedAt: DateOnly }
 
+and DefineAssistanceTemplate =
+    { AssistanceTemplateId: AssistanceTemplateId
+      Name: string
+      Exercises: Map<Exercise, AssistanceExercise list> }
+
+and RemoveAssistanceTemplate =
+    { AssistanceTemplateId: AssistanceTemplateId }
+
 type Event =
     | GymSetup of GymSetup
     | WeightIncreasesSet of WeightIncreasesSet
@@ -60,6 +69,8 @@ type Event =
     | WaveCompleted of WaveCompleted
     | MesocycleFailed of MesocycleFailed
     | MesocycleCompleted of MesocycleCompleted
+    | AssistanceTemplateDefined of AssistanceTemplateDefined
+    | AssistanceTemplateRemoved of AssistanceTemplateRemoved
 
 and WeightIncreasesSet = { Increases: WeightIncreases }
 
@@ -111,3 +122,11 @@ and MesocycleCompleted =
     { MesocycleId: MesocycleId
       SuggestedOneRepMax: Weight
       Exercise: Exercise }
+
+and AssistanceTemplateDefined =
+    { AssistanceTemplateId: AssistanceTemplateId
+      Name: string
+      Exercises: Map<Exercise, AssistanceExercise list> }
+
+and AssistanceTemplateRemoved =
+    { AssistanceTemplateId: AssistanceTemplateId }
