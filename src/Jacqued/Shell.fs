@@ -57,11 +57,17 @@ module Shell =
     let rec update (store: IStreamStore) (backupManager: IBackupManager) msg state =
         let read = EventStorage.readStream store
         let append = EventStorage.appendToStream store
+        let readBackwards = EventStorage.readStreamBackward store
 
         let gym = Gym.create read append
 
         let exercises = Exercises.create append
         let mesocycle = Mesocycle.create read append
+
+        let (assistanceTemplate, getAssistanceTemplate) =
+            AssistanceTemplate.create readBackwards append (fun name ->
+                state.Setup.AssistanceTemplate.AssistanceTemplates
+                |> Map.exists (fun _ n -> n = name))
 
         let workout command =
             match command with
@@ -71,6 +77,8 @@ module Shell =
         let setup command =
             match command with
             | SetWeightIncreases _ -> exercises command
+            | DefineAssistanceTemplate _ -> assistanceTemplate command
+            | RemoveAssistanceTemplate _ -> assistanceTemplate command
             | _ -> gym command
 
         let setupComplete =
@@ -146,13 +154,16 @@ module Shell =
                           |> Update.State ]
             | _ ->
                 try
-                    [ let setup, result = Setup.update setup msg state.Setup
+                    [ let setup, result = Setup.update setup getAssistanceTemplate msg state.Setup
                       yield result |> Update.Events
 
                       let progress = Progress.update msg state.Progress
 
+                      let getAssistanceExercise assistanceTemplateId exercise =
+                          (assistanceTemplateId |> getAssistanceTemplate).Exercises[exercise]
+
                       let workout, result =
-                          Workout.update (fun () -> DateOnly.today) workout msg state.Workout
+                          Workout.update (fun () -> DateOnly.today) getAssistanceExercise workout msg state.Workout
 
                       yield result |> Update.Events
 

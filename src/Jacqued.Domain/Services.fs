@@ -104,3 +104,7 @@ module Calculate =
 
     let nextExerciseWaveDate (exerciseDaysPerWeek: ExerciseDaysPerWeek) (date: DateOnly) =
         { 1..4 } |> Seq.fold (fun d _ -> nextExerciseDate exerciseDaysPerWeek d) date
+
+    type AssistanceExercise with
+        member this.calculate bar platePairs (oneRepMax: Weight) =
+            plates bar platePairs (oneRepMax * this.PercentageOfOneRepMax)

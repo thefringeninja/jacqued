@@ -4,16 +4,38 @@ open System
 open Avalonia.Styling
 
 module Msg =
+    module Setup =
+        type Gym =
+            | SetupGym of Bar * PlatePair list * MeasurementSystem * ExerciseDaysPerWeek
+            | BarbellWeightChanged of Weight
+            | PlateWeightChanged of Weight
+            | MeasurementSystemChanged of MeasurementSystem
+            | ExerciseDaysPerWeekChanged of ExerciseDaysPerWeek
+            | AddPlate of Weight
+            | RemovePlate of Weight
+
+        type WeightIncrease =
+            | SetWeightIncreasesClick of WeightIncreases
+            | SelectedWeightIncreasesChanged of WeightIncreases
+
+        type AssistanceTemplate =
+            | New of AssistanceTemplateId
+            | Add of Exercise
+            | Remove of Exercise * int
+            | Set of Exercise * int * AssistanceExercise
+            | Reorder of Exercise * int * int
+            | AssistanceTemplateSelected of AssistanceTemplateId option
+            | AssistanceTemplateExerciseSelected of Exercise option
+            | AssistanceTemplateDefinitionNameChanged of string
+            | DefineAssistanceTemplate of AssistanceTemplateId * string * Map<Exercise, AssistanceExercise list>
+            | RemoveAssistanceTemplate of AssistanceTemplateId
+            | ListOperationCompleted
+            | ListOperationStarted
+
     type Setup =
-        | SetupGym of Bar * PlatePair list * MeasurementSystem * ExerciseDaysPerWeek
-        | BarbellWeightChanged of Weight
-        | PlateWeightChanged of Weight
-        | MeasurementSystemChanged of MeasurementSystem
-        | ExerciseDaysPerWeekChanged of ExerciseDaysPerWeek
-        | AddPlate of Weight
-        | RemovePlate of Weight
-        | SetWeightIncreasesClick of WeightIncreases
-        | SelectedWeightIncreasesChanged of WeightIncreases
+        | Gym of Setup.Gym
+        | WeightIncrease of Setup.WeightIncrease
+        | AssistanceTemplate of Setup.AssistanceTemplate
 
     type Data =
         | BeginBackup
@@ -50,13 +72,17 @@ module Msg =
 
         type SupplementaryLifts = SelectedSupplementaryLiftsIndexChanged of int
 
+        type AssistanceLifts = SelectedAssistanceExerciseTemplateChanged of AssistanceTemplateId * string
+
     type Workout =
         | Mesocycle of Workout.Mesocycle
         | MainLifts of Workout.MainLifts
         | WarmupLifts of Workout.WarmupLifts
         | OneRepMaxLifts of Workout.OneRepMaxLifts
         | SupplementaryLifts of Workout.SupplementaryLifts
+        | AssistanceLifts of Workout.AssistanceLifts
         | ContinueExercise of Exercise
+        | CompleteSupplements
         | CompleteWave of MesocycleId * DateOnly * WeightIncreases
 
     type Progress =

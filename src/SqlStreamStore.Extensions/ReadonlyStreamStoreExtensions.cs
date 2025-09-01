@@ -23,6 +23,23 @@ public static class ReadonlyStreamStoreExtensions {
 		}
 	}
 
+	public static async IAsyncEnumerable<StreamMessage> ReadStreamBackwards(this IReadonlyStreamStore store,
+		string streamName, [EnumeratorCancellation] CancellationToken ct = default) {
+		var from = int.MaxValue;
+
+		Loop:
+		var page = await store.ReadStreamBackwards(streamName, from, 32, true, ct);
+
+		foreach (var message in page.Messages) {
+			yield return message;
+		}
+
+		if (!page.IsEnd) {
+			from = page.NextStreamVersion;
+			goto Loop;
+		}
+	}
+
 	public static async IAsyncEnumerable<StreamMessage> ReadAllForwards(this IReadonlyStreamStore store,
 		[EnumeratorCancellation] CancellationToken ct = default) {
 		long from = Position.Start;

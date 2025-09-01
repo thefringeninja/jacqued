@@ -7,6 +7,7 @@
 		<Compile Include="Gym.fs"/>
 		<Compile Include="Exercises.fs"/>
 		<Compile Include="Mesocycle.fs"/>
+		<Compile Include="AssistanceTemplate.fs" />
 	</ItemGroup>
 
 </Project>
