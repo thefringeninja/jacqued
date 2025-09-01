@@ -12,6 +12,7 @@ type Command =
     | FailRepSet of FailRepSet
     | DefineAssistanceTemplate of DefineAssistanceTemplate
     | RemoveAssistanceTemplate of RemoveAssistanceTemplate
+
 and SetupGym =
     { Bar: Bar
       Plates: PlatePair list

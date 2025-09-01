@@ -27,7 +27,6 @@
 		<ProjectReference Include="../SqlStreamStore.Extensions/SqlStreamStore.Extensions.csproj" />
 	</ItemGroup>
 
-
 	<ItemGroup>
 		<Compile Include="Util.fs" />
 		<Compile Include="Design.fs" />
@@ -50,6 +49,7 @@
 		<Compile Include="Workout\OneRepMaxLifts.fs" />
 		<Compile Include="Workout\MainLifts.fs" />
 		<Compile Include="Workout\SupplementaryLifts.fs" />
+		<Compile Include="Workout\AssistanceLifts.fs" />
 		<Compile Include="Workout\Summary.fs" />
 		<Compile Include="Workout.fs" />
 		<Compile Include="Shell.fs" />

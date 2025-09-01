@@ -159,8 +159,11 @@ module Shell =
 
                       let progress = Progress.update msg state.Progress
 
+                      let getAssistanceExercise assistanceTemplateId exercise =
+                          (assistanceTemplateId |> getAssistanceTemplate).Exercises[exercise]
+
                       let workout, result =
-                          Workout.update (fun () -> DateOnly.today) workout msg state.Workout
+                          Workout.update (fun () -> DateOnly.today) getAssistanceExercise workout msg state.Workout
 
                       yield result |> Update.Events
 

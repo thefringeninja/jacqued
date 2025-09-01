@@ -12,25 +12,27 @@ indent_size = 2
 [*.fs]
 indent_size = 4
 indent_style = space
-max_line_length=140
-fsharp_newline_between_type_definition_and_members=true
-fsharp_max_function_binding_width=40
-fsharp_max_if_then_else_short_width=60
-fsharp_max_infix_operator_expression=80
-fsharp_max_array_or_list_width=80
-fsharp_max_array_or_list_number_of_items=5
-fsharp_max_dot_get_expression_width=80
-fsharp_multiline_block_brackets_on_same_column=true
-fsharp_multiline_bracket_style=cramped
-fsharp_keep_max_number_of_blank_lines=1
-fsharp_experimental_elmish=true
+max_line_length = 140
+fsharp_newline_between_type_definition_and_members = true
+fsharp_max_function_binding_width = 40
+fsharp_max_if_then_else_short_width = 60
+fsharp_max_infix_operator_expression = 80
+fsharp_max_array_or_list_width = 80
+fsharp_max_array_or_list_number_of_items = 5
+fsharp_max_dot_get_expression_width = 80
+fsharp_multiline_block_brackets_on_same_column = true
+fsharp_multiline_bracket_style = cramped
+fsharp_keep_max_number_of_blank_lines = 1
+fsharp_experimental_elmish = true
+
 [*.fsi]
-fsharp_newline_between_type_definition_and_members=true
-fsharp_keep_max_number_of_blank_lines=1
+fsharp_newline_between_type_definition_and_members = true
+fsharp_keep_max_number_of_blank_lines = 1
 
 # Xml project files
-[*.{csproj,vcxproj,vcxproj.filters,proj,nativeproj,locproj}]
+[*.{fsproj,csproj,vcxproj,vcxproj.filters,proj,nativeproj,locproj}]
 indent_size = 2
+ij_xml_space_inside_empty_tag = true
 
 # Xml config files
 [*.{props,targets,config,nuspec}]

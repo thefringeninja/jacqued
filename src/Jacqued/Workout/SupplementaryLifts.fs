@@ -19,25 +19,23 @@ type OneRepMaxes = Map<Exercise, Weight>
 type State =
     { CurrentExercise: Exercise
       SelectedIndex: int
-      Mesocycles: Map<Exercise, MesocycleId * uint * Wave * Weight * Weight * DateOnly>
+      Mesocycles: Map<Exercise, uint * Wave * Weight * DateOnly>
       MeasurementSystem: MeasurementSystem
       Bar: Bar
       GymPlates: PlatePair list
-      ExerciseDaysPerWeek: ExerciseDaysPerWeek
-      WeightIncreases: WeightIncreases }
+      ExerciseDaysPerWeek: ExerciseDaysPerWeek }
 
     static member zero =
         { CurrentExercise = Squats
           SelectedIndex = 0
           Mesocycles =
             Exercise.all
-            |> List.map (fun e -> (e, (MesocycleId.Empty, 1u, Wave.One, Weight.zero, Weight.zero, DateOnly.MinValue)))
+            |> List.map (fun e -> (e, (1u, Wave.One, Weight.zero, DateOnly.MinValue)))
             |> Map.ofList
           MeasurementSystem = Metric
           Bar = Bar.zero
           GymPlates = []
-          ExerciseDaysPerWeek = ExerciseDaysPerWeek.Four
-          WeightIncreases = WeightIncreases.standard }
+          ExerciseDaysPerWeek = ExerciseDaysPerWeek.Four }
 
 type private Supplement =
     | ``First Set Last``
@@ -81,7 +79,7 @@ let private thing supplement wave =
 
 let view (state: State) dispatch =
     let supplementary (trainingMax: Weight) supplement =
-        let _, _, wave, _, _, _ = state.Mesocycles[state.CurrentExercise]
+        let _, wave, _, _ = state.Mesocycles[state.CurrentExercise]
         let lifts = thing supplement wave
 
         let calculateWeight (repSet: int) =
@@ -123,8 +121,7 @@ let view (state: State) dispatch =
         ]
 
     let content =
-        let mesocycleId, mesocycleNumber, wave, _, oneRepMax, date =
-            state.Mesocycles[state.CurrentExercise]
+        let mesocycleNumber, wave, oneRepMax, date = state.Mesocycles[state.CurrentExercise]
 
         let supplementary = supplementary oneRepMax
 
@@ -132,12 +129,6 @@ let view (state: State) dispatch =
             index
             |> SupplementaryLifts.SelectedSupplementaryLiftsIndexChanged
             |> Workout.SupplementaryLifts
-            |> Msg.Workout
-            |> dispatch
-
-        let onCompleteWaveClick _ =
-            (mesocycleId, date, state.WeightIncreases)
-            |> Workout.CompleteWave
             |> Msg.Workout
             |> dispatch
 
@@ -155,12 +146,12 @@ let view (state: State) dispatch =
                 ComboBox.selectedIndex state.SelectedIndex
             ]
 
-        let supplement = supplement[state.SelectedIndex] |> snd
+        let supplement = supplement[Math.Max(state.SelectedIndex, 0)] |> snd
 
-        let completeWave =
+        let completeSupplements =
             MaterialButton.create [
-                MaterialButton.content ($"Complete Wave {wave}", MaterialIconKind.Barbell)
-                MaterialButton.onClick (onCompleteWaveClick, SubPatchOptions.OnChangeOf((wave, state.WeightIncreases)))
+                MaterialButton.content ("Complete Supplements", MaterialIconKind.Barbell)
+                MaterialButton.onClick (fun _ -> Workout.CompleteSupplements |> Msg.Workout |> dispatch)
             ]
 
         StackPanel.create [
@@ -172,13 +163,13 @@ let view (state: State) dispatch =
                 Typography.oneRepMax (oneRepMax, state.MeasurementSystem)
                 comboBox
                 supplement
-                buttonBar [ completeWave ]
+                buttonBar [ completeSupplements ]
             ]
         ]
 
     layout content
 
-let update handler msg (state: State) =
+let update msg (state: State) =
     match msg with
     | Event e ->
         match e with
@@ -193,24 +184,17 @@ let update handler msg (state: State) =
             { state with
                 CurrentExercise = e.Exercise |> Exercise.next }
             |> pass
-        | WeightIncreasesSet e ->
-            { state with
-                WeightIncreases = e.Increases }
-            |> pass
         | MesocycleStarted e ->
-            let _, mesocycleNumber, _, _, _, _ = state.Mesocycles[e.WorkoutPlan.Exercise]
+            let mesocycleNumber, _, _, _ = state.Mesocycles[e.WorkoutPlan.Exercise]
 
             { state with
                 CurrentExercise = e.WorkoutPlan.Exercise
                 Mesocycles =
                     state.Mesocycles
-                    |> Map.add
-                        e.WorkoutPlan.Exercise
-                        (e.MesocycleId, mesocycleNumber + 1u, Wave.One, e.TrainingOneRepMax, e.OneRepMax, e.StartedAt) }
+                    |> Map.add e.WorkoutPlan.Exercise (mesocycleNumber + 1u, Wave.One, e.TrainingOneRepMax, e.StartedAt) }
             |> pass
         | WaveCompleted e ->
-            let _, mesocycleNumber, _, trainingMax, oneRepMax, date =
-                state.Mesocycles[e.Exercise]
+            let mesocycleNumber, _, oneRepMax, date = state.Mesocycles[e.Exercise]
 
             let date = date |> Calculate.nextExerciseWaveDate state.ExerciseDaysPerWeek
 
@@ -218,11 +202,10 @@ let update handler msg (state: State) =
                 CurrentExercise = e.Exercise |> Exercise.next
                 Mesocycles =
                     state.Mesocycles
-                    |> Map.add e.Exercise (e.MesocycleId, mesocycleNumber, e.Wave |> Wave.next, trainingMax, oneRepMax, date) }
+                    |> Map.add e.Exercise (mesocycleNumber, e.Wave |> Wave.next, oneRepMax, date) }
             |> pass
         | MesocycleFailed e ->
-            let _, mesocycleNumber, _, trainingMax, oneRepMax, date =
-                state.Mesocycles[e.Exercise]
+            let mesocycleNumber, _, oneRepMax, date = state.Mesocycles[e.Exercise]
 
             let date = date |> Calculate.nextExerciseWaveDate state.ExerciseDaysPerWeek
 
@@ -230,7 +213,7 @@ let update handler msg (state: State) =
                 CurrentExercise = e.Exercise |> Exercise.next
                 Mesocycles =
                     state.Mesocycles
-                    |> Map.add e.Exercise (e.MesocycleId, mesocycleNumber + 1u, e.Wave |> Wave.next, trainingMax, oneRepMax, date) }
+                    |> Map.add e.Exercise (mesocycleNumber + 1u, e.Wave |> Wave.next, oneRepMax, date) }
             |> pass
 
         | _ -> state |> pass
@@ -243,8 +226,7 @@ let update handler msg (state: State) =
                     Mesocycles =
                         state.Mesocycles
                         |> Map.change state.CurrentExercise (function
-                            | Some(mesocycleId, mesocycleNumber, wave, trainingMax, oneRepMax, _) ->
-                                Some(mesocycleId, mesocycleNumber, wave, trainingMax, oneRepMax, date)
+                            | Some(mesocycleNumber, wave, oneRepMax, _) -> Some(mesocycleNumber, wave, oneRepMax, date)
                             | _ -> None) }
                 |> pass
             | _ -> state |> pass
@@ -255,13 +237,5 @@ let update handler msg (state: State) =
                 { state with
                     SelectedIndex = selectedIndex }
                 |> pass
-        | CompleteWave(mesocycleId, date, increase) ->
-            state,
-            handler (
-                Command.CompleteWave
-                    { MesocycleId = mesocycleId
-                      CompletedAt = date
-                      WeightIncrease = increase }
-            )
         | _ -> state |> pass
     | _ -> state |> pass

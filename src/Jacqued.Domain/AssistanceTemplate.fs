@@ -12,7 +12,8 @@ let private define (command: DefineAssistanceTemplate) (hasAssistanceTemplate: s
     if command.Name = String.Empty then
         invalidArg (nameof command) "Name cannot be empty"
 
-    if state.WasRemoved then invalidOp "Assistance template was deleted"
+    if state.WasRemoved then
+        invalidOp "Assistance template was deleted"
 
     if
         Exercise.all

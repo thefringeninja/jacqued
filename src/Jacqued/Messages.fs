@@ -72,13 +72,17 @@ module Msg =
 
         type SupplementaryLifts = SelectedSupplementaryLiftsIndexChanged of int
 
+        type AssistanceLifts = SelectedAssistanceExerciseTemplateChanged of AssistanceTemplateId * string
+
     type Workout =
         | Mesocycle of Workout.Mesocycle
         | MainLifts of Workout.MainLifts
         | WarmupLifts of Workout.WarmupLifts
         | OneRepMaxLifts of Workout.OneRepMaxLifts
         | SupplementaryLifts of Workout.SupplementaryLifts
+        | AssistanceLifts of Workout.AssistanceLifts
         | ContinueExercise of Exercise
+        | CompleteSupplements
         | CompleteWave of MesocycleId * DateOnly * WeightIncreases
 
     type Progress =
