@@ -125,13 +125,14 @@ let update handler (getAssistanceExercises: AssistanceTemplateId -> Exercise -> 
                 |> pass
             | _ -> state |> pass
         | CompleteWave(mesocycleId, date, increase) ->
-            state,
-            handler (
-                Command.CompleteWave
-                    { MesocycleId = mesocycleId
-                      CompletedAt = date
-                      WeightIncrease = increase }
-            )
+            (state,
+             handler (
+                 Command.CompleteWave
+                     { MesocycleId = mesocycleId
+                       CompletedAt = date
+                       WeightIncrease = increase }
+             ))
+            |> cmd
         | _ -> state |> pass
     | _ -> state |> pass
 

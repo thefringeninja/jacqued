@@ -257,23 +257,25 @@ let update handler msg state =
                     State.Reps = state.Reps - 1u }
                 |> pass
             | MainLifts.CompleteRepSet(mesocycleId, reps, weight) ->
-                state,
-                handler (
-                    Command.CompleteRepSet
-                        { MesocycleId = mesocycleId
-                          Reps = reps
-                          Weight = weight
-                          CompletedAt = state.StartingAt }
-                )
+                (state,
+                 handler (
+                     Command.CompleteRepSet
+                         { MesocycleId = mesocycleId
+                           Reps = reps
+                           Weight = weight
+                           CompletedAt = state.StartingAt }
+                 ))
+                |> cmd
             | MainLifts.FailRepSet(mesocycleId, reps, weight) ->
-                state,
-                handler (
-                    Command.FailRepSet
-                        { MesocycleId = mesocycleId
-                          Reps = reps
-                          Weight = weight
-                          FailedAt = state.StartingAt }
-                )
+                (state,
+                 handler (
+                     Command.FailRepSet
+                         { MesocycleId = mesocycleId
+                           Reps = reps
+                           Weight = weight
+                           FailedAt = state.StartingAt }
+                 ))
+                |> cmd
         | _ -> state |> pass
     | Settings e ->
         match e with

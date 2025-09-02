@@ -180,17 +180,18 @@ let update now handler msg (state: State) =
                     StartingAt = startingAt |> Some }
                 |> pass
             | StartMesocycle(mesocycleId, exercise, oneRepMax, startedAt, bar, platePairs) when oneRepMax > Weight.zero ->
-                state,
-                handler (
-                    Command.StartMesocycle
-                        { MesocycleId = mesocycleId
-                          Exercise = exercise
-                          StartedAt = startedAt
-                          OneRepMax = oneRepMax
-                          Bar = bar
-                          Plates = platePairs
-                          MeasurementSystem = state.MeasurementSystem }
-                )
+                (state,
+                 handler (
+                     Command.StartMesocycle
+                         { MesocycleId = mesocycleId
+                           Exercise = exercise
+                           StartedAt = startedAt
+                           OneRepMax = oneRepMax
+                           Bar = bar
+                           Plates = platePairs
+                           MeasurementSystem = state.MeasurementSystem }
+                 ))
+                |> cmd
             | _ -> state |> pass
         | _ -> state |> pass
     | _ -> state |> pass

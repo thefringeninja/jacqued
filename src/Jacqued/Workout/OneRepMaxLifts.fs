@@ -145,14 +145,15 @@ let update handler msg state =
                     State.Reps = state.Reps - 1u }
                 |> pass
             | CompleteCalculateOneRepMaxClicked(exercise, reps, weight, calculatedOn) ->
-                state,
-                handler (
-                    Command.CalculateOneRepMax
-                        { Exercise = exercise
-                          Reps = reps
-                          Weight = weight
-                          CalculatedOn = calculatedOn }
-                )
+                (state,
+                 handler (
+                     Command.CalculateOneRepMax
+                         { Exercise = exercise
+                           Reps = reps
+                           Weight = weight
+                           CalculatedOn = calculatedOn }
+                 ))
+                |> cmd
             | _ -> state |> pass
         | _ -> state |> pass
     | _ -> state |> pass

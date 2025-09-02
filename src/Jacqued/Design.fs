@@ -4,6 +4,7 @@ open Avalonia
 open Avalonia.Controls
 open Avalonia.Media
 open Avalonia.Styling
+open Jacqued.Extensions
 open Material.Colors
 open Material.Colors.Recommended
 
@@ -60,8 +61,8 @@ module Theme =
             app.ActualThemeVariant
 
     module Brushes =
-        let private resource name =
-            let name = name |> Util.pascalize
+        let private resource (name: string) =
+            let name = name.pascalize ()
 
             lazy
                 (match Application.Current.TryFindResource $"Material{name}Brush" with
@@ -82,8 +83,8 @@ module Theme =
         let rec secondaryDark = (resource (nameof secondaryDark)).Value
 
     module Controls =
-        let private resource name =
-            let name = name |> Util.pascalize
+        let private resource (name: string) =
+            let name = name.pascalize ()
 
             lazy
                 (match Application.Current.TryFindResource $"Material{name}" with

@@ -28,7 +28,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<Compile Include="Util.fs" />
+		<Compile Include="Extensions.fs" />
 		<Compile Include="Design.fs" />
 		<Compile Include="CommandHandlers.fs" />
 		<Compile Include="EventStorage.fs" />
@@ -39,6 +39,7 @@
 		<Compile Include="Helpers.fs" />
 		<Compile Include="Settings.fs" />
 		<Compile Include="Messages.fs" />
+		<Compile Include="Util.fs" />
 		<Compile Include="Configuration.fs" />
 		<Compile Include="PlatePairs.fs" />
 		<Compile Include="Setup.fs" />

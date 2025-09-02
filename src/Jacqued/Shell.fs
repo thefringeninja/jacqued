@@ -64,7 +64,7 @@ module Shell =
         let exercises = Exercises.create append
         let mesocycle = Mesocycle.create read append
 
-        let (assistanceTemplate, getAssistanceTemplate) =
+        let assistanceTemplate, getAssistanceTemplate =
             AssistanceTemplate.create readBackwards append (fun name ->
                 state.Setup.AssistanceTemplate.AssistanceTemplates
                 |> Map.exists (fun _ n -> n = name))
@@ -89,7 +89,9 @@ module Shell =
                 | _ -> state.SetupComplete
             | _ -> state.SetupComplete
 
-        let results =
+        let batch acc (state, cmd) = (state, [ cmd; acc ] |> Cmd.batch)
+
+        let state, cmd =
             match msg with
             | Msg.ApplicationError error ->
                 let message =
@@ -104,39 +106,33 @@ module Shell =
                     |> Async.Ignore
                     |> ignore
 
-                []
+                state, Cmd.none
             | Msg.Data msg ->
                 match msg with
                 | Data.BeginBackup ->
-                    [ Cmd.OfAsync.either
-                          backupManager.backup
-                          ()
-                          (Ok >> Data.CompleteBackup >> Msg.Data)
-                          (exnToError >> Data.CompleteBackup >> Msg.Data)
-                      |> Update.Cmd
-                      { state with
-                          AsyncOperationInProgress = true }
-                      |> Update.State ]
+                    { state with
+                        AsyncOperationInProgress = true },
+                    Cmd.OfAsync.either
+                        backupManager.backup
+                        ()
+                        (Ok >> Data.CompleteBackup >> Msg.Data)
+                        (exnToError >> Data.CompleteBackup >> Msg.Data)
                 | Data.CompleteBackup msg ->
-                    [ match msg with
-                      | Ok _ -> ()
-                      | Error error -> yield error |> Message |> Msg.ApplicationError |> Cmd.ofMsg |> Update.Cmd
-                      yield
-                          { state with
-                              AsyncOperationInProgress = false }
-                          |> Update.State ]
+                    { state with
+                        AsyncOperationInProgress = false },
+                    match msg with
+                    | Ok _ -> Cmd.none
+                    | Error error -> error |> Message |> Msg.ApplicationError |> Cmd.ofMsg
                 | Data.BeginRestore ->
-                    [ Cmd.OfAsync.either
-                          backupManager.restore
-                          ()
-                          (Ok >> Data.CompleteRestore >> Msg.Data)
-                          (exnToError >> Data.CompleteRestore >> Msg.Data)
-                      |> Update.Cmd
-                      { state with
-                          AsyncOperationInProgress = true }
-                      |> Update.State ]
+                    { state with
+                        AsyncOperationInProgress = true },
+                    Cmd.OfAsync.either
+                        backupManager.restore
+                        ()
+                        (Ok >> Data.CompleteRestore >> Msg.Data)
+                        (exnToError >> Data.CompleteRestore >> Msg.Data)
                 | Data.CompleteRestore msg ->
-                    let state', cmd =
+                    let state, cmd =
                         match msg with
                         | Ok _ ->
                             Seq.fold
@@ -147,61 +143,35 @@ module Shell =
                             Cmd.none
                         | Error error -> state, error |> Message |> Msg.ApplicationError |> Cmd.ofMsg
 
-                    [ yield cmd |> Update.Cmd
-                      yield
-                          { state' with
-                              AsyncOperationInProgress = false }
-                          |> Update.State ]
+                    { state with
+                        AsyncOperationInProgress = false },
+                    cmd
             | _ ->
                 try
-                    [ let setup, result = Setup.update setup getAssistanceTemplate msg state.Setup
-                      yield result |> Update.Events
+                    let setup, cmd =
+                        (Setup.update setup getAssistanceTemplate msg state.Setup) |> batch Cmd.none
 
-                      let progress = Progress.update msg state.Progress
+                    let progress = Progress.update msg state.Progress
 
-                      let getAssistanceExercise assistanceTemplateId exercise =
-                          (assistanceTemplateId |> getAssistanceTemplate).Exercises[exercise]
+                    let getAssistanceExercise assistanceTemplateId exercise =
+                        (assistanceTemplateId |> getAssistanceTemplate).Exercises[exercise]
 
-                      let workout, result =
-                          Workout.update (fun () -> DateOnly.today) getAssistanceExercise workout msg state.Workout
+                    let workout, cmd =
+                        (Workout.update (fun () -> DateOnly.today) getAssistanceExercise workout msg state.Workout)
+                        |> batch cmd
 
-                      yield result |> Update.Events
+                    let settings, cmd = (Configuration.update msg state.Settings) |> batch cmd
 
-                      let settings, result = Configuration.update msg state.Settings
-
-                      yield
-                          { state with
-                              Setup = setup
-                              Progress = progress
-                              Workout = workout
-                              Settings = settings }
-                          |> Update.State ]
+                    { state with
+                        Setup = setup
+                        Progress = progress
+                        Workout = workout
+                        Settings = settings },
+                    cmd
                 with exn ->
-                    [ exn |> Result.Error |> Update.Events ]
+                    state, exn |> ApplicationError.Exception |> Msg.ApplicationError |> Cmd.ofMsg
 
-        let cmd =
-            results
-            |> Seq.map (fun result ->
-                match result with
-                | State _ -> Seq.empty
-                | Cmd cmd -> seq { cmd }
-                | Events results ->
-                    (match results with
-                     | Result.Ok events -> events |> Seq.map Msg.Event
-                     | Result.Error err -> [ err.Message |> ApplicationError.Message |> Msg.ApplicationError ])
-                    |> Seq.map (fun msg -> msg |> Cmd.ofMsg))
-            |> Seq.concat
-            |> Cmd.batch
-
-        let state' =
-            match (results |> List.tryLast) with
-            | None -> state
-            | Some item ->
-                match item with
-                | Update.State state -> state
-                | _ -> state
-
-        { state' with
+        { state with
             SetupComplete = setupComplete },
         cmd
 
