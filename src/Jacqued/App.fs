@@ -26,7 +26,7 @@ type MainWindow() =
 
 #nowarn "3261"
 
-type private JacqedTheme() as this =
+type private JacquedTheme() as this =
     inherit CustomMaterialTheme(null)
 
     do
@@ -44,7 +44,7 @@ type App(store: IStreamStore, settingsFile) =
     inherit Application()
 
     override this.Initialize() =
-        this.Styles.Add(new JacqedTheme())
+        this.Styles.Add(new JacquedTheme())
         this.Styles.Add(MaterialIconStyles(null))
         this.Styles.Add(DialogHostStyles())
 

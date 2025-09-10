@@ -41,7 +41,7 @@ type State =
           Screen = Screen.StartMesocycle
           Mesocycles = Map.empty }
 
-let update (now: _ -> DateOnly) (getAssistanceExercises) handler msg (state: State) =
+let update (now: _ -> DateOnly) getAssistanceExercises handler msg (state: State) =
 
     let startMesocycle, startMesocycleResult =
         StartMesocycle.update now handler msg state.StartMesocycle

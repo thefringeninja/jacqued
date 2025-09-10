@@ -261,9 +261,9 @@ module CartesianChart =
                     let control = control :?> 't
                     let handler = VisualElementsHandler(fun _ -> func)
 
-                    control.add_VisualElementsPointerDown (handler)
+                    control.add_VisualElementsPointerDown handler
 
-                    token.Register(fun _ -> control.remove_VisualElementsPointerDown (handler))
+                    token.Register(fun _ -> control.remove_VisualElementsPointerDown handler)
                     |> ignore
 
             AttrBuilder<'t>.CreateSubscription<VisualElementsEventArgs>(name, factory, func, ?subPatchOptions = subPatchOptions)
@@ -285,7 +285,7 @@ module CartesianChart =
 
         static member legend<'t when 't :> CartesianChart>(value: IChartLegend) : IAttr<'t> =
             let name = nameof Unchecked.defaultof<'t>.Legend
-            let getter: 't -> IChartLegend = (_.Legend)
+            let getter: 't -> IChartLegend = _.Legend
 
             let setter: 't * IChartLegend -> unit =
                 (fun (control, value) -> control.Legend <- value)
@@ -294,7 +294,7 @@ module CartesianChart =
 
         static member tooltip<'t when 't :> CartesianChart>(value: IChartTooltip) : IAttr<'t> =
             let name = nameof Unchecked.defaultof<'t>.Tooltip
-            let getter: 't -> IChartTooltip = (_.Tooltip)
+            let getter: 't -> IChartTooltip = _.Tooltip
 
             let setter: 't * IChartTooltip -> unit =
                 (fun (control, value) -> control.Tooltip <- value)

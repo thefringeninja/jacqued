@@ -18,7 +18,7 @@ open Jacqued.Workout
 open Jacqued.Util
 open Material.Icons
 
-type WorkoutPlans = Map<Exercise, (Weight * Map<Wave * RepSet, Lift>)>
+type WorkoutPlans = Map<Exercise, Weight * Map<Wave * RepSet, Lift>>
 type Exercises = Map<Exercise, uint * MesocycleId * Wave * RepSet>
 
 type State =
@@ -131,8 +131,6 @@ let view (state: State) dispatch =
             MaterialButton.onClick (onFailRepSetClick, SubPatchOptions.OnChangeOf(state))
             MaterialButton.isEnabled (state.Reps < lift.Reps)
         ]
-
-    let plus = if lift.RepSet = RepSet.Three then "+" else ""
 
     let content =
         StackPanel.create [

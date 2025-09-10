@@ -6,7 +6,6 @@ open Avalonia.FuncUI
 open Avalonia.FuncUI.DSL
 open Avalonia.Layout
 open Jacqued
-open Jacqued.Calculate
 open Jacqued.Controls
 open Jacqued.DSL
 open Jacqued.Helpers
@@ -136,6 +135,8 @@ let update handler (getAssistanceExercises: AssistanceTemplateId -> Exercise -> 
         | _ -> state |> pass
     | _ -> state |> pass
 
+open Jacqued.Calculate
+
 let view (state: State) dispatch =
     let mesocycleId, mesocycleNumber, wave, oneRepMax, date =
         state.Mesocycles[state.CurrentExercise]
@@ -170,14 +171,12 @@ let view (state: State) dispatch =
                             DataTemplateView<AssistanceTemplateId * string>.create (snd >> string >> Typography.body2 >> centerComboBoxItem)
                         )
                         ComboBox.selectedItem state.SelectedAssistanceTemplate
-                        ComboBox.onSelectedItemChanged (
-                            (fun o ->
-                                (o :?> AssistanceTemplateId * string)
-                                |> AssistanceLifts.SelectedAssistanceExerciseTemplateChanged
-                                |> Workout.AssistanceLifts
-                                |> Msg.Workout
-                                |> dispatch)
-                        )
+                        ComboBox.onSelectedItemChanged (fun o ->
+                            (o :?> AssistanceTemplateId * string)
+                            |> AssistanceLifts.SelectedAssistanceExerciseTemplateChanged
+                            |> Workout.AssistanceLifts
+                            |> Msg.Workout
+                            |> dispatch)
                     ]
 
                 yield!
