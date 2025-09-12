@@ -6,7 +6,7 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 		<LangVersion>latest</LangVersion>
 		<RootNamespace>Jacqued</RootNamespace>
-		<AvaloniaVersion>11.3.5</AvaloniaVersion>
+		<AvaloniaVersion>11.3.6</AvaloniaVersion>
 	</PropertyGroup>
 
 	<ItemGroup>
