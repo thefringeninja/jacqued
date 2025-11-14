@@ -6,7 +6,7 @@
 
 	<ItemGroup>
 		<PackageReference Include="Avalonia.Fonts.Inter" Version="$(AvaloniaVersion)" />
-		<PackageReference Include="Avalonia.FuncUI.Elmish" Version="1.5.1" />
+		<PackageReference Include="Avalonia.FuncUI.Elmish" Version="1.5.2" />
 		<PackageReference Include="AvaloniaDialogs" Version="3.6.1" />
 		<PackageReference Include="CsvHelper" Version="33.1.0" />
 		<PackageReference Include="FSharp.Control.TaskSeq" Version="0.4.0" />
