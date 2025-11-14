@@ -2,6 +2,7 @@
 module Jacqued.Workout
 
 open System
+open Elmish
 open Jacqued
 open Jacqued.Msg
 open Jacqued.Msg.Workout
@@ -40,7 +41,8 @@ type State =
           Screen = Screen.StartMesocycle
           Mesocycles = Map.empty }
 
-let update (now: _ -> DateOnly) (getAssistanceExercises) handler msg (state: State) =
+let update (now: _ -> DateOnly) getAssistanceExercises handler msg (state: State) =
+
     let startMesocycle, startMesocycleResult =
         StartMesocycle.update now handler msg state.StartMesocycle
 
@@ -59,21 +61,13 @@ let update (now: _ -> DateOnly) (getAssistanceExercises) handler msg (state: Sta
 
     let summary = Summary.update msg state.Summary
 
-    let results =
+    let cmd =
         [ startMesocycleResult
           mainLiftsResult
           supplementaryLiftsResult
           assistanceLiftsResult
           oneRepMaxLiftsResult ]
-        |> List.fold
-            (fun acc elem ->
-                match acc with
-                | Error _ -> acc
-                | Ok acc ->
-                    match elem with
-                    | Error err -> err |> Error
-                    | Ok elem -> (elem @ acc) |> Ok)
-            (List.empty |> Ok)
+        |> Cmd.batch
 
     let nextScreen exercise =
         if state.Mesocycles |> Map.containsKey (exercise |> Exercise.next) then
@@ -129,7 +123,7 @@ let update (now: _ -> DateOnly) (getAssistanceExercises) handler msg (state: Sta
         Summary = summary
         Mesocycles = mesocycles
         Screen = screen },
-    results
+    cmd
 
 let view (state: State) dispatch =
     (function

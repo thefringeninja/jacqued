@@ -29,8 +29,6 @@ module Msg =
             | AssistanceTemplateDefinitionNameChanged of string
             | DefineAssistanceTemplate of AssistanceTemplateId * string * Map<Exercise, AssistanceExercise list>
             | RemoveAssistanceTemplate of AssistanceTemplateId
-            | ListOperationCompleted
-            | ListOperationStarted
 
     type Setup =
         | Gym of Setup.Gym

@@ -69,7 +69,7 @@ type State =
           AssistanceTemplate = AssistanceTemplate.zero }
 
 let update
-    handler
+    (handler: Command -> Result<Event list, exn>)
     (getAssistanceTemplate:
         AssistanceTemplateId
             -> {| AssistanceTemplateId: AssistanceTemplateId
@@ -110,16 +110,16 @@ let update
         | Setup.Gym e ->
             match e with
             | SetupGym(bar, plates, units, days) ->
-                state,
-                handler (
-                    Command.SetupGym(
-                        { Bar = bar
-                          Plates = plates
-                          MeasurementSystem = units
-                          ExerciseDaysPerWeek = days }
-                        : SetupGym
-                    )
-                )
+                (state,
+                 Command.SetupGym(
+                     { Bar = bar
+                       Plates = plates
+                       MeasurementSystem = units
+                       ExerciseDaysPerWeek = days }
+                     : SetupGym
+                 )
+                 |> handler)
+                |> cmd
             | Gym.ExerciseDaysPerWeekChanged daysPerWeek ->
                 { state with
                     State.Gym.ExerciseDaysPerWeek = daysPerWeek }
@@ -152,15 +152,19 @@ let update
         | Setup.AssistanceTemplate e ->
             match e with
             | AssistanceTemplate.DefineAssistanceTemplate(assistanceTemplateId, name, exercises) ->
-                state,
-                handler (
-                    Command.DefineAssistanceTemplate
-                        { AssistanceTemplateId = assistanceTemplateId
-                          Name = name
-                          Exercises = exercises }
-                )
+                (state,
+                 Command.DefineAssistanceTemplate
+                     { AssistanceTemplateId = assistanceTemplateId
+                       Name = name
+                       Exercises = exercises }
+                 |> handler)
+                |> cmd
             | AssistanceTemplate.RemoveAssistanceTemplate assistanceTemplateId ->
-                state, handler (Command.RemoveAssistanceTemplate { AssistanceTemplateId = assistanceTemplateId })
+                (state,
+                 Command.RemoveAssistanceTemplate { AssistanceTemplateId = assistanceTemplateId }
+                 |> handler)
+                |> cmd
+
             | AssistanceTemplate.AssistanceTemplateDefinitionNameChanged name ->
                 { state with
                     State.AssistanceTemplate.NewAssistanceTemplateName = name
@@ -235,20 +239,20 @@ let update
                                 Name = state.AssistanceTemplate.NewAssistanceTemplateName
                                 AssistanceTemplateId = assistanceTemplateId }
 
-                        { state with
+                        ({ state with
                             State.AssistanceTemplate.NewAssistanceTemplateName = ""
                             State.AssistanceTemplate.SelectedAssistanceTemplate = assistanceTemplateDefinition |> Some
                             State.AssistanceTemplate.AssistanceTemplates =
                                 state.AssistanceTemplate.AssistanceTemplates
                                 |> Map.add assistanceTemplateId assistanceTemplateDefinition.Name },
-                        handler (
-                            Command.DefineAssistanceTemplate
-                                { Name = assistanceTemplateDefinition.Name
-                                  AssistanceTemplateId = assistanceTemplateDefinition.AssistanceTemplateId
-                                  Exercises =
-                                    assistanceTemplateDefinition.Exercises
-                                    |> Map.map (fun _ exercises -> exercises |> List.map snd) }
-                        )
+                         Command.DefineAssistanceTemplate
+                             { Name = assistanceTemplateDefinition.Name
+                               AssistanceTemplateId = assistanceTemplateDefinition.AssistanceTemplateId
+                               Exercises =
+                                 assistanceTemplateDefinition.Exercises
+                                 |> Map.map (fun _ exercises -> exercises |> List.map snd) }
+                         |> handler)
+                        |> cmd
                     | _ -> state |> pass
         | Setup.WeightIncrease e ->
             match e with
@@ -257,7 +261,11 @@ let update
                     SelectedWeightIncreases = weightIncreases }
                 |> pass
             | WeightIncrease.SetWeightIncreasesClick weightIncreases ->
-                state, handler (Command.SetWeightIncreases({ Increases = weightIncreases }: SetWeightIncreases))
+                (state,
+                 Command.SetWeightIncreases({ Increases = weightIncreases }: SetWeightIncreases)
+                 |> handler)
+                |> cmd
+
     | Settings e ->
         match e with
         | SelectTheme theme -> { state with SelectedTheme = theme } |> pass

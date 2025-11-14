@@ -3,6 +3,7 @@ namespace Jacqued
 open System
 open System.Runtime.CompilerServices
 open System.Runtime.InteropServices
+open Jacqued.Extensions
 
 module Typography =
     open Avalonia.FuncUI.DSL
@@ -10,7 +11,7 @@ module Typography =
 
     type private Typography =
         static member create(text: string, [<CallerMemberName; Optional; DefaultParameterValue("")>] ``class``: string) =
-            TextBlock.create [ TextBlock.text text; TextBlock.classes [ ``class`` |> Util.pascalize ] ]
+            TextBlock.create [ TextBlock.text text; TextBlock.classes [ ``class``.pascalize () ] ]
 
     let headline1 = Typography.create
     let headline2 = Typography.create
