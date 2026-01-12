@@ -1,4 +1,4 @@
-﻿on:
+on:
   push:
     tags:
       - v*
@@ -76,7 +76,7 @@ jobs:
           fetch-depth: 0
           submodules: true
       - name: download artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           path: publish
           merge-multiple: true
