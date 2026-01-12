@@ -1,4 +1,4 @@
-﻿on:
+on:
   pull_request:
     branches:
       - master
@@ -18,7 +18,7 @@ jobs:
 
     steps:
       - name: checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
           submodules: true
